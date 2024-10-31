@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 export interface AckListProps {
     initmode?: 'acking' | 'acker'
     user: User
+    onNavigated?: () => void
 }
 
 export const AckList = (props: AckListProps): JSX.Element => {
@@ -74,6 +75,7 @@ export const AckList = (props: AckListProps): JSX.Element => {
                             }}
                             component={RouterLink}
                             to={`/${user.ccid}`}
+                            onClick={props.onNavigated}
                         >
                             <CCAvatar avatarURL={user.profile?.avatar} identiconSource={user.ccid} />
                             <Link underline="hover">{user.profile?.username}</Link>
