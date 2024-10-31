@@ -65,7 +65,7 @@ export const AckList = (props: AckListProps): JSX.Element => {
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 1
+                        gap: 2
                     }}
                 >
                     {(mode === 'acking' ? ackingUsers : ackerUsers).map((user) => (
@@ -83,7 +83,7 @@ export const AckList = (props: AckListProps): JSX.Element => {
                             onClick={props.onNavigated}
                         >
                             <CCAvatar avatarURL={user.profile?.avatar} identiconSource={user.ccid} />
-                            <Box display="flex" flexDirection="column">
+                            <Box display="flex" flexDirection="column" flex="1">
                                 <Link underline="hover">{user.profile?.username}</Link>
                                 {client.ackers.find((ack) => ack.ccid === user.ccid) && (
                                     <Chip
@@ -97,7 +97,14 @@ export const AckList = (props: AckListProps): JSX.Element => {
                                         }}
                                     />
                                 )}
-                                <Typography variant="caption" color="primary">
+                                <Typography
+                                    variant="caption"
+                                    color="primary"
+                                    overflow="hidden"
+                                    sx={{
+                                        wordBreak: 'break-all'
+                                    }}
+                                >
                                     <MarkdownRendererLite
                                         limit={60}
                                         emojiDict={{}}
@@ -105,7 +112,6 @@ export const AckList = (props: AckListProps): JSX.Element => {
                                     />
                                 </Typography>
                             </Box>
-                            <Box sx={{ flex: 1 }} />
                             <AckButton user={user} />
                         </Box>
                     ))}
