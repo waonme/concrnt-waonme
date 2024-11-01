@@ -224,10 +224,12 @@ export const EditorActions = (props: EditorActionsProps): JSX.Element => {
 
                 <Tooltip title={'内容を隠す'} arrow placement="top" enterDelay={500}>
                     <CCIconButton
+                        disabled={props.disableEmoji}
                         onClick={(_) => {
                             props.setDraft(`<details>
 <summary>クリックして表示</summary>
-${props.draft || '内容を入力...'}
+
+${props.draft.trim() || '内容を入力...'}
 </details>`)
                         }}
                     >
