@@ -57,7 +57,7 @@ export const StreamPicker = (props: StreamPickerProps): JSX.Element => {
                             return true
                         }
 
-                        if (option.document.body.name === null) {
+                        if (!option.document.body.name) {
                             return false
                         }
 
