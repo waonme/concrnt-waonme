@@ -1,4 +1,4 @@
-import { Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -49,10 +49,9 @@ export const ImportSubkey = (): JSX.Element => {
     }
 
     return (
-        <>
+        <Box component="form" display="flex" flexDirection="column" gap={2}>
             <Typography variant="h3">{t('withSubkey')}</Typography>
             <TextField
-                id="subinput"
                 type={showSecret ? 'text' : 'password'}
                 placeholder={'concurrent-subkey xxx CCxxx@example.com'}
                 value={subkeyDraft}
@@ -86,6 +85,6 @@ export const ImportSubkey = (): JSX.Element => {
             <Button disabled={!client} onClick={accountImport}>
                 {t('import')}
             </Button>
-        </>
+        </Box>
     )
 }

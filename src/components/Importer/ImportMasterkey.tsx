@@ -136,10 +136,9 @@ export function ImportMasterKey(): JSX.Element {
     }
 
     return (
-        <>
+        <Box component="form" display="flex" flexDirection="column" gap={2}>
             <Typography variant="h3">{t('input')}</Typography>
             <TextField
-                id="masterinput"
                 type={showSecret ? 'text' : 'password'}
                 placeholder={t('secretPlaceholder')}
                 value={secretInput}
@@ -198,6 +197,6 @@ export function ImportMasterKey(): JSX.Element {
                     通常モードでログイン
                 </Button>
             </Box>
-        </>
+        </Box>
     )
 }
