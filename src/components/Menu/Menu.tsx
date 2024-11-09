@@ -30,6 +30,7 @@ import { useClient } from '../../context/ClientContext'
 import { usePreference } from '../../context/PreferenceContext'
 import { useTranslation } from 'react-i18next'
 import { useEditorModal } from '../EditorModal'
+import { useGlobalState } from '../../context/GlobalState'
 
 export interface MenuProps {
     onClick?: () => void
@@ -44,6 +45,8 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
     const [showEditorOnTop] = usePreference('showEditorOnTop')
     const theme = useTheme()
     const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
+    const globalState = useGlobalState()
+    const [progress] = usePreference('tutorialProgress')
 
     return (
         <Box
@@ -170,7 +173,11 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                         )}
                         <ListItem disablePadding>
                             <ListItemButton sx={{ gap: 1 }} component={NavLink} to="/tutorial" onClick={props.onClick}>
-                                <Badge color="secondary" variant="dot">
+                                <Badge
+                                    color="secondary"
+                                    variant="dot"
+                                    invisible={progress !== 0 || !globalState.isMasterSession}
+                                >
                                     <MenuBookIcon
                                         sx={{
                                             color: 'background.contrastText'

@@ -1,9 +1,12 @@
-import { Box, Button, Divider, Tab, Tabs, Typography } from '@mui/material'
+import { Alert, Box, Button, Divider, Tab, Tabs, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useClient } from '../context/ClientContext'
 import { usePreference } from '../context/PreferenceContext'
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { MarkdownRenderer } from '../components/ui/MarkdownRenderer'
+import { type Identity } from '@concurrent-world/client'
+
+const SwitchMasterToSub = lazy(() => import('../components/SwitchMasterToSub'))
 
 const tabs = ['パスワードとログイン', '投稿', 'フォローとウォッチ', 'コミュニティ', 'リスト', 'カスタマイズ', '完了！']
 
@@ -13,6 +16,8 @@ export function Tutorial(): JSX.Element {
 
     const [progress, setProgress] = usePreference('tutorialProgress')
     const [page, setPage] = useState(progress)
+
+    const identity: Identity | null = JSON.parse(localStorage.getItem('Identity') || 'null')
 
     const goNext = (): void => {
         setPage(page + 1)
@@ -26,7 +31,8 @@ export function Tutorial(): JSX.Element {
                 minHeight: '100%',
                 backgroundColor: 'background.paper',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                overflowY: 'auto'
             }}
         >
             <Box
@@ -54,57 +60,103 @@ export function Tutorial(): JSX.Element {
                         padding: 4,
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 4
+                        gap: 2
                     }}
                 >
                     {page === 0 && (
                         <>
-                            <MarkdownRenderer
-                                messagebody={`
-# パスワードとログイン
+                            {!identity && (
+                                <>
+                                    <Alert severity="success">
+                                        無事に特権モードから通常モードに切り替えることができました！すばらしい！
+                                    </Alert>
+                                    <Button
+                                        onClick={() => {
+                                            goNext()
+                                        }}
+                                    >
+                                        次へ
+                                    </Button>
+                                </>
+                            )}
 
-コンカレントでは、ログインするときに自分で決めるパスワードではなく、決まったパスワードを使います。このパスワードは非常に重要な為、「マスターキー」と呼ばれています。マスターキーは、他人に知られてしまうと取り返しがつかないことになるので、絶対に他人に教えないでください。
+                            <Typography variant="h1">パスワードとログイン</Typography>
+                            <Typography>
+                                コンカレントでは、ログインするときに自分で決めるパスワードではなく、決まったパスワードを使います。このパスワードは非常に重要な為、「マスターキー」と呼ばれています。マスターキーは、他人に知られてしまうと取り返しがつかないことになるので、絶対に他人に教えないでください。
+                            </Typography>
+                            <Typography>
+                                また、マスターキーを忘れてしまった場合、再設定することはできず、アカウントを新しく作り直す必要があります。そのため、マスターキーは印刷したりメモしたりして、貴重品として大切に保管してください。
+                            </Typography>
 
-また、マスターキーを忘れてしまった場合、再設定することはできず、アカウントを新しく作り直す必要があります。そのため、マスターキーは印刷したりメモしたりして、貴重品として大切に保管してください。
+                            {identity && (
+                                <>
+                                    <Typography variant="h2">マスターキーを保存しよう</Typography>
+                                    下のボタンから、自分の好きな方法でマスターキーを安全な場所に保存してください。
+                                    <Suspense fallback={<>loading...</>}>
+                                        <SwitchMasterToSub identity={identity} mode="memo" />
+                                    </Suspense>
+                                </>
+                            )}
 
-## ログイン
+                            <Typography variant="h2">ログイン方法</Typography>
 
-ログインは、トップページのログイン画面からマスターキーを入力して行います。
-他にも、QRコードを使ったログイン方法もあります。
+                            <Typography>
+                                ログインは、トップページのログイン画面からマスターキーを入力して行います。
+                                他にも、QRコードを使ったログイン方法もあります。
+                            </Typography>
+                            <Typography>
+                                すでにログイン済みの端末の設定&gt;ログインQRからQRコードを表示させ、新しい端末でQRコードを読み取ります。
+                            </Typography>
 
-すでにログイン済みの端末の設定>ログインQRからQRコードを表示させ、新しい端末でQRコードを読み取ります。
+                            <Typography variant="h2">特権モード</Typography>
+                            <Typography>
+                                コンカレントでは、マスターキーを入力してログインすると、特権モードでログインされます。
+                                特権モードでは、アカウントの引っ越しや削除など、重要な操作が行えるモードです。
+                            </Typography>
 
-### 特権モード
+                            <Typography>
+                                特権モードである必要がない場合は、画面上部の「特権モード」をクリックすることで端末から秘密情報を忘れさせて、通常モードに切り替えることができます。
+                            </Typography>
 
-コンカレントでは、マスターキーを入力してログインすると、特権モードでログインされます。
-特権モードでは、アカウントの引っ越しや削除など、重要な操作が行えるモードです。
+                            <Typography>
+                                通常モードから特権モードに切り替えるには、一度ログアウトして再度マスターキーを入力してログインする必要があります。
+                            </Typography>
 
-特権モードである必要がない場合は、画面上部の「特権モード」をクリックすることで通常モードに切り替えることができます。
+                            {identity && (
+                                <>
+                                    <Typography variant="h2">特権モードから抜けてみよう</Typography>
+                                    <Suspense fallback={<>loading...</>}>
+                                        <SwitchMasterToSub identity={identity} mode="test" />
+                                    </Suspense>
+                                </>
+                            )}
 
-通常モードから特権モードに切り替えるには、一度ログアウトして再度マスターキーを入力してログインする必要があります。
+                            <details>
+                                <summary>より詳しく知りたい人へ</summary>
 
-## より詳しく知りたい人へ
+                                <Typography>
+                                    コンカレントには二種類のパスワードがあります。一つは「マスターキー」、もう一つは「サブキー」です。
+                                </Typography>
 
-<details>
-<summary> より詳しい説明 </summary>
+                                <Typography>これは、いわゆる実印とシャチハタのような関係です。</Typography>
 
-コンカレントには二種類のパスワードがあります。一つは「マスターキー」、もう一つは「サブキー」です。
+                                <Typography>
+                                    コンカレントでは、自分の投稿にデジタルな印鑑を押して、自分の投稿であることを証明しています。
+                                </Typography>
 
-これは、いわゆる実印とシャチハタのような関係です。
+                                <Typography>
+                                    一方で、実印は契約したり銀行からお金を引き下ろしたりなど、非常に強い権限を持っています。これを荷物の受け取りには使いませんよね。
+                                </Typography>
 
-コンカレントでは、自分の投稿にデジタルな印鑑を押して、自分の投稿であることを証明しています。
+                                <Typography>
+                                    これと同じように、コンカレントでも引っ越しやアカウントの削除などを行う場合はマスターキー、投稿やフォローなどの日常的な操作にはサブキーを使う仕組みになっています。
+                                </Typography>
 
-しかし、実印は契約したり銀行からお金を引き下ろしたりなど、非常に強い権限を持っています。これを荷物の受け取りには使いませんよね。
+                                <Typography>
+                                    マスターキーは一度他人に知られてしまえば一巻の終わりですが、サブキーはいつでもその効力を取り消すことができます。
+                                </Typography>
+                            </details>
 
-これと同じように、コンカレントでも引っ越しやアカウントの削除などを行う場合はマスターキー、投稿やフォローなどの日常的な操作にはサブキーを使う仕組みになっています。
-
-マスターキーは一度他人に知られてしまえば一巻の終わりですが、サブキーはいつでもその効力を取り消すことができます。
-
-</details>
-
-`}
-                                emojiDict={{}}
-                            />
                             {client.api.ckid ? (
                                 <Button
                                     onClick={() => {
@@ -323,14 +375,6 @@ export function Tutorial(): JSX.Element {
                     )}
                 </Box>
             </Box>
-
-            <Button
-                onClick={() => {
-                    setProgress(0)
-                }}
-            >
-                dev: チュートリアルをリセット
-            </Button>
         </Box>
     )
 }

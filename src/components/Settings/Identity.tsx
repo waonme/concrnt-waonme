@@ -40,8 +40,6 @@ import { type ConcurrentTheme } from '../../model'
 import { CCIconButton } from '../ui/CCIconButton'
 import ContentPasteIcon from '@mui/icons-material/ContentPaste'
 
-const SwitchMasterToSub = lazy(() => import('../SwitchMasterToSub'))
-
 interface CertChain {
     id: string
     key?: Key
@@ -289,18 +287,26 @@ export const IdentitySettings = (): JSX.Element => {
                 }}
             >
                 {identity && (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 1
-                        }}
+                    <Alert
+                        severity="info"
+                        action={
+                            <Button
+                                variant="text"
+                                color="inherit"
+                                size="small"
+                                onClick={() => {
+                                    globalState.setSwitchToSub(true)
+                                }}
+                            >
+                                通常モードへ移行する
+                            </Button>
+                        }
                     >
-                        <Typography variant="h3">マスターキーからサブキーへ切り替える</Typography>
-                        <Suspense fallback={<>loading...</>}>
-                            <SwitchMasterToSub identity={identity} />
-                        </Suspense>
-                    </Box>
+                        <AlertTitle>現在特権モードでログインしています</AlertTitle>
+                        特権モードは、アカウントの削除など強い操作が可能なモードです。
+                        <br />
+                        特権の利用が終ったら、通常モードへ戻ることをお勧めします。
+                    </Alert>
                 )}
 
                 <Box
@@ -328,9 +334,7 @@ export const IdentitySettings = (): JSX.Element => {
                                 アカウントにはエイリアス{client.user.alias}が設定されています。
                             </Typography>
                         ) : (
-                            <Typography variant="body1">
-                                アカウントエイリアス未設定 (マスターキーログイン時のみ設定可能)
-                            </Typography>
+                            <Typography variant="body1">アカウントエイリアス未設定 (特権モードのみ設定可能)</Typography>
                         )}
                     </AccordionSummary>
                     <AccordionDetails
