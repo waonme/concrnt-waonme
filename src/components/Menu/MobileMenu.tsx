@@ -30,7 +30,8 @@ export const MobileMenu = (): JSX.Element => {
                 height: 49,
                 color: 'white',
                 justifyContent: 'space-around',
-                marginBottom: 'env(safe-area-inset-bottom)'
+                marginBottom: 'env(safe-area-inset-bottom)',
+                overflow: 'hidden'
             }}
         >
             <Button
@@ -41,8 +42,8 @@ export const MobileMenu = (): JSX.Element => {
                 }}
                 sx={{
                     color: 'divider',
-                    minWidth: 0,
-                    width: 0.5
+                    flex: 0.5,
+                    minWidth: 0
                 }}
             >
                 <MenuIcon
@@ -54,12 +55,25 @@ export const MobileMenu = (): JSX.Element => {
                     }}
                 />
             </Button>
-            <Button variant="text" sx={{ color: 'background.contrastText', width: 1 }} component={NavLink} to="/">
+            <Button
+                variant="text"
+                sx={{
+                    color: 'background.contrastText',
+                    flex: 1,
+                    minWidth: 0
+                }}
+                component={NavLink}
+                to="/"
+            >
                 <HomeIcon />
             </Button>
             <Button
                 variant="text"
-                sx={{ color: 'background.contrastText', width: 1 }}
+                sx={{
+                    color: 'background.contrastText',
+                    flex: 1,
+                    minWidth: 0
+                }}
                 component={NavLink}
                 to="/notifications"
             >
@@ -67,7 +81,11 @@ export const MobileMenu = (): JSX.Element => {
             </Button>
             <Button
                 variant="text"
-                sx={{ color: 'background.contrastText', width: 1 }}
+                sx={{
+                    color: 'background.contrastText',
+                    flex: 1,
+                    minWidth: 0
+                }}
                 component={NavLink}
                 to="/contacts"
             >
@@ -76,7 +94,11 @@ export const MobileMenu = (): JSX.Element => {
             {!tutorialCompleted && (
                 <Button
                     variant="text"
-                    sx={{ color: 'background.contrastText', width: 1 }}
+                    sx={{
+                        color: 'background.contrastText',
+                        flex: 1,
+                        minWidth: 0
+                    }}
                     component={NavLink}
                     to="/tutorial"
                 >
@@ -91,7 +113,11 @@ export const MobileMenu = (): JSX.Element => {
             )}
             <Button
                 variant="text"
-                sx={{ color: 'background.contrastText', width: 1 }}
+                sx={{
+                    color: 'background.contrastText',
+                    flex: 1,
+                    minWidth: 0
+                }}
                 component={NavLink}
                 to="/explorer/timelines"
             >
@@ -102,7 +128,7 @@ export const MobileMenu = (): JSX.Element => {
                 sx={{
                     height: 36,
                     my: 'auto',
-                    width: 0.5,
+                    flex: 0.5,
                     borderRadius: `20px 0 0 20px`,
                     backgroundColor: alpha(theme.palette.background.contrastText, 0.9),
                     ':hover': {

@@ -65,7 +65,7 @@ export function Tutorial(): JSX.Element {
                 <Divider />
                 <Box
                     sx={{
-                        padding: 4,
+                        padding: { xs: 2, sm: 4, md: 4 },
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 2
@@ -75,16 +75,24 @@ export function Tutorial(): JSX.Element {
                         <>
                             {!identity && (
                                 <>
-                                    <Alert severity="success">
+                                    <Alert
+                                        severity="success"
+                                        action={
+                                            <Button
+                                                variant="text"
+                                                color="inherit"
+                                                size="small"
+                                                disabled={progress !== 0}
+                                                onClick={() => {
+                                                    goNext()
+                                                }}
+                                            >
+                                                次へ
+                                            </Button>
+                                        }
+                                    >
                                         無事に特権モードから通常モードに切り替えることができました！すばらしい！
                                     </Alert>
-                                    <Button
-                                        onClick={() => {
-                                            goNext()
-                                        }}
-                                    >
-                                        次へ
-                                    </Button>
                                 </>
                             )}
 
@@ -168,6 +176,7 @@ export function Tutorial(): JSX.Element {
 
                             {client.api.ckid ? (
                                 <Button
+                                    disabled={progress !== 0}
                                     onClick={() => {
                                         goNext()
                                     }}
@@ -218,6 +227,7 @@ export function Tutorial(): JSX.Element {
                                 emojiDict={{}}
                             />
                             <Button
+                                disabled={progress !== 1}
                                 onClick={() => {
                                     goNext()
                                 }}
@@ -245,6 +255,7 @@ export function Tutorial(): JSX.Element {
                                 emojiDict={{}}
                             />
                             <Button
+                                disabled={progress !== 2}
                                 onClick={() => {
                                     goNext()
                                 }}
@@ -315,6 +326,7 @@ export function Tutorial(): JSX.Element {
                             />
 
                             <Button
+                                disabled={progress !== 3}
                                 onClick={() => {
                                     goNext()
                                 }}
@@ -347,6 +359,7 @@ export function Tutorial(): JSX.Element {
                                 emojiDict={{}}
                             />
                             <Button
+                                disabled={progress !== 4}
                                 onClick={() => {
                                     goNext()
                                 }}
@@ -388,6 +401,7 @@ export function Tutorial(): JSX.Element {
                                 emojiDict={{}}
                             />
                             <Button
+                                disabled={progress !== 5}
                                 onClick={() => {
                                     goNext()
                                 }}
@@ -411,6 +425,7 @@ export function Tutorial(): JSX.Element {
                             />
 
                             <Button
+                                disabled={progress !== 6}
                                 onClick={() => {
                                     editorModal.open({ draft: 'コンカレントの使い方をマスターした！' })
                                 }}
@@ -419,6 +434,7 @@ export function Tutorial(): JSX.Element {
                             </Button>
 
                             <Button
+                                disabled={progress !== 6}
                                 onClick={() => {
                                     setTutorialCompleted(!tutorialCompleted)
                                 }}
