@@ -47,6 +47,7 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
     const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
     const globalState = useGlobalState()
     const [progress] = usePreference('tutorialProgress')
+    const [tutorialCompleted] = usePreference('tutorialCompleted')
 
     return (
         <Box
@@ -171,23 +172,30 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                                 </ListItemButton>
                             </ListItem>
                         )}
-                        <ListItem disablePadding>
-                            <ListItemButton sx={{ gap: 1 }} component={NavLink} to="/tutorial" onClick={props.onClick}>
-                                <Badge
-                                    color="secondary"
-                                    variant="dot"
-                                    invisible={progress !== 0 || !globalState.isMasterSession}
+                        {!tutorialCompleted && (
+                            <ListItem disablePadding>
+                                <ListItemButton
+                                    sx={{ gap: 1 }}
+                                    component={NavLink}
+                                    to="/tutorial"
+                                    onClick={props.onClick}
                                 >
-                                    <MenuBookIcon
-                                        sx={{
-                                            color: 'background.contrastText'
-                                        }}
-                                    />
-                                </Badge>
+                                    <Badge
+                                        color="secondary"
+                                        variant="dot"
+                                        invisible={progress !== 0 || !globalState.isMasterSession}
+                                    >
+                                        <MenuBookIcon
+                                            sx={{
+                                                color: 'background.contrastText'
+                                            }}
+                                        />
+                                    </Badge>
 
-                                <ListItemText primary={'チュートリアル'} />
-                            </ListItemButton>
-                        </ListItem>
+                                    <ListItemText primary={'チュートリアル'} />
+                                </ListItemButton>
+                            </ListItem>
+                        )}
                         {devMode && (
                             <ListItem disablePadding>
                                 <ListItemButton

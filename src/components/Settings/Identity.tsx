@@ -23,7 +23,7 @@ import {
 } from '@mui/material'
 import Tilt from 'react-parallax-tilt'
 import { Passport } from '../theming/Passport'
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
 import { type Key } from '@concurrent-world/client/dist/types/model/core'
 import { usePreference } from '../../context/PreferenceContext'
@@ -447,6 +447,7 @@ _concrnt.${aliasDraft} TXT "hint=${client.host}"`}</Codeblock>
                         overflow: 'scroll'
                     }}
                 >
+                    <Typography variant="h3">セッション情報</Typography>
                     {certChain && <KeyTree certChain={certChain} forceUpdateCallback={forceUpdateCallback} />}
                 </Box>
             </Box>

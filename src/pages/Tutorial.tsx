@@ -5,6 +5,11 @@ import { usePreference } from '../context/PreferenceContext'
 import { Suspense, lazy, useState } from 'react'
 import { MarkdownRenderer } from '../components/ui/MarkdownRenderer'
 import { type Identity } from '@concurrent-world/client'
+import { useEditorModal } from '../components/EditorModal'
+import { StreamCard } from '../components/Stream/Card'
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
+import figurePost from '../resources/tutorial-post-to-communities.png'
+import figureListSettings from '../resources/tutorial-list-settings.png'
 
 const SwitchMasterToSub = lazy(() => import('../components/SwitchMasterToSub'))
 
@@ -15,9 +20,12 @@ export function Tutorial(): JSX.Element {
     const { client } = useClient()
 
     const [progress, setProgress] = usePreference('tutorialProgress')
+    const [tutorialCompleted, setTutorialCompleted] = usePreference('tutorialCompleted')
     const [page, setPage] = useState(progress)
 
     const identity: Identity | null = JSON.parse(localStorage.getItem('Identity') || 'null')
+
+    const editorModal = useEditorModal()
 
     const goNext = (): void => {
         setPage(page + 1)
@@ -85,7 +93,7 @@ export function Tutorial(): JSX.Element {
                                 コンカレントでは、ログインするときに自分で決めるパスワードではなく、決まったパスワードを使います。このパスワードは非常に重要な為、「マスターキー」と呼ばれています。マスターキーは、他人に知られてしまうと取り返しがつかないことになるので、絶対に他人に教えないでください。
                             </Typography>
                             <Typography>
-                                また、マスターキーを忘れてしまった場合、再設定することはできず、アカウントを新しく作り直す必要があります。そのため、マスターキーは印刷したりメモしたりして、貴重品として大切に保管してください。
+                                また、マスターキーを無くしてしまった場合、復旧することは決してできず、アカウントを新しく作り直す必要があります。そのため、マスターキーは印刷したりメモしたりして、貴重品として大切に保管してください。
                             </Typography>
 
                             {identity && (
@@ -110,7 +118,7 @@ export function Tutorial(): JSX.Element {
 
                             <Typography variant="h2">特権モード</Typography>
                             <Typography>
-                                コンカレントでは、マスターキーを入力してログインすると、特権モードでログインされます。
+                                コンカレントでは、マスターキーを入力してログインするとき、特権モードでログインすることができます。
                                 特権モードでは、アカウントの引っ越しや削除など、重要な操作が行えるモードです。
                             </Typography>
 
@@ -125,6 +133,7 @@ export function Tutorial(): JSX.Element {
                             {identity && (
                                 <>
                                     <Typography variant="h2">特権モードから抜けてみよう</Typography>
+                                    登録直後はまだ特権モードになっています。特権モードから通常モードに切り替えてみましょう。
                                     <Suspense fallback={<>loading...</>}>
                                         <SwitchMasterToSub identity={identity} mode="test" />
                                     </Suspense>
@@ -173,14 +182,23 @@ export function Tutorial(): JSX.Element {
 
                     {page === 1 && (
                         <>
+                            <Typography variant="h1">投稿</Typography>
+
+                            <Typography>
+                                デスクトップではデフォルトで画面上部に投稿UIがあります。スマートフォンでは右下のボタンを押すことで投稿画面を表示することができます。
+                                まずは試しに1つ投稿してみましょう。
+                            </Typography>
+
+                            <Button
+                                onClick={() => {
+                                    editorModal.open({ draft: 'ハロー！コンカレント！' })
+                                }}
+                            >
+                                ハロー！コンカレント！ する
+                            </Button>
+
                             <MarkdownRenderer
                                 messagebody={`
-# 投稿
-
-デスクトップではデフォルトで画面上部に投稿UIがあります。スマートフォンでは右下のボタンを押すことで投稿画面を表示することができます。
-
-まずは試しに1つ投稿してみましょう。
-
 ## 装飾とプレビュー
 
 コンカレントでは、投稿に記号を使うことで装飾を行うことができます。
@@ -238,29 +256,64 @@ export function Tutorial(): JSX.Element {
 
                     {page === 3 && (
                         <>
-                            <MarkdownRenderer
-                                messagebody={`
-# コミュニティ
+                            <Typography variant="h1">コミュニティ</Typography>
+                            <Typography>
+                                コンカレントにはコミュニティタイムラインがあります。
+                                コミュニティタイムラインは「探索」タブから探すことができます。1つみつけてみましょう。無ければ、新しく自分で作ってみるのもいいですね。
+                            </Typography>
 
-コンカレントにはコミュニティタイムラインがあります。
-コミュニティタイムラインは「探索」タブから探すことができます。1つみつけてみましょう。無ければ、新しく自分で作ってみるのもいいですね。
-
-みつけたら、\`三+\`ボタンを押すことで、そのコミュニティをリストに追加する(ウォッチする)ことができます。
-
-## コミュニティへの投稿
-
-コミュニティをリストに追加していると、普段の投稿UIの投稿先一覧にその候補が追加されます。投稿先はいくつも選ぶことができます。
-
-\\<図\\>
-
-## デフォルト投稿先の設定
-
-自分の腰を据えるコミュニティがあれば、そのコミュニティをデフォルト投稿先に設定しておくと便利でしょう。
-リストを表示した状態で、右上のiボタンを押すことで、デフォルト投稿先の設定を行うことができます。
-
-`}
-                                emojiDict={{}}
+                            <StreamCard
+                                sx={{ minWidth: '300px' }}
+                                streamID="tar69vv26r5s4wk0r067v20bvyw@ariake.concrnt.net"
+                                name="Arrival Lounge"
+                                description="コンカレントへようこそ！ここは主にビギナーの方が自分のコミュニティを見つける入口のタイムラインです。困ったら、まずはこのタイムラインをリストに追加してみるのがおススメです。"
+                                banner="https://worldfile.cc/CC2d97694D850Df2089F48E639B4795dD95D2DCE2E/f696009d-f1f0-44f8-83fe-6387946f1b86"
+                                domain="ariake.concrnt.net"
                             />
+
+                            <Typography>
+                                みつけたら、
+                                {
+                                    <PlaylistAddIcon
+                                        sx={{
+                                            color: 'text.primary',
+                                            verticalAlign: 'middle'
+                                        }}
+                                    />
+                                }
+                                ボタンを押すことでそのコミュニティをリストに追加する(ウォッチする)ことができます。
+                            </Typography>
+
+                            <Typography variant="h2">コミュニティへの投稿</Typography>
+                            <Typography>
+                                コミュニティをリストに追加していると、普段の投稿UIの投稿先一覧にその候補が追加されます。投稿先はいくつも選ぶことができます。
+                            </Typography>
+
+                            <Box
+                                component="img"
+                                src={figurePost}
+                                sx={{
+                                    maxWidth: '80%',
+                                    margin: 'auto'
+                                }}
+                            />
+
+                            <Typography variant="h2">デフォルト投稿先の設定</Typography>
+
+                            <Typography>
+                                自分の腰を据えるコミュニティがあれば、そのコミュニティをデフォルト投稿先に設定しておくと便利でしょう。
+                                リストを表示した状態で、右上のiボタンを押すことで、デフォルト投稿先の設定を行うことができます。
+                            </Typography>
+
+                            <Box
+                                component="img"
+                                src={figureListSettings}
+                                sx={{
+                                    maxWidth: '80%',
+                                    margin: 'auto'
+                                }}
+                            />
+
                             <Button
                                 onClick={() => {
                                     goNext()
@@ -347,13 +400,37 @@ export function Tutorial(): JSX.Element {
                     {page === 6 && (
                         <>
                             <MarkdownRenderer
+                                emojiDict={{}}
                                 messagebody={`
 # 完了！
 
 これで、コンカレントの基本的な使い方をマスターしました！
 
 これからは、自分の好きなようにコンカレントを使ってみてください。
+`}
+                            />
 
+                            <Button
+                                onClick={() => {
+                                    editorModal.open({ draft: 'コンカレントの使い方をマスターした！' })
+                                }}
+                            >
+                                マスターした！ する
+                            </Button>
+
+                            <Button
+                                onClick={() => {
+                                    setTutorialCompleted(!tutorialCompleted)
+                                }}
+                            >
+                                {tutorialCompleted
+                                    ? 'メニューにチュートリアルを表示する'
+                                    : 'メニューからチュートリアルを非表示にする'}
+                            </Button>
+
+                            <MarkdownRenderer
+                                emojiDict={{}}
+                                messagebody={`
 
 ## その他の機能
 
@@ -369,7 +446,6 @@ export function Tutorial(): JSX.Element {
 また、自分がいるサーバーがサービス終了するときは、ほかのサーバーに引っ越すことができます。
 
 `}
-                                emojiDict={{}}
                             />
                         </>
                     )}
