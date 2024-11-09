@@ -21,10 +21,11 @@ export function ImportMasterKey(): JSX.Element {
     const { t } = useTranslation('', { keyPrefix: 'import' })
 
     const [secretInput, setSecretInput] = useState<string>('')
-    const [showSecret, setShowSecret] = useState<boolean>(true)
+    const [showSecret, setShowSecret] = useState<boolean>(false)
     const [domainInput, setDomainInput] = useState<string>('')
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [registrationOK, setRegistrationOK] = useState<boolean>(false)
+    const [domainAutoDetectionFailed, setDomainAutoDetectionFailed] = useState<boolean>(false)
 
     const keypair: KeyPair | null = useMemo(() => {
         if (secretInput.length === 0) return null
@@ -53,6 +54,7 @@ export function ImportMasterKey(): JSX.Element {
                             setDomainInput(entity.domain)
                             setErrorMessage('')
                         } else {
+                            setDomainAutoDetectionFailed(true)
                             setErrorMessage(t('notFound'))
                         }
                     })
@@ -91,6 +93,7 @@ export function ImportMasterKey(): JSX.Element {
     }, [domainInput])
 
     const accountImport = (): void => {
+        localStorage.clear()
         localStorage.setItem('Domain', JSON.stringify(domainInput))
         localStorage.setItem('PrivateKey', JSON.stringify(keypair?.privatekey))
         const normalized = secretInput.trim().normalize('NFKD')
@@ -104,6 +107,7 @@ export function ImportMasterKey(): JSX.Element {
         <>
             <Typography variant="h3">{t('input')}</Typography>
             <TextField
+                id="masterinput"
                 type={showSecret ? 'text' : 'password'}
                 placeholder={t('secretPlaceholder')}
                 value={secretInput}
@@ -111,6 +115,9 @@ export function ImportMasterKey(): JSX.Element {
                     setSecretInput(e.target.value)
                 }}
                 disabled={!!keypair}
+                onFocus={() => {
+                    setShowSecret(true)
+                }}
                 onPaste={() => {
                     setShowSecret(false)
                 }}
@@ -128,20 +135,23 @@ export function ImportMasterKey(): JSX.Element {
                         </InputAdornment>
                     )
                 }}
+                helperText={'マスターキーは、12個の単語をスペース区切りで入力します'}
             />
             {keypair && (
                 <Typography sx={{ wordBreak: 'break-all' }}>
                     {t('welcome')}: {ccid}
                 </Typography>
             )}
-            <TextField
-                placeholder="example.tld"
-                label={t('domain')}
-                value={domainInput}
-                onChange={(e) => {
-                    setDomainInput(e.target.value)
-                }}
-            />
+            {domainAutoDetectionFailed && (
+                <TextField
+                    placeholder="example.tld"
+                    label={t('domain')}
+                    value={domainInput}
+                    onChange={(e) => {
+                        setDomainInput(e.target.value)
+                    }}
+                />
+            )}
             {errorMessage}
             <Button disabled={!keypair || !registrationOK} onClick={accountImport}>
                 {t('import')}

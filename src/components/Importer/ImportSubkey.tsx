@@ -12,7 +12,7 @@ export const ImportSubkey = (): JSX.Element => {
 
     const [subkey, setSubkey] = useState<string>('')
     const [subkeyDraft, setSubkeyDraft] = useState<string>('')
-    const [showSecret, setShowSecret] = useState<boolean>(true)
+    const [showSecret, setShowSecret] = useState<boolean>(false)
     const [errorMessage, setErrorMessage] = useState<string>('')
 
     const [client, setClient] = useState<Client | null>(null)
@@ -21,6 +21,7 @@ export const ImportSubkey = (): JSX.Element => {
 
     const accountImport = (): void => {
         if (client) {
+            localStorage.clear()
             localStorage.setItem('Domain', JSON.stringify(client.host))
             localStorage.setItem('SubKey', JSON.stringify(subkey))
             window.location.href = '/'
@@ -51,6 +52,7 @@ export const ImportSubkey = (): JSX.Element => {
         <>
             <Typography variant="h3">{t('withSubkey')}</Typography>
             <TextField
+                id="subinput"
                 type={showSecret ? 'text' : 'password'}
                 placeholder={'concurrent-subkey xxx CCxxx@example.com'}
                 value={subkeyDraft}
