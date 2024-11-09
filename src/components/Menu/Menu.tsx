@@ -10,7 +10,8 @@ import {
     Typography,
     Link,
     useMediaQuery,
-    useTheme
+    useTheme,
+    Badge
 } from '@mui/material'
 import CreateIcon from '@mui/icons-material/Create'
 import { Link as NavLink } from 'react-router-dom'
@@ -21,6 +22,7 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import ContactsIcon from '@mui/icons-material/Contacts'
 import CellTowerIcon from '@mui/icons-material/CellTower'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import { memo } from 'react'
 import { ListsMenu } from '../ListsMenu/main'
 import { CCAvatar } from '../ui/CCAvatar'
@@ -166,6 +168,19 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                                 </ListItemButton>
                             </ListItem>
                         )}
+                        <ListItem disablePadding>
+                            <ListItemButton sx={{ gap: 1 }} component={NavLink} to="/tutorial" onClick={props.onClick}>
+                                <Badge color="secondary" variant="dot">
+                                    <MenuBookIcon
+                                        sx={{
+                                            color: 'background.contrastText'
+                                        }}
+                                    />
+                                </Badge>
+
+                                <ListItemText primary={'チュートリアル'} />
+                            </ListItemButton>
+                        </ListItem>
                         {devMode && (
                             <ListItem disablePadding>
                                 <ListItemButton

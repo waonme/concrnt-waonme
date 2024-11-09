@@ -48,6 +48,7 @@ import { ConcrntLogo } from './components/theming/ConcrntLogo'
 import { ConcordPage } from './pages/Concord'
 import { EditorModalProvider } from './components/EditorModal'
 import { MediaViewerProvider } from './context/MediaViewer'
+import { Tutorial } from './pages/Tutorial'
 
 function App(): JSX.Element {
     const { client } = useClient()
@@ -381,6 +382,7 @@ function App(): JSX.Element {
                                 <Route path="/devtool" element={<Devtool />} />
                                 <Route path="/subscriptions" element={<ManageSubsPage />} />
                                 <Route path="/concord/*" element={<ConcordPage />} />
+                                <Route path="/tutorial" element={<Tutorial />} />
                             </Routes>
                         </Paper>
                         <Box
