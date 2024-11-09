@@ -9,9 +9,11 @@ import {
     IsValid256k1PrivateKey,
     type KeyPair,
     LoadKeyFromMnemonic,
-    LoadIdentity
+    LoadIdentity,
+    GenerateIdentity,
+    ComputeCKID
 } from '@concurrent-world/client'
-import { IconButton, InputAdornment } from '@mui/material'
+import { Box, IconButton, InputAdornment } from '@mui/material'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -26,6 +28,8 @@ export function ImportMasterKey(): JSX.Element {
     const [errorMessage, setErrorMessage] = useState<string>('')
     const [registrationOK, setRegistrationOK] = useState<boolean>(false)
     const [domainAutoDetectionFailed, setDomainAutoDetectionFailed] = useState<boolean>(false)
+
+    let [logining, setLogining] = useState<boolean>(false)
 
     const keypair: KeyPair | null = useMemo(() => {
         if (secretInput.length === 0) return null
@@ -78,6 +82,7 @@ export function ImportMasterKey(): JSX.Element {
                 const client = new Client(domainInput, keypair, ccid)
                 client.api.fetchWithCredential(domainInput, '/api/v1/entity', {}).then((res) => {
                     if (res.ok) {
+                        setErrorMessage('')
                         setRegistrationOK(true)
                     } else {
                         setRegistrationOK(false)
@@ -101,6 +106,33 @@ export function ImportMasterKey(): JSX.Element {
             localStorage.setItem('Identity', JSON.stringify(LoadIdentity(normalized)))
         }
         window.location.href = '/'
+    }
+
+    const accountImportWithSubkey = async (): Promise<void> => {
+        if (logining) return
+        if (!keypair || !ccid) return
+        setLogining((logining = true))
+
+        const client = await Client.create(keypair.privatekey, domainInput)
+
+        const newIdentity = GenerateIdentity()
+        const ckid = ComputeCKID(newIdentity.publicKey)
+
+        client.api
+            .enactSubkey(ckid)
+            .then(() => {
+                localStorage.clear()
+                const subkey = `concurrent-subkey ${newIdentity.privateKey} ${client.ccid}@${client.host} ${client.user?.profile?.username}`
+                localStorage.setItem('Domain', JSON.stringify(domainInput))
+                localStorage.setItem('SubKey', JSON.stringify(subkey))
+                window.location.href = '/'
+            })
+            .catch((e) => {
+                console.error('error: ', e)
+            })
+            .finally(() => {
+                setLogining((logining = false))
+            })
     }
 
     return (
@@ -153,9 +185,19 @@ export function ImportMasterKey(): JSX.Element {
                 />
             )}
             {errorMessage}
-            <Button disabled={!keypair || !registrationOK} onClick={accountImport}>
-                {t('import')}
-            </Button>
+            <Box display="flex" flexDirection="row" justifyContent="flex-end" alignItems="center" gap={1}>
+                <Button
+                    variant="text"
+                    color="error"
+                    disabled={!keypair || !registrationOK || logining}
+                    onClick={accountImport}
+                >
+                    特権モードでログイン
+                </Button>
+                <Button disabled={!keypair || !registrationOK || logining} onClick={accountImportWithSubkey}>
+                    通常モードでログイン
+                </Button>
+            </Box>
         </>
     )
 }
