@@ -194,6 +194,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
     const whisper = participants.map((p) => p.ccid)
 
     const post = (postHome: boolean): void => {
+        if (!client?.user) return
         if ((draft.length === 0 || draft.trim().length === 0) && !(mode === 'media' || mode === 'reroute')) {
             enqueueSnackbar('Message must not be empty!', { variant: 'error' })
             return
@@ -207,9 +208,11 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
             return
         }
         const destTimelineIDs = destTimelines.map((s) => s.id)
-        const dest = [...new Set([...destTimelineIDs, ...(postHome ? [client?.user?.homeTimeline] : [])])].filter(
-            (e) => e
-        ) as string[]
+
+        const homeTimeline = selectedSubprofile
+            ? 'world.concrnt.t-subhome.' + selectedSubprofile + '@' + client.user.ccid
+            : client.user.homeTimeline
+        const dest = [...new Set([...destTimelineIDs, ...(postHome ? [homeTimeline] : [])])].filter((e) => e)
 
         const mentions = draft.match(/@([^\s@]+)/g)?.map((e) => e.slice(1)) ?? []
 
