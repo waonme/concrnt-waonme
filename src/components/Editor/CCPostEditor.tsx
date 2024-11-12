@@ -47,6 +47,7 @@ import FeedbackIcon from '@mui/icons-material/Feedback'
 import { usePreference } from '../../context/PreferenceContext'
 import { CCComboBox } from '../ui/CCComboBox'
 import { genBlurHash } from '../../util'
+import { SubprofileSelector } from '../SubprofileSelector'
 
 const ModeSets = {
     plaintext: {
@@ -265,7 +266,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     req = Promise.reject(new Error('No actionTo'))
                     break
                 }
-                req = props.actionTo.reroute(dest, draft, {
+                req = props.actionTo.reroute(dest, '', {
                     emojis,
                     profileOverride,
                     whisper,
@@ -653,6 +654,18 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             whisperUsers={participants}
                             setWhisperUsers={setParticipants}
                             isPrivate={isPrivate}
+                            addon={
+                                mode === 'reroute' && (
+                                    <SubprofileSelector
+                                        selectedSubprofile={selectedSubprofile}
+                                        setSelectedSubprofile={setSelectedSubprofile}
+                                        sx={{
+                                            height: '32px',
+                                            width: '32px'
+                                        }}
+                                    />
+                                )
+                            }
                         />
                     </>
                 ) : (
@@ -692,6 +705,18 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             whisperUsers={participants}
                             setWhisperUsers={setParticipants}
                             isPrivate={isPrivate}
+                            addon={
+                                mode === 'reroute' && (
+                                    <SubprofileSelector
+                                        selectedSubprofile={selectedSubprofile}
+                                        setSelectedSubprofile={setSelectedSubprofile}
+                                        sx={{
+                                            height: '32px',
+                                            width: '32px'
+                                        }}
+                                    />
+                                )
+                            }
                         />
                         <Collapse unmountOnExit in={draft.length > 0}>
                             <Divider
