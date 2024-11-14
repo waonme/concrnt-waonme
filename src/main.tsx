@@ -42,7 +42,7 @@ const logined = domain !== '' && (prvkey !== '' || subkey !== '')
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <ErrorBoundary FallbackComponent={EmergencyKit}>
-        <Suspense fallback={<FullScreenLoading message="Loading..." />}>
+        <Suspense fallback={<FullScreenLoading message="Downloading Updates..." />}>
             <BrowserRouter>
                 <Routes>
                     <Route path="/crash" element={<EmergencyKit error={null} resetErrorBoundary={() => {}} />} />
