@@ -91,7 +91,7 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                 objectFit: 'contain',
                                 cursor: 'pointer'
                             }}
-                            onLoadedData={() => {
+                            onLoadedMetadata={() => {
                                 setLoadded(true)
                             }}
                         />
