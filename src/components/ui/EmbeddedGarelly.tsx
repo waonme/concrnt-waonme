@@ -94,6 +94,9 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                             onLoadedMetadata={() => {
                                 setLoadded(true)
                             }}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                            }}
                         />
                     )}
 
