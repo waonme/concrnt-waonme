@@ -93,7 +93,6 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                     setLoadded(true)
                                 }}
                             >
-                                <source src={media.mediaURL} type={media.mediaType} />
                                 <source src={media.mediaURL} />
                             </video>
                         </>
