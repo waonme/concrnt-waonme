@@ -31,6 +31,7 @@ import { CCIconButton } from './ui/CCIconButton'
 import { CCComboBox } from './ui/CCComboBox'
 import { useConfirm } from '../context/Confirm'
 import { CCAvatar } from './ui/CCAvatar'
+import { WatchRequestAcceptButton } from './WatchRequestAccpetButton'
 
 export interface StreamInfoProps {
     id: string
@@ -183,48 +184,16 @@ export function StreamInfo(props: StreamInfoProps): JSX.Element {
                                 <>
                                     <Typography variant="h3">閲覧リクエスト({requests.length})</Typography>
                                     <Box>
-                                        {requests.map((request) => {
-                                            const user = request.authorUser
-                                            return (
-                                                <Box key={request.id} display="flex" alignItems="center" gap={1}>
-                                                    {user && (
-                                                        <>
-                                                            <CCAvatar
-                                                                avatarURL={user.profile?.avatar}
-                                                                identiconSource={user.ccid}
-                                                            />
-                                                            {user.profile?.username}
-                                                            <Box flex={1} />
-                                                            <Button
-                                                                onClick={() => {
-                                                                    if (!policyParams) return
-                                                                    const currentPolicy = JSON.parse(policyParams)
-                                                                    currentPolicy.reader.push(request.author)
-                                                                    client.api
-                                                                        .upsertTimeline(schemaDraft, documentBody, {
-                                                                            id: props.id,
-                                                                            indexable: visible,
-                                                                            policy: policyDraft,
-                                                                            policyParams: JSON.stringify(currentPolicy)
-                                                                        })
-                                                                        .then(() => {
-                                                                            request.delete().then(() => {
-                                                                                setRequests(
-                                                                                    requests.filter(
-                                                                                        (e) => e.id !== request.id
-                                                                                    )
-                                                                                )
-                                                                            })
-                                                                        })
-                                                                }}
-                                                            >
-                                                                閲覧者に追加
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </Box>
-                                            )
-                                        })}
+                                        {requests.map((request) => (
+                                            <WatchRequestAcceptButton
+                                                key={request.id}
+                                                request={request}
+                                                targetTimeline={stream}
+                                                onAccept={() => {
+                                                    setRequests(requests.filter((e) => e.id !== request.id))
+                                                }}
+                                            />
+                                        ))}
                                     </Box>
                                 </>
                             )}

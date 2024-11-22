@@ -3,6 +3,7 @@ import {
     AlertTitle,
     Box,
     Button,
+    Divider,
     Grid,
     ListItemIcon,
     ListItemText,
@@ -25,7 +26,9 @@ import {
     type SubprofileTimelineSchema,
     type EmptyTimelineSchema,
     type Timeline,
-    type User
+    type User,
+    type Association,
+    type ReadAccessRequestAssociationSchema
 } from '@concurrent-world/client'
 import { useEffect, useState } from 'react'
 import { CCDrawer } from '../ui/CCDrawer'
@@ -46,6 +49,7 @@ import MedicationIcon from '@mui/icons-material/Medication'
 import { useConfirm } from '../../context/Confirm'
 import { CCUserChip } from '../ui/CCUserChip'
 import { UserPicker } from '../ui/UserPicker'
+import { WatchRequestAcceptButton } from '../WatchRequestAccpetButton'
 
 export const ProfileSettings = (): JSX.Element => {
     const { client } = useClient()
@@ -80,6 +84,8 @@ export const ProfileSettings = (): JSX.Element => {
 
     const [selectedUsers, setSelectedUsers] = useState<User[]>([])
 
+    const [requests, setRequests] = useState<Array<Association<ReadAccessRequestAssociationSchema>>>([])
+
     const load = (): void => {
         setUpdate((prev) => prev + 1)
     }
@@ -111,7 +117,12 @@ export const ProfileSettings = (): JSX.Element => {
         })
 
         client.getTimeline<EmptyTimelineSchema>(client.user.homeTimeline).then((timeline) => {
+            console.log(timeline)
             setHomeTimeline(timeline)
+            if (!timeline) return
+            timeline.getAssociations().then((assocs) => {
+                setRequests(assocs.filter((e) => e.schema === Schemas.readAccessRequestAssociation))
+            })
         })
 
         concord.getBadges(client.ccid).then((badges) => {
@@ -198,7 +209,7 @@ export const ProfileSettings = (): JSX.Element => {
                                                 }
                                             )
                                             .then(() => {
-                                                client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                                homeTimeline.invalidate()
                                                 load()
                                             })
                                     },
@@ -243,7 +254,7 @@ export const ProfileSettings = (): JSX.Element => {
                                                 }
                                             )
                                             .then(() => {
-                                                client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                                homeTimeline.invalidate()
                                                 load()
                                             })
                                     },
@@ -306,7 +317,7 @@ export const ProfileSettings = (): JSX.Element => {
                                             }
                                         )
                                         .then(() => {
-                                            client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                            homeTimeline.invalidate()
                                             load()
                                         })
                                 })
@@ -314,6 +325,24 @@ export const ProfileSettings = (): JSX.Element => {
                         >
                             閲覧ユーザーを編集
                         </Button>
+                        {requests.length > 0 && homeTimeline && (
+                            <>
+                                <Divider />
+                                <Typography variant="h4">閲覧リクエスト</Typography>
+                                <Box>
+                                    {requests.map((request) => (
+                                        <WatchRequestAcceptButton
+                                            key={request.id}
+                                            request={request}
+                                            targetTimeline={homeTimeline}
+                                            onAccept={() => {
+                                                load()
+                                            }}
+                                        />
+                                    ))}
+                                </Box>
+                            </>
+                        )}
                     </Box>
                 </Alert>
             )}
