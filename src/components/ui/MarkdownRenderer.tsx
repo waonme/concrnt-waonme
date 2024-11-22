@@ -325,7 +325,8 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 </LinkChip>
                             )
                         }
-                        const matchYoutubeVideo = href?.match(/https:\/\/www\.youtube\.com\/watch\?v=(\w+)$/)
+                        let matchYoutubeVideo = href?.match(/https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
+                        if (!matchYoutubeVideo) matchYoutubeVideo = href?.match(/https:\/\/youtu\.be\/([a-zA-Z0-9_-]+)/)
                         if (matchYoutubeVideo) {
                             return (
                                 <Box
