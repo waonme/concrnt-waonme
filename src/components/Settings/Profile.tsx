@@ -1,4 +1,16 @@
-import { Box, Button, Grid, ListItemIcon, ListItemText, Menu, MenuItem, TextField, Typography } from '@mui/material'
+import {
+    Alert,
+    AlertTitle,
+    Box,
+    Button,
+    Grid,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    TextField,
+    Typography
+} from '@mui/material'
 import { ProfileEditor } from '../ProfileEditor'
 import { useClient } from '../../context/ClientContext'
 import { useSnackbar } from 'notistack'
@@ -10,7 +22,10 @@ import {
     type BadgeRef,
     type CoreTimeline,
     Schemas,
-    type SubprofileTimelineSchema
+    type SubprofileTimelineSchema,
+    type EmptyTimelineSchema,
+    type Timeline,
+    type User
 } from '@concurrent-world/client'
 import { useEffect, useState } from 'react'
 import { CCDrawer } from '../ui/CCDrawer'
@@ -29,6 +44,8 @@ import { usePreference } from '../../context/PreferenceContext'
 import { useConcord } from '../../context/ConcordContext'
 import MedicationIcon from '@mui/icons-material/Medication'
 import { useConfirm } from '../../context/Confirm'
+import { CCUserChip } from '../ui/CCUserChip'
+import { UserPicker } from '../ui/UserPicker'
 
 export const ProfileSettings = (): JSX.Element => {
     const { client } = useClient()
@@ -45,6 +62,7 @@ export const ProfileSettings = (): JSX.Element => {
     const [allProfiles, setAllProfiles] = useState<Array<CoreProfile<any>>>([])
     const [allEnabledTimelines, setAllEnabledTimelines] = useState<Array<CoreTimeline<any>>>([])
     const [openProfileEditor, setOpenProfileEditor] = useState(false)
+    const [openReaderEditor, setOpenReaderEditor] = useState<((_: User[]) => void) | null>(null)
 
     const [schemaURLDraft, setSchemaURLDraft] = useState<string>('https://schema.concrnt.world/p/basic.json')
     const [schemaURL, setSchemaURL] = useState<any>(null)
@@ -55,21 +73,15 @@ export const ProfileSettings = (): JSX.Element => {
     const [subprofileDraft, setSubprofileDraft] = useState<any>(null)
     const [badges, setBadges] = useState<Badge[]>([])
 
+    const [homeTimeline, setHomeTimeline] = useState<Timeline<EmptyTimelineSchema> | null>(null)
+    const homeIsPublic = homeTimeline?.policyParams?.isReadPublic
+
+    const [update, setUpdate] = useState(0)
+
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([])
+
     const load = (): void => {
-        if (!client?.ccid) return
-        if (!client.user?.profile) return
-
-        client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', client.ccid).then((profile) => {
-            setLatestProfile(profile?.document.body)
-            client.api.getProfiles({ author: client.ccid }).then((profiles) => {
-                const subprofiles = (profiles ?? []).filter((p) => p.id !== profile?.id)
-                setAllProfiles(subprofiles)
-            })
-        })
-
-        concord.getBadges(client.ccid).then((badges) => {
-            setBadges(badges)
-        })
+        setUpdate((prev) => prev + 1)
     }
 
     useEffect(() => {
@@ -87,8 +99,25 @@ export const ProfileSettings = (): JSX.Element => {
     }, [allProfiles])
 
     useEffect(() => {
-        load()
-    }, [client])
+        if (!client?.ccid) return
+        if (!client.user?.profile) return
+
+        client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', client.ccid).then((profile) => {
+            setLatestProfile(profile?.document.body)
+            client.api.getProfiles({ author: client.ccid }).then((profiles) => {
+                const subprofiles = (profiles ?? []).filter((p) => p.id !== profile?.id)
+                setAllProfiles(subprofiles)
+            })
+        })
+
+        client.getTimeline<EmptyTimelineSchema>(client.user.homeTimeline).then((timeline) => {
+            setHomeTimeline(timeline)
+        })
+
+        concord.getBadges(client.ccid).then((badges) => {
+            setBadges(badges)
+        })
+    }, [client, update])
 
     const enabledSubprofiles = latestProfile?.subprofiles ?? []
 
@@ -141,6 +170,153 @@ export const ProfileSettings = (): JSX.Element => {
                     }}
                 />
             </Box>
+
+            {homeIsPublic ? (
+                <Alert
+                    severity="info"
+                    action={
+                        <Button
+                            variant="text"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                confirm.open(
+                                    'ホーム投稿の閲覧者を制限しますか？',
+                                    () => {
+                                        if (!homeTimeline) return
+                                        const currentPolicy = homeTimeline.policyParams
+                                        currentPolicy.isReadPublic = false
+                                        client.api
+                                            .upsertTimeline(
+                                                Schemas.emptyTimeline,
+                                                {},
+                                                {
+                                                    semanticID: 'world.concrnt.t-home',
+                                                    indexable: false,
+                                                    policy: 'https://policy.concrnt.world/t/inline-read-write.json',
+                                                    policyParams: JSON.stringify(currentPolicy)
+                                                }
+                                            )
+                                            .then(() => {
+                                                client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                                load()
+                                            })
+                                    },
+                                    {
+                                        description:
+                                            '制限するとホームに投稿された内容は、個別に指定したユーザーのみが閲覧できるようになります。'
+                                    }
+                                )
+                            }}
+                        >
+                            閲覧できる人を制限する
+                        </Button>
+                    }
+                >
+                    <AlertTitle>ホーム投稿は一般公開に設定されています</AlertTitle>
+                    制限付きのタイムラインへの投稿を除いた投稿がだれでも閲覧可能です。
+                </Alert>
+            ) : (
+                <Alert
+                    severity="info"
+                    action={
+                        <Button
+                            variant="text"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                confirm.open(
+                                    'ホーム投稿を一般公開にしますか？',
+                                    () => {
+                                        if (!homeTimeline) return
+                                        const currentPolicy = homeTimeline.policyParams
+                                        currentPolicy.isReadPublic = true
+                                        client.api
+                                            .upsertTimeline(
+                                                Schemas.emptyTimeline,
+                                                {},
+                                                {
+                                                    semanticID: 'world.concrnt.t-home',
+                                                    indexable: false,
+                                                    policy: 'https://policy.concrnt.world/t/inline-read-write.json',
+                                                    policyParams: JSON.stringify(currentPolicy)
+                                                }
+                                            )
+                                            .then(() => {
+                                                client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                                load()
+                                            })
+                                    },
+                                    {
+                                        description:
+                                            '一般公開にすると過去の投稿も含めて全てのユーザーが閲覧できるようになります。'
+                                    }
+                                )
+                            }}
+                        >
+                            一般公開にする
+                        </Button>
+                    }
+                >
+                    <AlertTitle>ホーム投稿の閲覧ユーザーを制限しています</AlertTitle>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1
+                        }}
+                    >
+                        ホームに投稿された内容は、以下のユーザーが閲覧できます。
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                gap: 1,
+                                flexWrap: 'wrap'
+                            }}
+                        >
+                            {homeTimeline?.policyParams?.reader?.map((e: string) => (
+                                <CCUserChip avatar key={e} ccid={e} />
+                            ))}
+                        </Box>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                                if (!homeTimeline) return
+
+                                Promise.all(
+                                    homeTimeline.policyParams.reader.map((e: string) => client.getUser(e))
+                                ).then((users) => {
+                                    setSelectedUsers(users.filter((u) => u) as User[])
+                                })
+
+                                setOpenReaderEditor(() => (update: User[]) => {
+                                    const reader = update.map((u) => u.ccid)
+                                    const currentPolicy = homeTimeline.policyParams
+                                    currentPolicy.reader = reader
+                                    client.api
+                                        .upsertTimeline(
+                                            Schemas.emptyTimeline,
+                                            {},
+                                            {
+                                                semanticID: 'world.concrnt.t-home',
+                                                indexable: false,
+                                                policy: 'https://policy.concrnt.world/t/inline-read-write.json',
+                                                policyParams: JSON.stringify(currentPolicy)
+                                            }
+                                        )
+                                        .then(() => {
+                                            client.api.invalidateTimeline('world.concrnt.t-home@' + client.ccid!)
+                                            load()
+                                        })
+                                })
+                            }}
+                        >
+                            閲覧ユーザーを編集
+                        </Button>
+                    </Box>
+                </Alert>
+            )}
 
             {enableConcord && badges.length > 0 && (
                 <>
@@ -514,6 +690,32 @@ export const ProfileSettings = (): JSX.Element => {
                             </Button>
                         </>
                     )}
+                </Box>
+            </CCDrawer>
+            <CCDrawer
+                open={openReaderEditor !== null}
+                onClose={() => {
+                    setOpenReaderEditor(null)
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '30px',
+                        p: 3
+                    }}
+                >
+                    <Typography variant="h3">閲覧ユーザーの編集</Typography>
+                    <UserPicker selected={selectedUsers} setSelected={setSelectedUsers} />
+                    <Button
+                        onClick={() => {
+                            openReaderEditor?.(selectedUsers)
+                            setOpenReaderEditor(null)
+                        }}
+                    >
+                        更新
+                    </Button>
                 </Box>
             </CCDrawer>
         </Box>
