@@ -1,12 +1,18 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Divider, Typography } from '@mui/material'
+import { Box, Button, Divider, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { TimelineHeader } from '../components/TimelineHeader'
 import { useClient } from '../context/ClientContext'
 import { Timeline } from '../components/Timeline/main'
 import { StreamInfo } from '../components/StreamInfo'
 import { usePreference } from '../context/PreferenceContext'
-import { type CommunityTimelineSchema, type Timeline as typeTimeline } from '@concurrent-world/client'
+import {
+    type ReadAccessRequestAssociationSchema,
+    type CommunityTimelineSchema,
+    type Timeline as typeTimeline,
+    Schemas,
+    type Association
+} from '@concurrent-world/client'
 import { CCDrawer } from '../components/ui/CCDrawer'
 import WatchingStreamContextProvider from '../context/WatchingStreamContext'
 import { type VListHandle } from 'virtua'
@@ -34,6 +40,9 @@ export const StreamPage = memo((): JSX.Element => {
     const [targetStream, setTargetStream] = useState<typeTimeline<CommunityTimelineSchema> | null>(null)
 
     const [streamInfoOpen, setStreamInfoOpen] = useState<boolean>(false)
+
+    const [associations, setAssociations] = useState<Array<Association<any>>>([])
+    const [update, setUpdate] = useState<number>(0)
 
     const isOwner = useMemo(() => {
         return targetStream?.author === client.ccid
@@ -66,9 +75,19 @@ export const StreamPage = memo((): JSX.Element => {
             if (stream) {
                 setTargetStream(stream)
                 document.title = `#${stream.document.body.name} - Concrnt`
+
+                stream.getAssociations().then((assocs) => {
+                    setAssociations(assocs)
+                })
             }
         })
-    }, [id])
+    }, [id, update])
+
+    const myRequest = useMemo(() => {
+        return associations.find((assoc) => {
+            return assoc.schema === Schemas.readAccessRequestAssociation && assoc.author === client.ccid
+        })
+    }, [associations])
 
     const editorModal = useEditorModal()
     useEffect(() => {
@@ -151,7 +170,8 @@ export const StreamPage = memo((): JSX.Element => {
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                height: '100%'
+                                height: '100%',
+                                gap: 2
                             }}
                         >
                             <LockIcon
@@ -160,6 +180,32 @@ export const StreamPage = memo((): JSX.Element => {
                                 }}
                             />
                             <Typography variant="h5">このタイムラインはプライベートです。</Typography>
+                            <Button
+                                variant={myRequest ? 'outlined' : 'contained'}
+                                onClick={() => {
+                                    if (!targetStream) return
+                                    if (myRequest) {
+                                        myRequest.delete().then(() => {
+                                            setUpdate((prev) => prev + 1)
+                                        })
+                                    } else {
+                                        const id = targetStream.id.split('@')[0]
+                                        client.api
+                                            .createAssociation<ReadAccessRequestAssociationSchema>(
+                                                Schemas.readAccessRequestAssociation,
+                                                {},
+                                                id,
+                                                targetStream.author,
+                                                ['world.concrnt.t-notify@' + targetStream.author]
+                                            )
+                                            .then(() => {
+                                                setUpdate((prev) => prev + 1)
+                                            })
+                                    }
+                                }}
+                            >
+                                {myRequest ? 'リクエスト済み' : 'リクエストする'}
+                            </Button>
                         </Box>
                     </Box>
                 )}

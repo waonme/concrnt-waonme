@@ -15,6 +15,8 @@ import { usePreference } from '../../context/PreferenceContext'
 import { FavoriteAssociation } from './FavoriteAssociation'
 import { ReactionAssociation } from './ReactionAssociation'
 import { MentionAssociation } from './MentionAssociation'
+import { ContentWithCCAvatar } from '../ContentWithCCAvatar'
+import { StreamChip } from '../ui/StreamChip'
 
 export interface AssociationFrameProp {
     associationID: string
@@ -124,6 +126,21 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
                             association={association as Association<ReactionAssociationSchema>}
                             perspective={props.perspective ?? client.ccid ?? ''}
                         />
+                    </Box>
+                    {props.after}
+                </>
+            )
+        case Schemas.readAccessRequestAssociation:
+            return (
+                <>
+                    <Box sx={props.sx}>
+                        <ContentWithCCAvatar author={association.authorUser}>
+                            <Typography>
+                                {association.authorUser?.profile?.username} さんが
+                                <StreamChip streamID={association.target + '@' + association.owner} />
+                                への読み取りアクセスを希望しています
+                            </Typography>
+                        </ContentWithCCAvatar>
                     </Box>
                     {props.after}
                 </>
