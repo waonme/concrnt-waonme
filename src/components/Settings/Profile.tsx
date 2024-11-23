@@ -175,6 +175,9 @@ export const ProfileSettings = (): JSX.Element => {
                                         if (!homeTimeline) return
                                         const currentPolicy = homeTimeline.policyParams
                                         currentPolicy.isReadPublic = false
+                                        if (!currentPolicy.reader.includes(client.ccid)) {
+                                            currentPolicy.reader.push(client.ccid)
+                                        }
                                         client.api
                                             .upsertTimeline(
                                                 Schemas.emptyTimeline,

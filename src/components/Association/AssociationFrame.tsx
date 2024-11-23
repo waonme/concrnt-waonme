@@ -8,7 +8,7 @@ import {
     Schemas
 } from '@concurrent-world/client'
 import { useClient } from '../../context/ClientContext'
-import { Box, ListItem, type SxProps, Typography } from '@mui/material'
+import { Box, ListItem, type SxProps, Typography, Button } from '@mui/material'
 import { MessageSkeleton } from '../MessageSkeleton'
 import { MessageContainer } from '../Message/MessageContainer'
 import { usePreference } from '../../context/PreferenceContext'
@@ -17,6 +17,7 @@ import { ReactionAssociation } from './ReactionAssociation'
 import { MentionAssociation } from './MentionAssociation'
 import { ContentWithCCAvatar } from '../ContentWithCCAvatar'
 import { TimelineChip } from '../ui/TimelineChip'
+import { Link } from 'react-router-dom'
 
 export interface AssociationFrameProp {
     associationID: string
@@ -140,6 +141,9 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
                                 <TimelineChip timelineID={association.target + '@' + association.owner} />
                                 への読み取りアクセスを希望しています
                             </Typography>
+                            <Button component={Link} variant="outlined" to={`/settings/profile`}>
+                                設定を開く
+                            </Button>
                         </ContentWithCCAvatar>
                     </Box>
                     {props.after}

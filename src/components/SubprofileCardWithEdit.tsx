@@ -110,6 +110,9 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                 if (!timeline?.policyParams) return
                 const currentPolicy = timeline.policyParams
                 currentPolicy.isReadPublic = !currentPolicy.isReadPublic
+                if (!currentPolicy.reader.includes(client.ccid)) {
+                    currentPolicy.reader.push(client.ccid)
+                }
                 client.api
                     .upsertTimeline(
                         Schemas.subprofileTimeline,
