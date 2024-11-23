@@ -12,7 +12,8 @@ import { useClient } from '../../context/ClientContext'
 import { useEffect, useState } from 'react'
 import { StreamCard } from '../Stream/Card'
 import { CCChip } from './CCChip'
-import { FaTheaterMasks } from 'react-icons/fa'
+import { UserProfileCard } from '../UserProfileCard'
+import HomeIcon from '@mui/icons-material/Home'
 
 export interface TimelineChipProps {
     timelineID?: string
@@ -86,14 +87,28 @@ export const TimelineChip = (props: TimelineChipProps): JSX.Element => {
                 }
             }}
             title={
-                domain && (
-                    <StreamCard
-                        streamID={props.timelineID}
-                        name={timeline.document.body.name}
-                        description={timeline.document.body.description}
-                        banner={timeline.document.body.banner ?? ''}
-                        domain={domain}
+                profile ? (
+                    <UserProfileCard
+                        profile={profile}
+                        ccid={timeline.author}
+                        subProfileID={
+                            timeline.schema === Schemas.subprofileTimeline
+                                ? timeline.document.body.subprofile
+                                : undefined
+                        }
                     />
+                ) : (
+                    <>
+                        {domain && (
+                            <StreamCard
+                                streamID={props.timelineID}
+                                name={timeline.document.body.name}
+                                description={timeline.document.body.description}
+                                banner={timeline.document.body.banner ?? ''}
+                                domain={domain}
+                            />
+                        )}
+                    </>
                 )
             }
         >
@@ -101,7 +116,7 @@ export const TimelineChip = (props: TimelineChipProps): JSX.Element => {
                 to={link}
                 size={'small'}
                 label={timeline?.document.body.name ?? profile?.username ?? props.timelineID}
-                icon={timeline?.schema === Schemas.subprofileTimeline ? <FaTheaterMasks /> : <TagIcon />}
+                icon={profile ? <HomeIcon /> : <TagIcon />}
             />
         </Tooltip>
     )
