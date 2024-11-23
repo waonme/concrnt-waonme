@@ -216,7 +216,8 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
             : client.user.homeTimeline
         const dest = [...new Set([...destTimelineIDs, ...(postHome ? [homeTimeline] : [])])].filter((e) => e)
 
-        const mentions = draft.match(/@([^\s@]+)/g)?.map((e) => e.slice(1)) ?? []
+        const mentionsMatches = draft.matchAll(/(^|\s+)@(con1\w{38})/g)
+        const mentions = [...new Set(Array.from(mentionsMatches).map((m) => m[2]))]
 
         setSending((sending = true))
 
