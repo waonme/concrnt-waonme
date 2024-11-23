@@ -98,7 +98,6 @@ export const ProfileSettings = (): JSX.Element => {
         })
 
         client.getTimeline<EmptyTimelineSchema>(client.user.homeTimeline).then((timeline) => {
-            console.log(timeline)
             setHomeTimeline(timeline)
             if (!timeline) return
             timeline.getAssociations().then((assocs) => {
