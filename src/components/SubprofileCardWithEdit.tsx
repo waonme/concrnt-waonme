@@ -375,7 +375,6 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                                             setUpdate((prev) => prev + 1)
                                             if (request.authorUser)
                                                 setSelectedUsers((prev) => [...prev, request.authorUser!])
-                                            enqueueSnackbar('更新しました', { variant: 'success' })
                                         }}
                                     />
                                 ))}

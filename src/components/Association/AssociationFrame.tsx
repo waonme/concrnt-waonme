@@ -5,7 +5,8 @@ import {
     type LikeAssociationSchema,
     type ReplyAssociationSchema,
     type RerouteAssociationSchema,
-    Schemas
+    Schemas,
+    type ReadAccessRequestAssociationSchema
 } from '@concurrent-world/client'
 import { useClient } from '../../context/ClientContext'
 import { Box, ListItem, type SxProps, Typography, Button } from '@mui/material'
@@ -18,6 +19,7 @@ import { MentionAssociation } from './MentionAssociation'
 import { ContentWithCCAvatar } from '../ContentWithCCAvatar'
 import { TimelineChip } from '../ui/TimelineChip'
 import { Link } from 'react-router-dom'
+import { ReadAccessAssociation } from './ReadAccessAssociation'
 
 export interface AssociationFrameProp {
     associationID: string
@@ -135,16 +137,9 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
             return (
                 <>
                     <Box sx={props.sx}>
-                        <ContentWithCCAvatar author={association.authorUser}>
-                            <Typography>
-                                {association.authorUser?.profile?.username} さんが
-                                <TimelineChip timelineID={association.target + '@' + association.owner} />
-                                への読み取りアクセスを希望しています
-                            </Typography>
-                            <Button component={Link} variant="outlined" to={`/settings/profile`}>
-                                設定を開く
-                            </Button>
-                        </ContentWithCCAvatar>
+                        <ReadAccessAssociation
+                            association={association as Association<ReadAccessRequestAssociationSchema>}
+                        />
                     </Box>
                     {props.after}
                 </>
