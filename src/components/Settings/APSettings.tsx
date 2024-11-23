@@ -52,7 +52,7 @@ export const APSettings = (): JSX.Element => {
             .fetchWithCredential(client.api.host, `/ap/api/settings`, {})
             .then(async (res) => await res.json())
             .then((data) => {
-                setListenTimelines(allKnownTimelines.filter((t) => data.content.listen_timelines.includes(t.id)))
+                setListenTimelines(allKnownTimelines.filter((t) => data.content.listen_timelines.includes(t.cacheKey)))
             })
             .catch((e) => {
                 console.error(e)
