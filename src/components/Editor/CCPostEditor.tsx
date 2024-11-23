@@ -122,17 +122,6 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
         props.streamPickerInitial
     )
 
-    // check Visibility
-    // 'https://policy.concrnt.world/t/inline-read-write.json'
-    const isPrivate = useMemo(() => {
-        return destTimelines.some((dest) => {
-            if (dest.policy !== 'https://policy.concrnt.world/t/inline-read-write.json') return false
-            // const policyParams = JSON.parse(dest.policyParams)
-            if (dest.policyParams.isReadPublic) return false
-            return true
-        })
-    }, [destTimelines])
-
     useEffect(() => {
         setDestTimelines(props.streamPickerInitial)
     }, [props.streamPickerInitial])
@@ -193,6 +182,18 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
     // whisper
     const [participants, setParticipants] = useState<User[]>([])
     const whisper = participants.map((p) => p.ccid)
+
+    // check Visibility
+    // 'https://policy.concrnt.world/t/inline-read-write.json'
+    const isPrivate = useMemo(() => {
+        return (
+            destTimelines.some((dest) => {
+                if (dest.policy !== 'https://policy.concrnt.world/t/inline-read-write.json') return false
+                if (dest.policyParams.isReadPublic) return false
+                return true
+            }) || participants.length > 0
+        )
+    }, [destTimelines, participants])
 
     const post = (postHome: boolean): void => {
         if (!client?.user) return
