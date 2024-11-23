@@ -16,7 +16,7 @@ import { FavoriteAssociation } from './FavoriteAssociation'
 import { ReactionAssociation } from './ReactionAssociation'
 import { MentionAssociation } from './MentionAssociation'
 import { ContentWithCCAvatar } from '../ContentWithCCAvatar'
-import { StreamChip } from '../ui/StreamChip'
+import { TimelineChip } from '../ui/TimelineChip'
 
 export interface AssociationFrameProp {
     associationID: string
@@ -137,7 +137,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
                         <ContentWithCCAvatar author={association.authorUser}>
                             <Typography>
                                 {association.authorUser?.profile?.username} さんが
-                                <StreamChip streamID={association.target + '@' + association.owner} />
+                                <TimelineChip timelineID={association.target + '@' + association.owner} />
                                 への読み取りアクセスを希望しています
                             </Typography>
                         </ContentWithCCAvatar>

@@ -112,8 +112,10 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                 currentPolicy.isReadPublic = !currentPolicy.isReadPublic
                 client.api
                     .upsertTimeline(
-                        Schemas.emptyTimeline,
-                        {},
+                        Schemas.subprofileTimeline,
+                        {
+                            subprofile: props.subProfile.id
+                        },
                         {
                             semanticID: 'world.concrnt.t-subhome.' + props.subProfile.id,
                             indexable: false,
@@ -335,8 +337,10 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                             currentPolicy.reader = reader
                             client.api
                                 .upsertTimeline(
-                                    Schemas.emptyTimeline,
-                                    {},
+                                    Schemas.subprofileTimeline,
+                                    {
+                                        subprofile: props.subProfile.id
+                                    },
                                     {
                                         semanticID: 'world.concrnt.t-subhome.' + props.subProfile.id,
                                         indexable: false,
