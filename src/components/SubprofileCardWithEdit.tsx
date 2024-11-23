@@ -1,15 +1,17 @@
 import {
     type CoreProfile,
-    type CoreTimeline,
     type ProfileSchema,
     Schemas,
     type SubprofileTimelineSchema,
-    type Timeline
+    type Timeline,
+    type User,
+    type Association,
+    type ReadAccessRequestAssociationSchema
 } from '@concurrent-world/client'
 
 import { useClient } from '../context/ClientContext'
 import { useEffect, useState } from 'react'
-import { Box, Button, ListItemIcon, ListItemText, MenuItem, TextField, Typography } from '@mui/material'
+import { Box, Button, Divider, ListItemIcon, ListItemText, MenuItem, TextField, Typography } from '@mui/material'
 
 import { SubProfileCard } from './SubProfileCard'
 import { useSnackbar } from 'notistack'
@@ -24,6 +26,9 @@ import PublishIcon from '@mui/icons-material/Publish'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import LockIcon from '@mui/icons-material/Lock'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
+import { UserPicker } from './ui/UserPicker'
+import { WatchRequestAcceptButton } from './WatchRequestAccpetButton'
 
 interface SubprofileCardWithEditProps {
     mainProfile: ProfileSchema
@@ -46,6 +51,12 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
     const [editingProfile, setEditingProfile] = useState<CoreProfile<any> | null>(null)
     const [subprofileDraft, setSubprofileDraft] = useState<any>(null)
 
+    const [openReaderEditor, setOpenReaderEditor] = useState<boolean>(false)
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([])
+    const [requests, setRequests] = useState<Array<Association<ReadAccessRequestAssociationSchema>>>([])
+
+    const [update, setUpdate] = useState<number>(0)
+
     const isTimelineValid =
         timeline &&
         timeline.document.policy === 'https://policy.concrnt.world/t/inline-read-write.json' &&
@@ -58,8 +69,11 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
         client.getTimeline('world.concrnt.t-subhome.' + props.subProfile.id + '@' + client.ccid!).then((timeline) => {
             if (!timeline) return
             setTimeline(timeline)
+            timeline.getAssociations().then((assocs) => {
+                setRequests(assocs.filter((e) => e.schema === Schemas.readAccessRequestAssociation))
+            })
         })
-    }, [props.subProfile.id])
+    }, [props.subProfile.id, update])
 
     const menuItems = [
         <MenuItem
@@ -136,26 +150,6 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
             </ListItemIcon>
             <ListItemText>編集</ListItemText>
         </MenuItem>,
-        <MenuItem
-            key="delete"
-            disabled={published}
-            onClick={() => {
-                confirm.open(
-                    'サブプロフィールを削除しますか？',
-                    () => {
-                        client.api.deleteProfile(props.subProfile.id).then((_) => {
-                            props.onModified?.()
-                        })
-                    },
-                    { confirmText: '削除' }
-                )
-            }}
-        >
-            <ListItemIcon>
-                <DeleteForeverIcon sx={{ color: 'error.main' }} />
-            </ListItemIcon>
-            <ListItemText>{published ? <>削除するには非公開にしてください</> : <>削除</>}</ListItemText>
-        </MenuItem>,
         ...(!timeline || !isTimelineValid
             ? [
                   <MenuItem
@@ -192,30 +186,90 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                       <ListItemText>サブプロフィールタイムラインを修正</ListItemText>
                   </MenuItem>
               ]
-            : [])
+            : []),
+        ...(!timeline || isTimelinePrivate
+            ? [
+                  <MenuItem
+                      key="managereaders"
+                      onClick={() => {
+                          if (!timeline) return
+                          Promise.all(timeline.policyParams.reader.map((e: string) => client.getUser(e))).then(
+                              (users) => {
+                                  setSelectedUsers(users.filter((u) => u) as User[])
+                                  setOpenReaderEditor(true)
+                              }
+                          )
+                      }}
+                  >
+                      <ListItemIcon>
+                          <ManageAccountsIcon sx={{ color: 'text.primary' }} />
+                      </ListItemIcon>
+                      <ListItemText>読者を管理</ListItemText>
+                  </MenuItem>
+              ]
+            : []),
+        <MenuItem
+            key="delete"
+            disabled={published}
+            onClick={() => {
+                confirm.open(
+                    'サブプロフィールを削除しますか？',
+                    () => {
+                        client.api.deleteProfile(props.subProfile.id).then((_) => {
+                            props.onModified?.()
+                        })
+                    },
+                    { confirmText: '削除' }
+                )
+            }}
+        >
+            <ListItemIcon>
+                <DeleteForeverIcon sx={{ color: 'error.main' }} />
+            </ListItemIcon>
+            <ListItemText>{published ? <>削除するには非公開にしてください</> : <>削除</>}</ListItemText>
+        </MenuItem>
     ]
 
     return (
         <>
             <SubProfileCard character={props.subProfile} additionalMenuItems={menuItems}>
-                {published ? <>掲載中</> : <>未掲載</>}
-                {isTimelinePrivate ? <LockIcon /> : <></>}
-                {timeline ? (
-                    <></>
-                ) : (
-                    <>
-                        <br />
-                        サブプロフィールタイムラインがありません
-                    </>
-                )}
-                {isTimelineValid ? (
-                    <></>
-                ) : (
-                    <>
-                        <br />
-                        サブプロフィールタイムラインの設定が不完全です
-                    </>
-                )}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        p: 1
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 1,
+                            justifyContent: 'flex-end'
+                        }}
+                    >
+                        {published ? <>掲載中</> : <>未掲載</>}
+                        {isTimelinePrivate ? <LockIcon /> : <></>}
+                    </Box>
+                    {requests.length > 0 ? <>{requests.length} 件の閲覧リクエスト</> : <></>}
+                    {timeline ? (
+                        <></>
+                    ) : (
+                        <>
+                            <br />
+                            サブプロフィールタイムラインがありません
+                        </>
+                    )}
+                    {isTimelineValid ? (
+                        <></>
+                    ) : (
+                        <>
+                            <br />
+                            サブプロフィールタイムラインの設定が不完全です
+                        </>
+                    )}
+                </Box>
             </SubProfileCard>
             <CCDrawer
                 open={editingProfile !== null}
@@ -255,6 +309,72 @@ export const SubprofileCardWithEdit = (props: SubprofileCardWithEditProps): JSX.
                     >
                         更新
                     </Button>
+                </Box>
+            </CCDrawer>
+            <CCDrawer
+                open={openReaderEditor}
+                onClose={() => {
+                    setOpenReaderEditor(false)
+                }}
+            >
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '30px',
+                        p: 3
+                    }}
+                >
+                    <Typography variant="h3">閲覧ユーザーの編集</Typography>
+                    <UserPicker selected={selectedUsers} setSelected={setSelectedUsers} />
+                    <Button
+                        onClick={() => {
+                            if (!timeline) return
+                            const reader = selectedUsers.map((u) => u.ccid)
+                            const currentPolicy = timeline.policyParams
+                            currentPolicy.reader = reader
+                            client.api
+                                .upsertTimeline(
+                                    Schemas.emptyTimeline,
+                                    {},
+                                    {
+                                        semanticID: 'world.concrnt.t-subhome.' + props.subProfile.id,
+                                        indexable: false,
+                                        policy: 'https://policy.concrnt.world/t/inline-read-write.json',
+                                        policyParams: JSON.stringify(currentPolicy)
+                                    }
+                                )
+                                .then(() => {
+                                    timeline.invalidate()
+                                    setOpenReaderEditor(false)
+                                    props.onModified?.()
+                                    enqueueSnackbar('更新しました', { variant: 'success' })
+                                })
+                        }}
+                    >
+                        更新
+                    </Button>
+                    {requests.length > 0 && timeline && (
+                        <>
+                            <Divider />
+                            <Typography variant="h4">閲覧リクエスト</Typography>
+                            <Box>
+                                {requests.map((request) => (
+                                    <WatchRequestAcceptButton
+                                        key={request.id}
+                                        request={request}
+                                        targetTimeline={timeline}
+                                        onAccept={() => {
+                                            setUpdate((prev) => prev + 1)
+                                            if (request.authorUser)
+                                                setSelectedUsers((prev) => [...prev, request.authorUser!])
+                                            enqueueSnackbar('更新しました', { variant: 'success' })
+                                        }}
+                                    />
+                                ))}
+                            </Box>
+                        </>
+                    )}
                 </Box>
             </CCDrawer>
         </>

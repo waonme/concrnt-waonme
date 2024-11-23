@@ -81,7 +81,6 @@ export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
                         flexDirection="row"
                         justifyContent="flex-end"
                         alignItems="center"
-                        height="40px"
                         gap={1}
                         px={1}
                         mb={1}
