@@ -84,6 +84,7 @@ export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
                         gap={1}
                         px={1}
                         mb={1}
+                        minHeight="30px"
                     >
                         {props.children}
                     </Box>
