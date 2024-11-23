@@ -633,7 +633,7 @@ export const ProfileSettings = (): JSX.Element => {
                         ) : (
                             <>
                                 <br />
-                                サブプロフィールタイムラインの設定が不完全です
+                                サブプロフィールタイムラインの設定が不完全です({withTimeline ? 'aru' : 'nai'})
                             </>
                         )}
                     </SubProfileCard>
@@ -677,6 +677,10 @@ export const ProfileSettings = (): JSX.Element => {
                                                         subprofile: profile.id
                                                     },
                                                     {
+                                                        owner: client.ccid,
+                                                        indexable: false,
+                                                        policy: 'https://policy.concrnt.world/t/inline-read-write.json',
+                                                        policyParams: `{"isWritePublic": false, "isReadPublic": true, "writer": ["${client.ccid}"], "reader": []}`,
                                                         semanticID: 'world.concrnt.t-subhome.' + profile.id
                                                     }
                                                 )
