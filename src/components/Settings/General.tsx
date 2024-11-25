@@ -158,7 +158,6 @@ export const GeneralSettings = (): JSX.Element => {
                     )}
                 </FormGroup>
             </Box>
-
             {tutorialCompleted && (
                 <Button
                     onClick={(_) => {
@@ -168,11 +167,10 @@ export const GeneralSettings = (): JSX.Element => {
                     メニューにチュートリアルを表示する
                 </Button>
             )}
-
             <Typography variant="h3" gutterBottom>
-                通知
+                通知(プレビュー)
             </Typography>
-
+            通知機能は現在プレビュー版です。一部の通知には対応していません。また、通知の有効化にはブラウザでの通知許可が必要です。
             {notification ? (
                 <>
                     <FormGroup>
@@ -431,9 +429,7 @@ export const GeneralSettings = (): JSX.Element => {
                     </Button>
                 </>
             )}
-
             {devMode && <>{vapidKey ?? 'no vapid key'}</>}
-
             {!enableConcord && (
                 <Accordion>
                     <AccordionSummary>
@@ -466,7 +462,6 @@ export const GeneralSettings = (): JSX.Element => {
                 </Accordion>
             )}
             <Divider />
-
             {devMode && (
                 <>
                     <Typography variant="h3" gutterBottom>
@@ -527,7 +522,6 @@ export const GeneralSettings = (): JSX.Element => {
                     <Typography>{JSON.stringify(client.domainServices)}</Typography>
                 </>
             )}
-
             {tags.includes('_invite') && (
                 <>
                     {invitationCode === '' ? (
