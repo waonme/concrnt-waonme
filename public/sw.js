@@ -33,46 +33,72 @@ self.addEventListener('push', async event => {
     let title = '';
     let body = '';
 
-    const signer = await getProfile(document.signer);
+    let username = "非公開"
+    try {
+        const signer = await getProfile(document.signer);
+        username = signer.body.username;
+    } catch (error) {
+        console.log(error);
+    }
 
     switch (document.schema) {
         case Schemas.likeAssociation: { // Like
-            title = `${signer.body.username} さんがあなたの投稿にいいねしました`;
-            const message = await getMessage(document.target, document.owner);
-            body = message.body.body;
+            title = `${username} さんがあなたの投稿にいいねしました`;
+            try {
+                const message = await getMessage(document.target, document.owner);
+                body = message.body.body;
+            } catch (error) {
+                console.log(error);
+            }
 
             break
         }
         case Schemas.reactionAssociation: { // Reaction
-            title = `${signer.body.username} さんがあなたの投稿にリアクションしました :${document.body.shortcode}:`;
-            const message = await getMessage(document.target, document.owner);
-            body = message.body.body;
+            title = `${username} さんがあなたの投稿にリアクションしました :${document.body.shortcode}:`;
+            try {
+                const message = await getMessage(document.target, document.owner);
+                body = message.body.body;
+            } catch (error) {
+                console.log(error);
+            }
 
             break;
         }
         case Schemas.rerouteAssociation: { // Reroute
-            title = `${signer.body.username} さんがあなたの投稿をリルートしました`;
-            const message = await getMessage(document.target, document.owner);
-            body = message.body.body;
+            title = `${username} さんがあなたの投稿をリルートしました`;
+            try {
+                const message = await getMessage(document.target, document.owner);
+                body = message.body.body;
+            } catch (error) {
+                console.log(error);
+            }
 
             break;
         }
         case Schemas.replyAssociation: { // Reply
-            title = `${signer.body.username} さんがあなたの投稿にリプライしました`;
-            const message = await getMessage(document.body.messageId, document.body.messageAuthor);
-            body = message.body.body;
+            title = `${username} さんがあなたの投稿にリプライしました`;
+            try {
+                const message = await getMessage(document.body.messageId, document.body.messageAuthor);
+                body = message.body.body;
+            } catch (error) {
+                console.log(error);
+            }
 
             break;
         }
         case Schemas.mentionAssociation: { // Mention
-            title = `${signer.body.username} さんがあなたをメンションしました`;
-            const message = await getMessage(document.target, document.owner);
-            body = message.body.body;
+            title = `${username} さんがあなたをメンションしました`;
+            try {
+                const message = await getMessage(document.target, document.owner);
+                body = message.body.body;
+            } catch (error) {
+                console.log(error);
+            }
 
             break;
         }
         case Schemas.readAccessRequestAssociation: { // Read Access Request
-            title = `${signer.body.username} さんが閲覧リクエストを送信しています`;
+            title = `${username} さんが閲覧リクエストを送信しています`;
             break;
         }
 
