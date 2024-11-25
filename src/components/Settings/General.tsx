@@ -54,7 +54,9 @@ export const GeneralSettings = (): JSX.Element => {
 
     useEffect(() => {
         setCurrentLanguage(i18n.resolvedLanguage || 'en')
-        fetch(`https://${client.api.host}/api/v1/domain`).then((res) => {
+        fetch(`https://${client.api.host}/api/v1/domain`, {
+            cache: 'no-cache'
+        }).then((res) => {
             res.json().then((data) => {
                 setDomainInfo(data.content)
             })
@@ -429,6 +431,8 @@ export const GeneralSettings = (): JSX.Element => {
                     </Button>
                 </>
             )}
+
+            {devMode && <>{vapidKey ?? 'no vapid key'}</>}
 
             {!enableConcord && (
                 <Accordion>
