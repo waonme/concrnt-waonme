@@ -94,12 +94,11 @@ export default function GuestTimelinePage(props: GuestPageProps): JSX.Element {
     const profilePageSchema = {
         '@context': 'https://schema.org',
         '@type': 'ProfilePage',
-        author: {
+        mainEntity: {
             '@type': 'Person',
             name: user?.profile?.username,
-            additionalName: user?.alias,
+            alternateName: user?.alias,
             description: user?.profile?.description,
-            givenName: user?.profile?.username,
             identifier: user?.ccid,
             image: {
                 '@type': 'ImageObject',

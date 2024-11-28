@@ -32,11 +32,10 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                         <meta itemProp="url" content={'https://concrnt.world/' + props.author.ccid} />
                     </>
                 )}
-                {props.author?.alias && <meta itemProp="additionalName" content={props.author.alias} />}
+                {props.author?.alias && <meta itemProp="alternateName" content={props.author.alias} />}
                 {props.author?.profile?.username && (
                     <>
                         <meta itemProp="name" content={props.author.profile.username} />
-                        <meta itemProp="givenName" content={props.author.profile.username} />
                     </>
                 )}
             </Box>
