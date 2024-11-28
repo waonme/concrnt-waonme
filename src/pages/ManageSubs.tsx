@@ -20,7 +20,7 @@ import { useGlobalState } from '../context/GlobalState'
 import { Helmet } from 'react-helmet-async'
 
 export function ManageSubsPage(): JSX.Element {
-    const { t } = useTranslation('', { keyPrefix: 'pages.contacts' })
+    const { t } = useTranslation('', { keyPrefix: 'pages.manageSubs' })
     const { client } = useClient()
     const [lists, setLists] = usePreference('lists')
 
