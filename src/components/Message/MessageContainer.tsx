@@ -170,7 +170,7 @@ export const MessageContainer = memo<MessageContainerProps>((props: MessageConta
                 <Box sx={props.sx} itemScope itemProp="hasPart" itemType="https://schema.org/SocialMediaPosting">
                     <meta itemProp="identifier" content={message.id} />
                     <meta itemProp="url" content={`https://concrnt.world/${message.author}/${message.id}`} />
-                    <meta itemProp="datePublished" content={message.cdate} />
+                    <meta itemProp="datePublished" content={new Date(message.cdate).toISOString()} />
                     <MessageView
                         simple={props.simple}
                         message={message as Message<MarkdownMessageSchema>}
@@ -186,7 +186,7 @@ export const MessageContainer = memo<MessageContainerProps>((props: MessageConta
                 <Box sx={props.sx} itemScope itemProp="hasPart" itemType="https://schema.org/SocialMediaPosting">
                     <meta itemProp="identifier" content={message.id} />
                     <meta itemProp="url" content={`https://concrnt.world/${message.author}/${message.id}`} />
-                    <meta itemProp="datePublished" content={message.cdate} />
+                    <meta itemProp="datePublished" content={new Date(message.cdate).toISOString()} />
                     <ReplyMessageFrame
                         simple={props.simple}
                         message={message as Message<ReplyMessageSchema>}
@@ -202,7 +202,7 @@ export const MessageContainer = memo<MessageContainerProps>((props: MessageConta
                 <Box sx={props.sx} itemScope itemProp="hasPart" itemType="https://schema.org/SocialMediaPosting">
                     <meta itemProp="identifier" content={message.id} />
                     <meta itemProp="url" content={`https://concrnt.world/${message.author}/${message.id}`} />
-                    <meta itemProp="datePublished" content={message.cdate} />
+                    <meta itemProp="datePublished" content={new Date(message.cdate).toISOString()} />
                     <RerouteMessageFrame
                         simple={props.simple}
                         message={message as Message<RerouteMessageSchema>}
@@ -216,7 +216,7 @@ export const MessageContainer = memo<MessageContainerProps>((props: MessageConta
                 <Box sx={props.sx} itemScope itemProp="hasPart" itemType="https://schema.org/SocialMediaPosting">
                     <meta itemProp="identifier" content={message.id} />
                     <meta itemProp="url" content={`https://concrnt.world/${message.author}/${message.id}`} />
-                    <meta itemProp="datePublished" content={message.cdate} />
+                    <meta itemProp="datePublished" content={new Date(message.cdate).toISOString()} />
                     <PlainMessageView
                         simple={props.simple}
                         message={message as Message<PlaintextMessageSchema>}
@@ -232,7 +232,7 @@ export const MessageContainer = memo<MessageContainerProps>((props: MessageConta
                 <Box sx={props.sx} itemScope itemProp="hasPart" itemType="https://schema.org/SocialMediaPosting">
                     <meta itemProp="identifier" content={message.id} />
                     <meta itemProp="url" content={`https://concrnt.world/${message.author}/${message.id}`} />
-                    <meta itemProp="datePublished" content={message.cdate} />
+                    <meta itemProp="datePublished" content={new Date(message.cdate).toISOString()} />
                     <MediaMessageView
                         simple={props.simple}
                         message={message as Message<MediaMessageSchema>}
