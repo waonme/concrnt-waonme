@@ -34,7 +34,10 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                 )}
                 {props.author?.alias && <meta itemProp="additionalName" content={props.author.alias} />}
                 {props.author?.profile?.username && (
-                    <meta itemProp="givenName" content={props.author.profile.username} />
+                    <>
+                        <meta itemProp="name" content={props.author.profile.username} />
+                        <meta itemProp="givenName" content={props.author.profile.username} />
+                    </>
                 )}
             </Box>
             <Tooltip

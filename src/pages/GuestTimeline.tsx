@@ -96,6 +96,7 @@ export default function GuestTimelinePage(props: GuestPageProps): JSX.Element {
         '@type': 'ProfilePage',
         author: {
             '@type': 'Person',
+            name: user?.profile?.username,
             additionalName: user?.alias,
             description: user?.profile?.description,
             givenName: user?.profile?.username,

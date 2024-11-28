@@ -85,23 +85,6 @@ export default function GuestMessagePage(): JSX.Element {
                     message.document.body.body
                 }" - Concrnt`}</title>
                 <meta name="description" content={message.document.body.body} />
-                <script type="application/ld+json">
-                    {`
-            {
-                "@context": "https://schema.org",
-                "@type": "SocialMediaPosting",
-                "articleBody": ${JSON.stringify(message.document.body.body)},
-                "url": "${window.location.href}",
-                "author": {
-                    "@type": "Person",
-                    "name": "${message.authorUser?.profile?.username || 'anonymous'}",
-                    "url": "https://concrnt.world/${message.author}"
-                    "image": "${message.authorUser?.profile?.avatar}",
-                    "description": ${JSON.stringify(message.authorUser?.profile?.description || '')},
-                }
-            }
-            `}
-                </script>
             </Helmet>
             <ClientProvider client={client}>
                 <GuestBase
