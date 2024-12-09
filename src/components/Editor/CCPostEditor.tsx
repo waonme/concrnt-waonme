@@ -299,12 +299,21 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
 
         if (mode === 'media') {
             const notif = enqueueSnackbar('Uploading...', { persist: true })
+
+            let blurhash = ''
+            try {
+                const url = URL.createObjectURL(imageFile)
+                console.log(url)
+                blurhash = (await genBlurHash(url)) ?? ''
+            } catch (e) {
+                console.error('Failed to generate blurhash:', e)
+            }
+
             const result = await uploadFile(imageFile)
             if (!result) {
                 enqueueSnackbar('Failed to upload image', { variant: 'error' })
             } else {
-                const url = URL.createObjectURL(imageFile)
-                const blurhash = await genBlurHash(url)
+                console.log('uploaded:', result)
                 setMedias((medias) => [
                     ...medias,
                     {
