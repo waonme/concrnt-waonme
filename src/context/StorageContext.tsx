@@ -7,7 +7,7 @@ import { fileToBase64 } from '../util'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 export interface StorageState {
-    uploadFile: (file: File) => Promise<string | null>
+    uploadFile: (file: File, onProgress?: (_: number) => void) => Promise<string | null>
     isUploadReady: boolean
 }
 
@@ -33,7 +33,7 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
     }, [storageProvider, s3Config])
 
     const uploadFile = useCallback(
-        async (file: File) => {
+        async (file: File, onProgress?: (_: number) => void) => {
             const base64Data = await fileToBase64(file)
             if (!base64Data) return null
 
@@ -94,32 +94,31 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
                 })
                 return (await result.json()).data.link
             } else {
-                try {
-                    const result = await client.api.fetchWithCredential(
-                        client.host,
-                        '/storage/files',
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': file.type
-                            },
-                            body: file
-                        },
-                        1000 * 60 // 1 minute
-                    )
+                const xhr = new XMLHttpRequest()
+                xhr.open('POST', `https://${client.host}/storage/files`, true)
+                xhr.setRequestHeader('Content-Type', file.type)
+                xhr.setRequestHeader('Authorization', `Bearer ${client.api.tokens[client.host]}`)
 
-                    if (!result.ok) {
-                        console.error('upload failed:', result)
-                        return null
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = e.loaded / e.total
+                        console.log(`uploading: ${percent}%`)
+                        onProgress?.(percent)
                     }
-
-                    const json = await result.json()
-
-                    return json.content.url
-                } catch (e) {
-                    console.error('upload failed:', e)
-                    return null
                 }
+
+                xhr.send(file)
+
+                return await new Promise<string | null>((resolve, reject) => {
+                    xhr.onload = () => {
+                        if (xhr.status === 200) {
+                            const json = JSON.parse(xhr.responseText)
+                            resolve(json.content.url)
+                        } else {
+                            reject(xhr.responseText)
+                        }
+                    }
+                })
             }
         },
         [storageProvider, imgurClientID, s3Config]
