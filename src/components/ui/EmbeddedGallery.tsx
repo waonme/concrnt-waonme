@@ -128,7 +128,7 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                             width: '100%',
                             height: '100%',
                             backgroundColor: '#111',
-                            display: loadded ? 'none' : 'block'
+                            zIndex: -1
                         }}
                     >
                         {media.blurhash && (
