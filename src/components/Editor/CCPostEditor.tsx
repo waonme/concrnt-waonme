@@ -319,7 +319,10 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                 video.playsInline = true
 
                 await new Promise<void>((resolve) => {
-                    video.onplaying = async () => {
+                    let rendered = false
+                    video.oncanplay = async () => {
+                        if (rendered || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return
+                        rendered = true
                         video.pause()
                         canvas.width = video.videoWidth
                         canvas.height = video.videoHeight
@@ -335,7 +338,10 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                         }
                         resolve()
                     }
+
                     setTimeout(() => {
+                        if (rendered) return
+                        rendered = true
                         resolve()
                     }, 3000)
                     video.play()
@@ -676,7 +682,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                     }}
                                 >
                                     <CircularProgress
-                                        variant="determinate"
+                                        variant={media.progress === 1 ? 'indeterminate' : 'determinate'}
                                         value={media.progress * 100}
                                         sx={{
                                             color: 'white'
