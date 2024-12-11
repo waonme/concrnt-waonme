@@ -34,13 +34,12 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
 
     const uploadFile = useCallback(
         async (file: File, onProgress?: (_: number) => void) => {
-            const base64Data = await fileToBase64(file)
-            if (!base64Data) return null
-
             if (storageProvider === 's3') {
                 if (!s3Client) return null
+                const base64Data = await fileToBase64(file)
+                if (!base64Data) return null
                 const _base64Data = base64Data.split(',')[1]
-                const byteCharacters = atob(_base64Data)
+                const byteCharacters = window.atob(_base64Data)
                 const byteNumbers = new Array(byteCharacters.length)
                 for (let i = 0; i < byteCharacters.length; i++) {
                     byteNumbers[i] = byteCharacters.charCodeAt(i)
@@ -58,52 +57,76 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
                         expiresIn: 60 // 1 minute
                     }
                 )
-                try {
-                    const result = await fetch(url, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': file.type,
-                            'Content-Encoding': 'base64',
-                            'Content-Disposition': 'inline'
-                        },
-                        body: byteArray
-                    })
-                    if (!result.ok) {
-                        return null
+
+                const xhr = new XMLHttpRequest()
+                xhr.open('PUT', url, true)
+                xhr.setRequestHeader('Content-Type', file.type)
+                xhr.setRequestHeader('Content-Encoding', 'base64')
+                xhr.setRequestHeader('Content-Disposition', 'inline')
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        onProgress?.(e.loaded / e.total)
                     }
-                    return `${s3Config.publicUrl}/${fileName}`
-                } catch (e) {
-                    return null
                 }
+
+                xhr.send(byteArray)
+
+                return await new Promise<string | null>((resolve, reject) => {
+                    xhr.onload = () => {
+                        if (xhr.status === 200) {
+                            resolve(`${s3Config.publicUrl}/${fileName}`)
+                        } else {
+                            reject(xhr.responseText)
+                        }
+                    }
+                })
             } else if (storageProvider === 'imgur') {
                 const url = 'https://api.imgur.com/3/image'
                 if (!imgurClientID) return ''
                 const isImage = file.type.includes('image')
                 if (!isImage) return null
 
-                const result = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Client-ID ${imgurClientID}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
+                const base64Data = await fileToBase64(file)
+                if (!base64Data) return null
+
+                const xhr = new XMLHttpRequest()
+                xhr.open('POST', url, true)
+                xhr.setRequestHeader('Authorization', `Client-ID ${imgurClientID}`)
+                xhr.setRequestHeader('Content-Type', 'application/json')
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        onProgress?.(e.loaded / e.total)
+                    }
+                }
+
+                xhr.send(
+                    JSON.stringify({
                         type: 'base64',
                         image: base64Data.replace(/^data:image\/[a-zA-Z]*;base64,/, '')
                     })
+                )
+
+                return await new Promise<string | null>((resolve, reject) => {
+                    xhr.onload = () => {
+                        if (xhr.status === 200) {
+                            const json = JSON.parse(xhr.responseText)
+                            resolve(json.data.link)
+                        } else {
+                            reject(xhr.responseText)
+                        }
+                    }
                 })
-                return (await result.json()).data.link
             } else {
                 const xhr = new XMLHttpRequest()
                 xhr.open('POST', `https://${client.host}/storage/files`, true)
                 xhr.setRequestHeader('Content-Type', file.type)
-                xhr.setRequestHeader('Authorization', `Bearer ${client.api.tokens[client.host]}`)
+                xhr.setRequestHeader('Authorization', `Bearer ${client.api.generateApiToken(client.host)}`)
 
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
-                        const percent = e.loaded / e.total
-                        console.log(`uploading: ${percent}%`)
-                        onProgress?.(percent)
+                        onProgress?.(e.loaded / e.total)
                     }
                 }
 

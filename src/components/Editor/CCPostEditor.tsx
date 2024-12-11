@@ -95,7 +95,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
     const theme = useTheme()
     const { client } = useClient()
     const { uploadFile } = useStorage()
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+    const { enqueueSnackbar } = useSnackbar()
     const { t } = useTranslation('', { keyPrefix: 'ui.draft' })
     const { t: et } = useTranslation('', { keyPrefix: 'ui.postButton' })
 
@@ -170,6 +170,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
         'draftMedias',
         []
     )
+    const uploading = medias.some((media) => media.progress < 1)
 
     const reset = (): void => {
         setMode('markdown')
@@ -301,12 +302,40 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
         }
 
         if (mode === 'media') {
-            const url = URL.createObjectURL(imageFile)
+            let url = URL.createObjectURL(imageFile)
             let blurhash = ''
-            try {
-                blurhash = (await genBlurHash(url)) ?? ''
-            } catch (e) {
-                console.error('Failed to generate blurhash:', e)
+
+            if (imageFile.type.startsWith('image')) {
+                try {
+                    blurhash = (await genBlurHash(url)) ?? ''
+                } catch (e) {
+                    console.error('Failed to generate blurhash:', e)
+                }
+            } else if (imageFile.type.startsWith('video')) {
+                const canvas = document.createElement('canvas')
+                const video = document.createElement('video')
+                video.src = url
+                video.play()
+                video.muted = true
+
+                await new Promise<void>((resolve) => {
+                    video.onplaying = async () => {
+                        video.pause()
+                        canvas.width = video.videoWidth
+                        canvas.height = video.videoHeight
+                        const ctx = canvas.getContext('2d')
+                        if (!ctx) return
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+                        const thumbnailURL = canvas.toDataURL('image/jpeg')
+                        url = thumbnailURL
+                        try {
+                            blurhash = (await genBlurHash(thumbnailURL)) ?? ''
+                        } catch (e) {
+                            console.error('Failed to generate blurhash:', e)
+                        }
+                        resolve()
+                    }
+                })
             }
 
             setMedias((medias) => [
@@ -588,7 +617,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                 position: 'relative',
                                 width: '75px',
                                 height: '75px',
-                                backgroundImage: `url(${media.media.mediaURL})`,
+                                backgroundImage: `url(${media.key})`,
                                 backgroundSize: 'cover'
                             }}
                             onClick={(e) => {
@@ -697,7 +726,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             post={() => {
                                 post(postHome)
                             }}
-                            sending={sending}
+                            disablePostButton={sending || draft.length === 0}
                             draft={draft}
                             setDraft={setDraft}
                             textInputRef={textInputRef}
@@ -748,7 +777,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             }}
                             disableMedia={mode === 'plaintext' || mode === 'reroute'}
                             disableEmoji={mode === 'plaintext' || mode === 'reroute'}
-                            sending={sending}
+                            disablePostButton={sending || uploading}
                             draft={draft}
                             setDraft={setDraft}
                             textInputRef={textInputRef}
@@ -875,7 +904,6 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     label="URL"
                     value={medias[selectedMediaIndex]?.media.mediaURL}
                     onChange={(e) => {
-                        // setAddingMediaURL(e.target.value)
                         setMedias((medias) => {
                             const newMedias = [...medias]
                             newMedias[selectedMediaIndex] = {
@@ -925,7 +953,6 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     }}
                     value={medias[selectedMediaIndex]?.media.flag ?? ''}
                     onChange={(newvalue) => {
-                        // setAddingMediaFlag(e.target.value)
                         setMedias((medias) => {
                             const newMedias = [...medias]
                             newMedias[selectedMediaIndex] = {
