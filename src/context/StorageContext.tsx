@@ -7,7 +7,7 @@ import { fileToBase64 } from '../util'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 export interface StorageState {
-    uploadFile: (file: File, onProgress?: (_: number) => void) => Promise<string | null>
+    uploadFile: (file: File, onProgress?: (_: number) => void) => Promise<string>
     isUploadReady: boolean
 }
 
@@ -33,11 +33,11 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
     }, [storageProvider, s3Config])
 
     const uploadFile = useCallback(
-        async (file: File, onProgress?: (_: number) => void) => {
+        async (file: File, onProgress?: (_: number) => void): Promise<string> => {
             if (storageProvider === 's3') {
-                if (!s3Client) return null
+                if (!s3Client) throw new Error('S3 client is not initialized')
                 const base64Data = await fileToBase64(file)
-                if (!base64Data) return null
+                if (!base64Data) throw new Error('Failed to convert file to base64')
                 const _base64Data = base64Data.split(',')[1]
                 const byteCharacters = window.atob(_base64Data)
                 const byteNumbers = new Array(byteCharacters.length)
@@ -72,7 +72,7 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
 
                 xhr.send(byteArray)
 
-                return await new Promise<string | null>((resolve, reject) => {
+                return await new Promise<string>((resolve, reject) => {
                     xhr.onload = () => {
                         if (xhr.status === 200) {
                             resolve(`${s3Config.publicUrl}/${fileName}`)
@@ -85,10 +85,10 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
                 const url = 'https://api.imgur.com/3/image'
                 if (!imgurClientID) return ''
                 const isImage = file.type.includes('image')
-                if (!isImage) return null
+                if (!isImage) throw new Error('Only images are supported for imgur uploads')
 
                 const base64Data = await fileToBase64(file)
-                if (!base64Data) return null
+                if (!base64Data) throw new Error('Failed to convert file to base64')
 
                 const xhr = new XMLHttpRequest()
                 xhr.open('POST', url, true)
@@ -108,7 +108,7 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
                     })
                 )
 
-                return await new Promise<string | null>((resolve, reject) => {
+                return await new Promise<string>((resolve, reject) => {
                     xhr.onload = () => {
                         if (xhr.status === 200) {
                             const json = JSON.parse(xhr.responseText)
@@ -132,7 +132,7 @@ export const StorageProvider = ({ children }: { children: JSX.Element | JSX.Elem
 
                 xhr.send(file)
 
-                return await new Promise<string | null>((resolve, reject) => {
+                return await new Promise<string>((resolve, reject) => {
                     xhr.onload = () => {
                         if (xhr.status === 200) {
                             const json = JSON.parse(xhr.responseText)

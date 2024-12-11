@@ -170,7 +170,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
         'draftMedias',
         []
     )
-    const uploading = medias.some((media) => media.progress < 1)
+    const uploading = medias.some((media) => media.media.mediaURL === '')
 
     const reset = (): void => {
         setMode('markdown')
@@ -315,8 +315,8 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                 const canvas = document.createElement('canvas')
                 const video = document.createElement('video')
                 video.src = url
-                video.play()
                 video.muted = true
+                video.playsInline = true
 
                 await new Promise<void>((resolve) => {
                     video.onplaying = async () => {
@@ -335,6 +335,10 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                         }
                         resolve()
                     }
+                    setTimeout(() => {
+                        resolve()
+                    }, 3000)
+                    video.play()
                 })
             }
 
@@ -344,14 +348,14 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     key: url,
                     progress: 0,
                     media: {
-                        mediaURL: url,
+                        mediaURL: '',
                         mediaType: imageFile.type,
                         blurhash
                     }
                 }
             ])
 
-            const result = await uploadFile(imageFile, (progress) => {
+            await uploadFile(imageFile, (progress) => {
                 setMedias((medias) => {
                     const newMedias = [...medias]
                     const index = newMedias.findIndex((media) => media.key === url)
@@ -364,26 +368,29 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     return newMedias
                 })
             })
-            if (!result) {
-                enqueueSnackbar('Failed to upload image', { variant: 'error' })
-                setMedias((medias) => medias.filter((media) => media.key !== url))
-            } else {
-                setMedias((medias) => {
-                    const newMedias = [...medias]
-                    const index = newMedias.findIndex((media) => media.key === url)
-                    if (index >= 0) {
-                        newMedias[index] = {
-                            ...newMedias[index],
-                            progress: 1,
-                            media: {
-                                ...newMedias[index].media,
-                                mediaURL: result
+                .then((result) => {
+                    setMedias((medias) => {
+                        const newMedias = [...medias]
+                        const index = newMedias.findIndex((media) => media.key === url)
+                        if (index >= 0) {
+                            newMedias[index] = {
+                                ...newMedias[index],
+                                progress: 1,
+                                media: {
+                                    ...newMedias[index].media,
+                                    mediaURL: result
+                                }
                             }
+                        } else {
+                            console.error('Failed to update media:', url)
                         }
-                    }
-                    return newMedias
+                        return newMedias
+                    })
                 })
-            }
+                .catch((e) => {
+                    enqueueSnackbar(`Failed to upload media: ${e}`, { variant: 'error' })
+                    setMedias((medias) => medias.filter((media) => media.key !== url))
+                })
         } else {
             const uploadingText = ' ![uploading...]()'
             setDraft((before) => before + uploadingText)
@@ -657,7 +664,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                     />
                                 </Tooltip>
                             )}
-                            {media.progress < 1 && (
+                            {media.media.mediaURL === '' && (
                                 <Box
                                     sx={{
                                         width: '100%',
