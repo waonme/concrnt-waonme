@@ -726,7 +726,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             post={() => {
                                 post(postHome)
                             }}
-                            disablePostButton={sending || draft.length === 0}
+                            disablePostButton={sending || uploading}
                             draft={draft}
                             setDraft={setDraft}
                             textInputRef={textInputRef}
