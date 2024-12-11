@@ -95,7 +95,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
     const theme = useTheme()
     const { client } = useClient()
     const { uploadFile } = useStorage()
-    const { enqueueSnackbar, closeSnackbar } = useSnackbar()
+    const { enqueueSnackbar } = useSnackbar()
     const { t } = useTranslation('', { keyPrefix: 'ui.draft' })
     const { t: et } = useTranslation('', { keyPrefix: 'ui.postButton' })
 
@@ -166,7 +166,11 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
     }
 
     // media
-    const [medias, setMedias] = usePersistent<WorldMedia[]>('draftMedias', [])
+    const [medias, setMedias] = usePersistent<Array<{ key: string; progress: number; media: WorldMedia }>>(
+        'draftMedias',
+        []
+    )
+    const uploading = medias.some((media) => media.progress < 1)
 
     const reset = (): void => {
         setMode('markdown')
@@ -245,7 +249,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
             case 'media':
                 req = client.createMediaCrnt(draft, dest, {
                     emojis,
-                    medias,
+                    medias: medias.map((media) => media.media),
                     profileOverride,
                     whisper,
                     isPrivate
@@ -298,33 +302,88 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
         }
 
         if (mode === 'media') {
-            const notif = enqueueSnackbar('Uploading...', { persist: true })
-
+            let url = URL.createObjectURL(imageFile)
             let blurhash = ''
-            try {
-                const url = URL.createObjectURL(imageFile)
-                console.log(url)
-                blurhash = (await genBlurHash(url)) ?? ''
-            } catch (e) {
-                console.error('Failed to generate blurhash:', e)
+
+            if (imageFile.type.startsWith('image')) {
+                try {
+                    blurhash = (await genBlurHash(url)) ?? ''
+                } catch (e) {
+                    console.error('Failed to generate blurhash:', e)
+                }
+            } else if (imageFile.type.startsWith('video')) {
+                const canvas = document.createElement('canvas')
+                const video = document.createElement('video')
+                video.src = url
+                video.play()
+                video.muted = true
+
+                await new Promise<void>((resolve) => {
+                    video.onplaying = async () => {
+                        video.pause()
+                        canvas.width = video.videoWidth
+                        canvas.height = video.videoHeight
+                        const ctx = canvas.getContext('2d')
+                        if (!ctx) return
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+                        const thumbnailURL = canvas.toDataURL('image/jpeg')
+                        url = thumbnailURL
+                        try {
+                            blurhash = (await genBlurHash(thumbnailURL)) ?? ''
+                        } catch (e) {
+                            console.error('Failed to generate blurhash:', e)
+                        }
+                        resolve()
+                    }
+                })
             }
 
-            const result = await uploadFile(imageFile)
-            if (!result) {
-                enqueueSnackbar('Failed to upload image', { variant: 'error' })
-            } else {
-                console.log('uploaded:', result)
-                setMedias((medias) => [
-                    ...medias,
-                    {
-                        mediaURL: result,
+            setMedias((medias) => [
+                ...medias,
+                {
+                    key: url,
+                    progress: 0,
+                    media: {
+                        mediaURL: url,
                         mediaType: imageFile.type,
                         blurhash
                     }
-                ])
+                }
+            ])
+
+            const result = await uploadFile(imageFile, (progress) => {
+                setMedias((medias) => {
+                    const newMedias = [...medias]
+                    const index = newMedias.findIndex((media) => media.key === url)
+                    if (index >= 0) {
+                        newMedias[index] = {
+                            ...newMedias[index],
+                            progress
+                        }
+                    }
+                    return newMedias
+                })
+            })
+            if (!result) {
+                enqueueSnackbar('Failed to upload image', { variant: 'error' })
+                setMedias((medias) => medias.filter((media) => media.key !== url))
+            } else {
+                setMedias((medias) => {
+                    const newMedias = [...medias]
+                    const index = newMedias.findIndex((media) => media.key === url)
+                    if (index >= 0) {
+                        newMedias[index] = {
+                            ...newMedias[index],
+                            progress: 1,
+                            media: {
+                                ...newMedias[index].media,
+                                mediaURL: result
+                            }
+                        }
+                    }
+                    return newMedias
+                })
             }
-            closeSnackbar(notif)
-            enqueueSnackbar('Uploaded', { variant: 'success' })
         } else {
             const uploadingText = ' ![uploading...]()'
             setDraft((before) => before + uploadingText)
@@ -558,7 +617,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                 position: 'relative',
                                 width: '75px',
                                 height: '75px',
-                                backgroundImage: `url(${media.mediaURL})`,
+                                backgroundImage: `url(${media.key})`,
                                 backgroundSize: 'cover'
                             }}
                             onClick={(e) => {
@@ -585,8 +644,8 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                     }}
                                 />
                             </CCIconButton>
-                            {media.flag && (
-                                <Tooltip title={media.flag} arrow placement="top">
+                            {media.media.flag && (
+                                <Tooltip title={media.media.flag} arrow placement="top">
                                     <FeedbackIcon
                                         sx={{
                                             position: 'absolute',
@@ -597,6 +656,26 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                         }}
                                     />
                                 </Tooltip>
+                            )}
+                            {media.progress < 1 && (
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.3)'
+                                    }}
+                                >
+                                    <CircularProgress
+                                        variant="determinate"
+                                        value={media.progress * 100}
+                                        sx={{
+                                            color: 'white'
+                                        }}
+                                    />
+                                </Box>
                             )}
                         </Paper>
                     ))}
@@ -647,7 +726,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             post={() => {
                                 post(postHome)
                             }}
-                            sending={sending}
+                            disablePostButton={sending || draft.length === 0}
                             draft={draft}
                             setDraft={setDraft}
                             textInputRef={textInputRef}
@@ -658,7 +737,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             onAddMedia={
                                 mode === 'media'
                                     ? (media) => {
-                                          setMedias((medias) => [...medias, media])
+                                          setMedias((medias) => [...medias, { key: '', progress: 1, media }])
                                       }
                                     : undefined
                             }
@@ -698,7 +777,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             }}
                             disableMedia={mode === 'plaintext' || mode === 'reroute'}
                             disableEmoji={mode === 'plaintext' || mode === 'reroute'}
-                            sending={sending}
+                            disablePostButton={sending || uploading}
                             draft={draft}
                             setDraft={setDraft}
                             textInputRef={textInputRef}
@@ -709,7 +788,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                             onAddMedia={
                                 mode === 'media'
                                     ? (media) => {
-                                          setMedias((medias) => [...medias, media])
+                                          setMedias((medias) => [...medias, { key: '', progress: 1, media }])
                                       }
                                     : undefined
                             }
@@ -779,10 +858,10 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                         if (mode === 'media' && newMode !== 'media') {
                                             if (newMode !== 'plaintext' && medias.length > 0) {
                                                 const mediaLiteral = medias.map((media) => {
-                                                    if (media.mediaType.startsWith('image')) {
-                                                        return `![image](${media.mediaURL})`
-                                                    } else if (media.mediaType.startsWith('video')) {
-                                                        return `<video controls><source src="${media.mediaURL}#t=0.1"></video>`
+                                                    if (media.media.mediaType.startsWith('image')) {
+                                                        return `![image](${media.media.mediaURL})`
+                                                    } else if (media.media.mediaType.startsWith('video')) {
+                                                        return `<video controls><source src="${media.media.mediaURL}#t=0.1"></video>`
                                                     }
                                                     return ''
                                                 })
@@ -823,14 +902,16 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
             >
                 <TextField
                     label="URL"
-                    value={medias[selectedMediaIndex]?.mediaURL}
+                    value={medias[selectedMediaIndex]?.media.mediaURL}
                     onChange={(e) => {
-                        // setAddingMediaURL(e.target.value)
                         setMedias((medias) => {
                             const newMedias = [...medias]
                             newMedias[selectedMediaIndex] = {
                                 ...newMedias[selectedMediaIndex],
-                                mediaURL: e.target.value
+                                media: {
+                                    ...newMedias[selectedMediaIndex].media,
+                                    mediaURL: e.target.value
+                                }
                             }
                             return newMedias
                         })
@@ -840,14 +921,16 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     <InputLabel>Type</InputLabel>
                     <Select
                         label="Type"
-                        value={medias[selectedMediaIndex]?.mediaType}
+                        value={medias[selectedMediaIndex]?.media.mediaType}
                         onChange={(e) => {
-                            // setAddingMediaType(e.target.value)
                             setMedias((medias) => {
                                 const newMedias = [...medias]
                                 newMedias[selectedMediaIndex] = {
                                     ...newMedias[selectedMediaIndex],
-                                    mediaType: e.target.value
+                                    media: {
+                                        ...newMedias[selectedMediaIndex].media,
+                                        mediaType: e.target.value
+                                    }
                                 }
                                 return newMedias
                             })
@@ -868,14 +951,16 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                         ポルノ: 'ポルノ',
                         ハード: 'ハード'
                     }}
-                    value={medias[selectedMediaIndex]?.flag ?? ''}
+                    value={medias[selectedMediaIndex]?.media.flag ?? ''}
                     onChange={(newvalue) => {
-                        // setAddingMediaFlag(e.target.value)
                         setMedias((medias) => {
                             const newMedias = [...medias]
                             newMedias[selectedMediaIndex] = {
                                 ...newMedias[selectedMediaIndex],
-                                flag: newvalue === '' ? undefined : newvalue
+                                media: {
+                                    ...newMedias[selectedMediaIndex].media,
+                                    flag: newvalue === '' ? undefined : newvalue
+                                }
                             }
                             return newMedias
                         })
