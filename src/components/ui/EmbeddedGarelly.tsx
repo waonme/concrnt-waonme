@@ -96,7 +96,7 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                             component="video"
                             muted
                             controls
-                            src={media.mediaURL}
+                            src={`${media.mediaURL}#t=0.1`}
                             preload="metadata"
                             style={{
                                 display: isHidden ? 'none' : 'block',
