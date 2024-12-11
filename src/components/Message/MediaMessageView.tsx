@@ -16,7 +16,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useMemo, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
-import { EmbeddedGallery } from '../ui/EmbeddedGarelly'
+import { EmbeddedGallery } from '../ui/EmbeddedGallery'
 import { AutoSummaryProvider } from '../../context/AutoSummaryContext'
 
 export interface MediaMessageViewProps {
