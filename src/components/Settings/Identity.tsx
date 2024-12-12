@@ -210,6 +210,8 @@ export const IdentitySettings = (): JSX.Element => {
     const [hideDisabledSubKey, setHideDisabledSubKey] = usePreference('hideDisabledSubKey')
     const [aliasDraft, setAliasDraft] = useState<string>('')
     const [certChain, setCertChain] = useState<CertChain | null>(null)
+    const [showPrivateKey, setShowPrivateKey] = useState(false)
+    const [devMode] = usePreference('devMode')
 
     const subkey = client.api.ckid
     const [forceUpdate, setForceUpdate] = useState(0)
@@ -390,6 +392,33 @@ _concrnt.${aliasDraft} TXT "hint=${client.host}"`}</Codeblock>
                         )}
                     </AccordionDetails>
                 </Accordion>
+
+                {devMode && identity && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1
+                        }}
+                    >
+                        <Alert
+                            severity="info"
+                            action={
+                                <CCIconButton
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(client.api.privatekey ?? '')
+                                        enqueueSnackbar('Copied', { variant: 'info' })
+                                    }}
+                                >
+                                    <ContentPasteIcon />
+                                </CCIconButton>
+                            }
+                        >
+                            <AlertTitle>[開発者用] hex形式のマスターキー</AlertTitle>
+                            マスターキーのプライベートキーをbot等で利用する場合、ここからコピーできます。
+                        </Alert>
+                    </Box>
+                )}
 
                 {subkey && (
                     <Box
