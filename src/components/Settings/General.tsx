@@ -454,9 +454,9 @@ export const GeneralSettings = (): JSX.Element => {
                     </AccordionActions>
                 </Accordion>
             )}
-            <Divider />
             {tags.includes('_invite') && (
                 <>
+                    <Typography variant="h3">招待</Typography>
                     {invitationCode === '' ? (
                         <Button
                             onClick={(_) => {

@@ -210,7 +210,6 @@ export const IdentitySettings = (): JSX.Element => {
     const [hideDisabledSubKey, setHideDisabledSubKey] = usePreference('hideDisabledSubKey')
     const [aliasDraft, setAliasDraft] = useState<string>('')
     const [certChain, setCertChain] = useState<CertChain | null>(null)
-    const [showPrivateKey, setShowPrivateKey] = useState(false)
     const [devMode] = usePreference('devMode')
 
     const subkey = client.api.ckid
@@ -290,29 +289,6 @@ export const IdentitySettings = (): JSX.Element => {
                     gap: 1
                 }}
             >
-                {identity && (
-                    <Alert
-                        severity="info"
-                        action={
-                            <Button
-                                variant="text"
-                                color="inherit"
-                                size="small"
-                                onClick={() => {
-                                    globalState.setSwitchToSub(true)
-                                }}
-                            >
-                                通常モードへ移行する
-                            </Button>
-                        }
-                    >
-                        <AlertTitle>現在特権モードでログインしています</AlertTitle>
-                        特権モードは、アカウントの削除など強い操作が可能なモードです。
-                        <br />
-                        特権の利用が終ったら、通常モードへ戻ることをお勧めします。
-                    </Alert>
-                )}
-
                 <Box
                     sx={{
                         padding: { xs: '10px', sm: '10px 50px' }
