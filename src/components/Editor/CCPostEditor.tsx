@@ -323,10 +323,10 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                     video.oncanplay = async () => {
                         if (rendered || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return
                         rendered = true
-                        requestAnimationFrame(() => {
+                        setTimeout(() => {
                             video.pause()
                             resolve()
-                        })
+                        }, 33)
                     }
 
                     setTimeout(() => {
