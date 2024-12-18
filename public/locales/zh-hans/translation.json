@@ -17,7 +17,7 @@
             "title": "通知"
         },
         "associations": {
-            "title": "协会"
+            "title": "Associations"
         },
         "contacts": {
             "title": "联系"
@@ -29,7 +29,7 @@
             "createNew": "创建新的",
             "createNewCommunity": {
                 "title": "创建新的社区",
-                "desc1": "创建一个新的流在 ",
+                "desc1": "创建一个新的信息流在 ",
                 "desc2": " 上，使用以下设置。"
             }
         },
@@ -104,7 +104,7 @@
             "name": "列表名称",
             "update": "更新",
             "defaultDest": "默认目的地",
-            "stream": "流",
+            "stream": "信息流",
             "community": "社区",
             "user": "用户",
             "pin": "固定",
