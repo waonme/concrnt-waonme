@@ -7,7 +7,15 @@
         "follow": "フォロー",
         "following": "フォロー中",
         "unfollow": "フォロー解除",
-        "followers": "フォロワー"
+        "followers": "フォロワー",
+        "crnt": "カレント",
+        "media": "メディア",
+        "activity": "アクティビティ",
+        "reply": "リプライ",
+        "mention": "メンション",
+        "reroute": "リルート",
+        "fav": "お気に入り",
+        "reaction": "リアクション"
     },
     "pages": {
         "home": {
@@ -54,7 +62,11 @@
             "title": "リスト"
         },
         "manageSubs": {
-            "title": "リストの管理"
+            "title": "リストの管理",
+            "new": "新規作成",
+            "listed": "表示中のリスト",
+            "unlisted": "非表示のリスト",
+            "newlist": "新しいリスト"
         }
     },
     "time": {
@@ -104,11 +116,16 @@
             "name": "リスト名",
             "update": "更新",
             "defaultDest": "デフォルト投稿先",
+            "addDefaultDest": "デフォルト投稿先を追加",
+            "postWithHome": "ホーム同時投稿",
+            "defaultProfile": "デフォルトプロフィール",
             "stream": "ストリーム",
             "community": "コミュニティ",
             "user": "ユーザー",
             "pin": "ピン留め",
-            "delete": "リストを削除"
+            "delete": "リストを削除",
+            "reallyDelete": "本当にこのリストを削除しますか？",
+            "confirmDelete": "削除"
         }
     },
     "settings": {

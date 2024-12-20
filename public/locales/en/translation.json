@@ -7,7 +7,15 @@
         "follow": "Follow",
         "following": "Following",
         "unfollow": "Unfollow",
-        "followers": "Followers"
+        "followers": "Followers",
+        "crnt": "Post",
+        "media": "Media",
+        "activity": "Activity",
+        "reply": "Reply",
+        "mention": "Mention",
+        "reroute": "Reroute",
+        "fav": "Favorite",
+        "reaction": "Reaction"
     },
     "pages": {
         "home": {
@@ -54,7 +62,11 @@
             "title": "Lists"
         },
         "manageSubs": {
-            "title": "List Management"
+            "title": "List Management",
+            "new": "Create New",
+            "listed": "Listed",
+            "unlisted": "Unlisted",
+            "newlist": "New List"
         }
     },
     "time": {
@@ -104,11 +116,16 @@
             "name": "List name",
             "update": "Update",
             "defaultDest": "Default destination",
+            "addDefaultDest": "Add default destination",
+            "postWithHome": "Post With Home",
+            "defaultProfile": "Default profile",
             "stream": "Stream",
             "community": "Community",
             "user": "User",
             "pin": "Pin",
-            "delete": "Delete"
+            "delete": "Delete",
+            "reallyDelete": "Really delete this list?",
+            "confirmDelete": "Confirm"
         }
     },
     "settings": {
