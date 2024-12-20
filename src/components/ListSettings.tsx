@@ -121,7 +121,7 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                             setSelected={(value) => {
                                 updateList(props.subscription.id, {
                                     ...list,
-                                    defaultPostStreams: value.map((e) => e.id)
+                                    defaultPostStreams: value.map((e) => e.cacheKey ?? e.id)
                                 })
                                 setPostStreams(value)
                             }}
