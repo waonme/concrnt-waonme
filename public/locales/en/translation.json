@@ -118,12 +118,38 @@
             "basic": "Basic",
             "showEditorOnTop": "Show editor on top",
             "showEditorOnTopMobile": "Show editor on top (mobile)",
+            "autoSwitchMediaType": "Automatically switch the post type when an image is attached",
             "developerMode": "Developer mode",
             "generateInviteCode": "Generate invite code",
             "inviteCode": "Invite code (valid for 24 hours)",
             "copyInviteCode": "Copy invite code",
             "copied": "Copied",
-            "language": "Language"
+            "language": "Language",
+            "showTutorial": "Show tutorial in the menu",
+            "notification": {
+                "title": "Notification",
+                "notsupported": "Your domain does not support notifications",
+                "enable": "Enable Notifications",
+                "enabled": "Notifications have been enabled",
+                "disable": "Disable Notifications",
+                "disabled": "Notifications have been disabled",
+                "tryAgain": "Please try again",
+                "failed": "Failed",
+                "updated": "Notification settings updated",
+                "updateFailed": "Failed to update notification settings",
+                "update": "Update",
+                "reply": "Reply",
+                "mention": "Mention",
+                "viewerRequest": "View Request",
+                "fav": "Favorite",
+                "reaction": "Reaction",
+                "reroute": "Reroute"
+            }
+        },
+        "privileged": {
+            "title": "You are currently logged in with Privileged Mode",
+            "desc": "Privileged Mode allows for powerful actions such as account deletion.\nIt is recommended to switch back to Normal Mode after completing your privileged actions.",
+            "action": "Switch to Normal Mode"
         },
         "profile": {
             "title": "Profile",
@@ -160,7 +186,14 @@
                 "unset": "Unset",
                 "domain": "Governing Domain",
                 "addition": "The reference information is from when this certificate was issued and may have changed since then.",
-                "date": "Issued on:"
+                "date": "Issued on:",
+                "checkMasterKey": "Backup Master Key",
+                "backToSwitch": "Back to Switching",
+                "testPrompt": "To proceed, enter the {{first}}th and {{second}}th words of your master key",
+                "nthWord": "{{nth}}th word",
+                "switchToNormalMode": "Switch to Normal Mode",
+                "exitPrivilegedMode": "Exit Privileged Mode",
+                "privilegeModeDesc": "Privileged Mode allows for critical actions such as account deletion."
             }
         },
         "theme": {
@@ -353,7 +386,10 @@
         "domain": "Domain",
         "import": "Sign in",
         "noAccount": "Don't have an account yet?",
-        "createAccount": "Create an Account"
+        "createAccount": "Create an Account",
+        "masterKeyDesc": "Enter the master key as 12 words separated by spaces",
+        "privLogin": "Log in with Privileged Mode",
+        "normalLogin": "Log in with Normal Mode"
     },
 
     "tutorial": {
@@ -378,8 +414,8 @@
                 "title": "Password & Login",
                 "desc1": "In , instead of a password you choose yourself, you use a predefined password to log in. This password is extremely important and is referred to as the 'Master Key.' If your Master Key is exposed to others, it can lead to irreversible consequences. Never share it with anyone.",
                 "desc2": "Additionally, if you lose your Master Key, it cannot be recovered, and you'll need to create a new account. Therefore, make sure to print or write it down and store it securely as a valuable item.",
-                "hansonTitle": "Save Your Master Key",
-                "hansonDesc": "Use the button below to securely save your Master Key in your preferred way."
+                "handsonTitle": "Save Your Master Key",
+                "handsonDesc": "Use the button below to securely save your Master Key in your preferred way."
             },
             "howtologin": {
                 "title": "How to Log In",

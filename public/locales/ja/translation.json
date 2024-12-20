@@ -118,12 +118,38 @@
             "basic": "基本",
             "showEditorOnTop": "投稿エディタを上部に表示",
             "showEditorOnTopMobile": "投稿エディタを上部に表示（モバイル）",
+            "autoSwitchMediaPostType": "画像添付時に自動的に投稿タイプを切り替える",
             "developerMode": "開発者モード",
             "generateInviteCode": "招待コードを生成",
             "inviteCode": "招待コード(24時間有効)",
             "copyInviteCode": "招待コードをコピー",
             "copied": "コピーしました",
-            "language": "言語"
+            "language": "言語",
+            "showTutorial": "メニューにチュートリアルを表示する",
+            "notification": {
+                "title": "通知",
+                "notsupported": "お使いのドメインは通知をサポートしていません",
+                "enable": "通知を有効にする",
+                "enabled": "通知を有効にしました",
+                "disable": "通知を無効にする",
+                "disabled": "通知を無効にしました",
+                "tryAgain": "もう一度お試しください",
+                "failed": "失敗しました",
+                "updated": "通知設定を更新しました",
+                "updateFailed": "通知設定の更新に失敗しました",
+                "update": "更新",
+                "reply": "リプライ",
+                "mention": "メンション",
+                "viewerRequest": "閲覧申請",
+                "fav": "お気に入り",
+                "reaction": "リアクション",
+                "reroute": "リルート"
+            }
+        },
+        "privileged": {
+            "title": "現在特権モードでログインしています",
+            "desc": "特権モードは、アカウントの削除など強い操作が可能なモードです。\n特権の利用が終ったら、通常モードへ戻ることをお勧めします。",
+            "action": "通常モードへ移行する"
         },
         "profile": {
             "title": "プロフィール",
@@ -159,7 +185,14 @@
                 "unset": "未設定",
                 "domain": "管轄ドメイン",
                 "addition": "参考情報はこの証書を発行した当時の情報であり、現在は変更されている可能性があります。",
-                "date": "発行日:"
+                "date": "発行日:",
+                "checkMasterKey": "マスターキーを確認する",
+                "backToSwitch": "切り替えに戻る",
+                "testPrompt": "進むには、マスターキーの{{first}}番目と{{second}}番目の単語を入力してください",
+                "nthWord": "{{nth}}番目の単語",
+                "switchToNormalMode": "通常モードへ切り替える",
+                "exitPrivilegedMode": "特権モードから抜ける",
+                "privilegeModeDesc": "特権モードは、アカウントの削除など重要な操作が可能なモードです。"
             }
         },
         "theme": {
@@ -353,7 +386,10 @@
         "domain": "ドメイン",
         "import": "ログイン",
         "noAccount": "まだアカウントを作ってない？",
-        "createAccount": "アカウントを作成"
+        "createAccount": "アカウントを作成",
+        "masterKeyDesc": "マスターキーは、12個の単語をスペース区切りで入力します",
+        "privLogin": "特権モードでログイン",
+        "normalLogin": "通常モードでログイン"
     },
 
     "tutorial": {
@@ -378,8 +414,8 @@
                 "title": "パスワードとログイン",
                 "desc1": "コンカレントでは、ログインするときに自分で決めるパスワードではなく、決まったパスワードを使います。このパスワードは非常に重要な為、「マスターキー」と呼ばれています。マスターキーは、他人に知られてしまうと取り返しがつかないことになるので、絶対に他人に教えないでください。",
                 "desc2": "また、マスターキーを無くしてしまった場合、復旧することは決してできず、アカウントを新しく作り直す必要があります。そのため、マスターキーは印刷したりメモしたりして、貴重品として大切に保管してください。",
-                "hansonTitle": "マスターキーを保存しよう",
-                "hansonDesc": "下のボタンから、自分の好きな方法でマスターキーを安全な場所に保存してください。"
+                "handsonTitle": "マスターキーを保存しよう",
+                "handsonDesc": "下のボタンから、自分の好きな方法でマスターキーを安全な場所に保存してください。"
             },
             "howtologin": {
                 "title": "ログイン方法",
