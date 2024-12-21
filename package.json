@@ -6,7 +6,8 @@
     "scripts": {
         "postinstall": "husky install",
         "dev": "vite dev",
-        "build": "tsc && vite build",
+        "build": "pnpm prebuild && tsc && vite build",
+        "prebuild": "./prebuild.sh",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",
         "test": "playwright test --project=chromium",
