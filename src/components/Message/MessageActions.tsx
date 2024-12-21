@@ -1,4 +1,4 @@
-import { Box, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
+import { Box, Link, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
 import ReplyIcon from '@mui/icons-material/Reply'
 import { CCAvatar } from '../ui/CCAvatar'
 import StarIcon from '@mui/icons-material/Star'
@@ -8,12 +8,13 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
 import RepeatIcon from '@mui/icons-material/Repeat'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import LinkIcon from '@mui/icons-material/Link'
+import GTranslateIcon from '@mui/icons-material/GTranslate'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import {
     type Association,
     type LikeAssociationSchema,
     type Message,
     type ReplyMessageSchema,
-    type RerouteMessageSchema,
     Schemas,
     type MarkdownMessageSchema
 } from '@concurrent-world/client'
@@ -32,6 +33,8 @@ import { useConcord } from '../../context/ConcordContext'
 import { useEditorModal } from '../EditorModal'
 import { useConfirm } from '../../context/Confirm'
 import { MessageView } from './MessageView'
+import { useTranslation } from 'react-i18next'
+import { convertToGoogleTranslateCode } from '../../util'
 
 export interface MessageActionsProps {
     message: Message<MarkdownMessageSchema | ReplyMessageSchema>
@@ -64,6 +67,8 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
             setFavoriteMembers(favorites)
         })
     }
+
+    const { t, i18n } = useTranslation('', { keyPrefix: 'settings.general' })
 
     return (
         <>
@@ -239,6 +244,27 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                         <ListItemText>スーパーリアクション</ListItemText>
                     </MenuItem>
                 )}
+                <MenuItem
+                    component={Link}
+                    href={`https://translate.google.com/?sl=auto&tl=${convertToGoogleTranslateCode(
+                        i18n.language
+                    )}&text=${props.message.document.body.body}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <ListItemIcon>
+                        <GTranslateIcon sx={{ color: 'text.primary' }} />
+                    </ListItemIcon>
+                    <ListItemText>
+                        翻訳{' '}
+                        <OpenInNewIcon
+                            sx={{
+                                fontSize: 'small',
+                                verticalAlign: 'middle'
+                            }}
+                        />
+                    </ListItemText>
+                </MenuItem>
                 <MenuItem
                     onClick={() => {
                         inspector.inspectItem({ messageId: props.message.id, author: props.message.author })
