@@ -132,13 +132,15 @@ function App(): JSX.Element {
                 }
 
                 if (a.schema === Schemas.likeAssociation) {
-                    client?.api.getMessageWithAuthor(a.target, event.item.owner).then((m) => {
+                    client?.api.getMessageWithAuthor(a.target, event.item.owner).then(async (m) => {
                         if (!m) return
                         let username = a.body.profileOverride?.username
                         if (!username) {
-                            client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', a.signer).then((c) => {
-                                username = c?.document.body.username
-                            })
+                            const profile = await client.api.getProfileBySemanticID<ProfileSchema>(
+                                'world.concrnt.p',
+                                a.signer
+                            )
+                            username = profile?.document.body.username
                         }
 
                         playNotificationRef.current()
@@ -157,13 +159,15 @@ function App(): JSX.Element {
                 }
 
                 if (a.schema === Schemas.reactionAssociation) {
-                    client.api.getMessageWithAuthor(a.target, event.item.owner).then((m) => {
+                    client.api.getMessageWithAuthor(a.target, event.item.owner).then(async (m) => {
                         if (!m) return
                         let username = a.body.profileOverride?.username
                         if (!username) {
-                            client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', a.signer).then((c) => {
-                                username = c?.document.body.username
-                            })
+                            const profile = await client.api.getProfileBySemanticID<ProfileSchema>(
+                                'world.concrnt.p',
+                                a.signer
+                            )
+                            username = profile?.document.body.username
                         }
 
                         playNotificationRef.current()
