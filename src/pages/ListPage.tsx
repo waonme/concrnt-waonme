@@ -80,7 +80,7 @@ export function ListPage(): JSX.Element {
     }, [title, text, url, postStreams])
 
     useEffect(() => {
-        if (list.defaultPostStreams.length !== postStreams.length) return
+        if (list?.defaultPostStreams.length !== postStreams.length) return
         const opts = {
             streamPickerInitial: postStreams,
             defaultPostHome,
