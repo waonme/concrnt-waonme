@@ -54,7 +54,16 @@ export default defineConfig({
                         "type": "image/png",
                         "purpose": "any"
                     }
-                ]
+                ],
+                "share_target": {
+                    "action": "/intent",
+                    "method": "GET",
+                    "params": {
+                        "title": "text",
+                        "text": "text",
+                        "url": "url"
+                    }
+                }
             },
             strategies: 'injectManifest',
             workbox: {
