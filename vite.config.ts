@@ -58,8 +58,8 @@ export default defineConfig({
                 ],
                 "screenshots": [
                     {
-                        "src": "screenshot_narrow.png",
-                        "type": "image/png",
+                        "src": "screenshot_narrow.jpg",
+                        "type": "image/jpeg",
                         "sizes": "1170x2532",
                         "form_factor": "narrow"
                     },
