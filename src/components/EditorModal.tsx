@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Modal, Paper, useMediaQuery, useTheme } from '@mui/material'
+import { Box, Button, Divider, Modal, Paper } from '@mui/material'
 import { CCPostEditor, type CCPostEditorProps, type EditorMode } from './Editor/CCPostEditor'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useGlobalState } from '../context/GlobalState'
@@ -49,9 +49,7 @@ export const EditorModalProvider = (props: EditorModalProps): JSX.Element => {
         return () => visualViewport?.removeEventListener('resize', handleResize)
     }, [])
 
-    const theme = useTheme()
-    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
-    const globalState = useGlobalState()
+    const { allKnownTimelines, isMobileSize } = useGlobalState()
     const options = useRef<Options | null>(null)
     const registerOptions = useCallback((newOptions: Options) => {
         options.current = newOptions
@@ -77,16 +75,16 @@ export const EditorModalProvider = (props: EditorModalProps): JSX.Element => {
     const homePostTimelines = useMemo(() => {
         if (!home) return []
         return home.defaultPostStreams
-            .map((timelineID) => globalState.allKnownTimelines.find((e) => (e.cacheKey ?? e.id) === timelineID))
+            .map((timelineID) => allKnownTimelines.find((e) => (e.cacheKey ?? e.id) === timelineID))
             .filter((e) => e) as Array<Timeline<CommunityTimelineSchema>>
-    }, [lists, globalState.allKnownTimelines])
+    }, [lists, allKnownTimelines])
 
     const open = useCallback(
         (openOpts?: OpenOptions): void => {
             const opts = options.current ?? {}
             setPostProps({
                 streamPickerInitial: openOpts?.streamPickerInitial ?? opts.streamPickerInitial ?? homePostTimelines,
-                streamPickerOptions: globalState.allKnownTimelines,
+                streamPickerOptions: allKnownTimelines,
                 defaultPostHome:
                     opts.defaultPostHome ?? (home?.defaultPostHome === undefined ? true : home.defaultPostHome),
                 actionTo: openOpts?.target,
@@ -103,7 +101,7 @@ export const EditorModalProvider = (props: EditorModalProps): JSX.Element => {
                 value: openOpts?.draft
             })
         },
-        [home, globalState.allKnownTimelines, homePostTimelines, isMobileSize]
+        [home, allKnownTimelines, homePostTimelines, isMobileSize]
     )
 
     const handleKeyPress = useCallback(

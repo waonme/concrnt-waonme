@@ -1,23 +1,13 @@
 import { useEffect, useState, useRef, Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { darken, Box, Paper, ThemeProvider, CssBaseline, Typography, useMediaQuery, Modal } from '@mui/material'
+import { darken, Box, Paper, ThemeProvider, CssBaseline, Typography, Modal } from '@mui/material'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack'
 import { ConcordProvider } from './context/ConcordContext'
 
 import { loadConcurrentTheme } from './themes'
 import { Menu } from './components/Menu/Menu'
 import type { ConcurrentTheme } from './model'
-import {
-    Associations,
-    Explorer,
-    Notifications,
-    Settings,
-    StreamPage,
-    EntityPage,
-    MessagePage,
-    ListPage,
-    Devtool
-} from './pages'
+import { Explorer, Notifications, Settings, StreamPage, EntityPage, MessagePage, ListPage, Devtool } from './pages'
 
 import useSound from 'use-sound'
 import { MobileMenu } from './components/Menu/MobileMenu'
@@ -61,7 +51,6 @@ function App(): JSX.Element {
     const [sound] = usePreference('sound')
     const [customThemes] = usePreference('customThemes')
     const [theme, setTheme] = useState<ConcurrentTheme>(loadConcurrentTheme(themeName, customThemes))
-    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
     const subscription = useRef<Subscription>()
 
     const identity = JSON.parse(localStorage.getItem('Identity') || 'null')
@@ -237,7 +226,7 @@ function App(): JSX.Element {
         <ThemeProvider theme={theme}>
             <SnackbarProvider
                 preventDuplicate
-                classes={isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
+                classes={globalState.isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
             >
                 <CssBaseline />
                 <TickerProvider>
