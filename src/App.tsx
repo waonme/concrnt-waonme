@@ -45,7 +45,8 @@ const SwitchMasterToSub = lazy(() => import('./components/SwitchMasterToSub'))
 
 function App(): JSX.Element {
     const { client } = useClient()
-    const globalState = useGlobalState()
+    const { isMobileSize, isMasterSession, isCanonicalUser, isDomainOffline, setSwitchToSub, switchToSubOpen } =
+        useGlobalState()
     const [sound] = usePreference('sound')
 
     const theme = useTheme<ConcurrentTheme>()
@@ -211,7 +212,7 @@ function App(): JSX.Element {
     const providers = (childs: JSX.Element): JSX.Element => (
         <SnackbarProvider
             preventDuplicate
-            classes={globalState.isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
+            classes={isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
         >
             <TickerProvider>
                 <UrlSummaryProvider host={client.host}>
@@ -260,7 +261,7 @@ function App(): JSX.Element {
                         flexDirection: 'column'
                     }}
                 >
-                    {!globalState.isCanonicalUser && (
+                    {!isCanonicalUser && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
@@ -273,7 +274,7 @@ function App(): JSX.Element {
                             現在所属ドメインではないドメインにログインしています。引っ越し作業が完了次第、再ログインしてください。
                         </Typography>
                     )}
-                    {globalState.isMasterSession && globalState.isCanonicalUser && progress !== 0 && (
+                    {isMasterSession && isCanonicalUser && progress !== 0 && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
@@ -284,14 +285,14 @@ function App(): JSX.Element {
                                 textDecoration: 'underline'
                             }}
                             onClick={() => {
-                                globalState.setSwitchToSub(true)
+                                setSwitchToSub(true)
                             }}
                         >
                             {' '}
                             {t('settings.identity.loginType.masterKey')}
                         </Typography>
                     )}
-                    {globalState.isDomainOffline && (
+                    {isDomainOffline && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
@@ -410,9 +411,9 @@ function App(): JSX.Element {
                 </Box>
             </Box>
             <Modal
-                open={globalState.switchToSubOpen}
+                open={switchToSubOpen}
                 onClose={() => {
-                    globalState.setSwitchToSub(false)
+                    setSwitchToSub(false)
                 }}
             >
                 <Paper
