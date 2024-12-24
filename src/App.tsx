@@ -367,6 +367,7 @@ function App(): JSX.Element {
                             <Routes>
                                 <Route index element={<ListPage />} />
                                 <Route path="/:id" element={<EntityPage />} />
+                                <Route path="/intent" element={<ListPage />} />
                                 <Route path="/settings/*" element={<Settings />} />
                                 <Route path="/:id/media" element={<EntityPage />} />
                                 <Route path="/:id/activity" element={<EntityPage />} />
