@@ -1,12 +1,10 @@
-import { useEffect, useState, useRef, Suspense, lazy } from 'react'
+import { useEffect, useRef, Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { darken, Box, Paper, ThemeProvider, CssBaseline, Typography, Modal } from '@mui/material'
+import { darken, Box, Paper, Typography, Modal, useTheme } from '@mui/material'
 import { SnackbarProvider, enqueueSnackbar } from 'notistack'
 import { ConcordProvider } from './context/ConcordContext'
 
-import { loadConcurrentTheme } from './themes'
 import { Menu } from './components/Menu/Menu'
-import type { ConcurrentTheme } from './model'
 import { Explorer, Notifications, Settings, StreamPage, EntityPage, MessagePage, ListPage, Devtool } from './pages'
 
 import useSound from 'use-sound'
@@ -41,16 +39,17 @@ import { MediaViewerProvider } from './context/MediaViewer'
 import { Tutorial } from './pages/Tutorial'
 import { LogoutButton } from './components/Settings/LogoutButton'
 import { ConfirmProvider } from './context/Confirm'
+import { type ConcurrentTheme } from './model'
 
 const SwitchMasterToSub = lazy(() => import('./components/SwitchMasterToSub'))
 
 function App(): JSX.Element {
     const { client } = useClient()
     const globalState = useGlobalState()
-    const [themeName] = usePreference('themeName')
     const [sound] = usePreference('sound')
-    const [customThemes] = usePreference('customThemes')
-    const [theme, setTheme] = useState<ConcurrentTheme>(loadConcurrentTheme(themeName, customThemes))
+
+    const theme = useTheme<ConcurrentTheme>()
+
     const subscription = useRef<Subscription>()
 
     const identity = JSON.parse(localStorage.getItem('Identity') || 'null')
@@ -205,49 +204,33 @@ function App(): JSX.Element {
         playNotificationRef.current = playNotification
     }, [playNotification])
 
-    useEffect(() => {
-        const newtheme = loadConcurrentTheme(themeName, customThemes)
-        localStorage.setItem('theme', JSON.stringify(newtheme))
-        setTheme(newtheme)
-        let themeColorMetaTag: HTMLMetaElement = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement
-        if (!themeColorMetaTag) {
-            themeColorMetaTag = document.createElement('meta')
-            themeColorMetaTag.name = 'theme-color'
-            document.head.appendChild(themeColorMetaTag)
-        }
-        themeColorMetaTag.content = newtheme.palette.background.default
-    }, [themeName, customThemes])
-
     if (!client) {
         return <>building api service...</>
     }
 
     const providers = (childs: JSX.Element): JSX.Element => (
-        <ThemeProvider theme={theme}>
-            <SnackbarProvider
-                preventDuplicate
-                classes={globalState.isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
-            >
-                <CssBaseline />
-                <TickerProvider>
-                    <UrlSummaryProvider host={client.host}>
-                        <MediaViewerProvider>
-                            <EmojiPickerProvider>
-                                <StorageProvider>
-                                    <ConcordProvider>
-                                        <EditorModalProvider>
-                                            <ConfirmProvider>
-                                                <GlobalActionsProvider>{childs}</GlobalActionsProvider>
-                                            </ConfirmProvider>
-                                        </EditorModalProvider>
-                                    </ConcordProvider>
-                                </StorageProvider>
-                            </EmojiPickerProvider>
-                        </MediaViewerProvider>
-                    </UrlSummaryProvider>
-                </TickerProvider>
-            </SnackbarProvider>
-        </ThemeProvider>
+        <SnackbarProvider
+            preventDuplicate
+            classes={globalState.isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
+        >
+            <TickerProvider>
+                <UrlSummaryProvider host={client.host}>
+                    <MediaViewerProvider>
+                        <EmojiPickerProvider>
+                            <StorageProvider>
+                                <ConcordProvider>
+                                    <EditorModalProvider>
+                                        <ConfirmProvider>
+                                            <GlobalActionsProvider>{childs}</GlobalActionsProvider>
+                                        </ConfirmProvider>
+                                    </EditorModalProvider>
+                                </ConcordProvider>
+                            </StorageProvider>
+                        </EmojiPickerProvider>
+                    </MediaViewerProvider>
+                </UrlSummaryProvider>
+            </TickerProvider>
+        </SnackbarProvider>
     )
 
     return providers(
