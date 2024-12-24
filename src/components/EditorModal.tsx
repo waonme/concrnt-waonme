@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Modal, Paper, useMediaQuery, useTheme } from '@mui/material'
 import { CCPostEditor, type CCPostEditorProps, type EditorMode } from './Editor/CCPostEditor'
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useGlobalState } from '../context/GlobalState'
 import { usePreference } from '../context/PreferenceContext'
 import { type CommunityTimelineSchema, type Message, type Timeline } from '@concurrent-world/client'
@@ -52,16 +52,13 @@ export const EditorModalProvider = (props: EditorModalProps): JSX.Element => {
     const theme = useTheme()
     const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
     const globalState = useGlobalState()
-
-    const [options, registerOptions] = useState<Options | null>(null)
-    const unregisterOptions = useCallback(
-        (oldOptions: Options) => {
-            registerOptions((curr) => {
-                return curr === oldOptions ? null : curr
-            })
-        },
-        [options]
-    )
+    const options = useRef<Options | null>(null)
+    const registerOptions = useCallback((newOptions: Options) => {
+        options.current = newOptions
+    }, [])
+    const unregisterOptions = useCallback(() => {
+        options.current = null
+    }, [])
 
     const modalProps = isMobileSize
         ? {
@@ -84,27 +81,30 @@ export const EditorModalProvider = (props: EditorModalProps): JSX.Element => {
             .filter((e) => e) as Array<Timeline<CommunityTimelineSchema>>
     }, [lists, globalState.allKnownTimelines])
 
-    const open = (openOpts?: OpenOptions): void => {
-        const opts = options ?? {}
-        setPostProps({
-            streamPickerInitial: openOpts?.streamPickerInitial ?? opts.streamPickerInitial ?? homePostTimelines,
-            streamPickerOptions: globalState.allKnownTimelines,
-            defaultPostHome:
-                opts.defaultPostHome ?? (home?.defaultPostHome === undefined ? true : home.defaultPostHome),
-            actionTo: openOpts?.target,
-            subprofile: opts?.profile,
-            mode: openOpts?.mode,
-            context: openOpts?.target ? (
-                <Box width="100%" maxHeight={isMobileSize ? '3rem' : 'unset'} overflow="auto">
-                    <MessageContainer simple messageID={openOpts.target.id} messageOwner={openOpts.target.author} />
-                </Box>
-            ) : undefined,
-            onPost: () => {
-                setPostProps(null)
-            },
-            value: openOpts?.draft
-        })
-    }
+    const open = useCallback(
+        (openOpts?: OpenOptions): void => {
+            const opts = options.current ?? {}
+            setPostProps({
+                streamPickerInitial: openOpts?.streamPickerInitial ?? opts.streamPickerInitial ?? homePostTimelines,
+                streamPickerOptions: globalState.allKnownTimelines,
+                defaultPostHome:
+                    opts.defaultPostHome ?? (home?.defaultPostHome === undefined ? true : home.defaultPostHome),
+                actionTo: openOpts?.target,
+                subprofile: opts?.profile,
+                mode: openOpts?.mode,
+                context: openOpts?.target ? (
+                    <Box width="100%" maxHeight={isMobileSize ? '3rem' : 'unset'} overflow="auto">
+                        <MessageContainer simple messageID={openOpts.target.id} messageOwner={openOpts.target.author} />
+                    </Box>
+                ) : undefined,
+                onPost: () => {
+                    setPostProps(null)
+                },
+                value: openOpts?.draft
+            })
+        },
+        [home, globalState.allKnownTimelines, homePostTimelines, isMobileSize]
+    )
 
     const handleKeyPress = useCallback(
         (event: KeyboardEvent) => {

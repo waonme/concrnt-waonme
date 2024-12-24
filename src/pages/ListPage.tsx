@@ -260,7 +260,7 @@ export function ListPage(): JSX.Element {
                     setListSettingsOpen(false)
                 }}
             >
-                {subscription ? (
+                {listSettingsOpen && subscription ? (
                     <ListSettings
                         subscription={subscription}
                         onModified={() => {
