@@ -1,0 +1,31 @@
+---
+name: General
+about: General PR template
+title: ''
+labels:
+  - awaiting-triage
+assignees:
+  - totegamma
+---
+
+## Related Issue
+<!-- 関連するIssueがあれば記載 -->
+<!-- If there is a related issue, describe it here -->
+close #xxx
+
+## What
+<!-- このPRで何をしたのか？ どう変わるのか？ -->
+<!-- What did you do with this PR? How will it change things? -->
+
+## Why
+<!-- なぜそうするのか？ どういう意図なのか？ 何が困っているのか？ -->
+<!-- Why do you do it? What are your intentions? What is the problem? -->
+
+## Checks (if needed)
+<!-- どのような動作確認を行ったのか、結果はどうか？ -->
+<!-- What kind of operation check did you do and what was the result? -->
+
+## Additional info (optional)
+<!-- その他の申し送り -->
+<!-- Other notices -->
+
