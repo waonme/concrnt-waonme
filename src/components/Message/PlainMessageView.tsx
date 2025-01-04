@@ -67,6 +67,7 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
 
     return (
         <ContentWithCCAvatar
+            message={props.message}
             author={props.message.authorUser}
             profileOverride={props.message.document.body.profileOverride}
             avatarOverride={characterOverride?.document.body.avatar}
