@@ -50,7 +50,6 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                     component={RouterLink}
                     underline="hover"
                     color="inherit"
-                    fontSize="0.75rem"
                     to={props.message.document.body.profileOverride?.link ?? `/${props.message.author}`}
                     target={props.message.document.body.profileOverride?.link ? '_blank' : '_self'}
                 >

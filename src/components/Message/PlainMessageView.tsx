@@ -119,7 +119,6 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        fontSize="0.75rem"
                         to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')}
                     >
                         <Typography

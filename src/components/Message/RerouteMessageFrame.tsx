@@ -65,7 +65,7 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                             width: { xs: '12px', sm: '18px' },
                             height: { xs: '12px', sm: '18px' }
                         }}
-                        component={routerLink}
+                        component={RouterLink}
                         to={link}
                     >
                         <CCAvatar
@@ -93,7 +93,7 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                         gap: 0.5
                     }}
                 >
-                    <Link component={routerLink} to={link} underline="hover" color="inherit">
+                    <Link component={RouterLink} to={link} underline="hover" color="inherit">
                         {username}
                     </Link>
                     {profileOverride?.avatar && <FaTheaterMasks />} rerouted{' '}

@@ -39,7 +39,7 @@ export const MentionAssociation = (props: MentionAssociationProps): ReactElement
             profileOverride={!isMeToOther ? target?.document.body.profileOverride : undefined}
         >
             <Box display="flex" justifyContent="space-between">
-                <Link component={RouterLink} underline="hover" color="inherit" fontSize="0.75rem" to={targetLink}>
+                <Link component={RouterLink} underline="hover" color="inherit" to={targetLink}>
                     <Typography>
                         {isMeToOther ? (
                             <>

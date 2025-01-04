@@ -57,7 +57,7 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
             }
         >
             <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Link component={RouterLink} underline="none" color="inherit" fontSize="0.75rem" to={targetLink}>
+                <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
                     <Box display="flex" overflow="hidden">
                         <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
                             <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>

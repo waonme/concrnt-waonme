@@ -123,7 +123,6 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        fontSize="0.75rem"
                         to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')}
                         target={timeLink ? '_blank' : '_self'}
                     >

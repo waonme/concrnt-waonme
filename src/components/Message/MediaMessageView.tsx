@@ -121,7 +121,6 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        fontSize="0.75rem"
                         to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // TODO: Align the link format(MessageHeader.tsx)
                         target={timeLink ? '_blank' : '_self'}
                     >
@@ -132,14 +131,6 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                 </Box>
 
                 {props.message.document.body.medias && <EmbeddedGallery medias={props.message.document.body.medias} />}
-                <Link
-                    component={RouterLink}
-                    underline="none"
-                    color="inherit"
-                    fontSize="0.75rem"
-                    to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // TODO: Align the link format(MessageHeader.tsx)
-                    target={timeLink ? '_blank' : '_self'}
-                ></Link>
             </AutoSummaryProvider>
 
             {(!props.simple && (
