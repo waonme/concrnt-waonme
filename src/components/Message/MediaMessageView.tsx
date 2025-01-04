@@ -43,7 +43,7 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
-    const timeLink: string = props.message.document.meta?.apObjectRef
+    const timeLink = props.message.document.meta?.apObjectRef
 
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
