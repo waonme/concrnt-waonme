@@ -60,7 +60,16 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                 <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
                     <Box display="flex" overflow="hidden">
                         <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
-                            <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>
+                            <Link
+                                component={RouterLink}
+                                underline="hover"
+                                color="inherit"
+                                to={props.association.author ? `/${props.association.author}` : '#'}
+                            >
+                                <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>
+                                    {Nominative}
+                                </Typography>
+                            </Link>
                             {masked && <FaTheaterMasks />}
                             <Typography>favorited</Typography>
                             <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
