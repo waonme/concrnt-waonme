@@ -93,7 +93,9 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                         gap: 0.5
                     }}
                 >
-                    {username}
+                    <Link component={routerLink} to={link} underline="hover" color="inherit">
+                        {username}
+                    </Link>
                     {profileOverride?.avatar && <FaTheaterMasks />} rerouted{' '}
                     {props.message.document.body.body && 'with comment:'}
                 </Box>
