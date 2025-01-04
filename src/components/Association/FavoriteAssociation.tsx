@@ -44,7 +44,7 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
         (isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride) !==
         undefined
 
-    const targetLink = target ? `/${target.author}/${target.id}` : '#'
+    const targetLink = target ? `/${target.author}/${target.id}` : '#' // Link to favorite message
     useEffect(() => {
         props.association.getTargetMessage().then(setTarget)
     }, [props.association])

@@ -28,7 +28,7 @@ export const MentionAssociation = (props: MentionAssociationProps): ReactElement
 
     const actionUser: User | undefined = isMeToOther ? props.association.authorUser : target?.authorUser
 
-    const targetLink = target ? `/${target.author}/${target.id}` : '#'
+    const targetLink = target ? `/${target.author}/${target.id}` : '#' // Link to mention message
     useEffect(() => {
         props.association.getTargetMessage().then(setTarget)
     }, [props.association])

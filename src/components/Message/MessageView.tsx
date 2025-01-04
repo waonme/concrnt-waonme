@@ -44,7 +44,7 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
-    const timeLink = props.message.document.meta?.apObjectRef
+    const externalLink = props.message.document.meta?.apObjectRef // Link to external message
 
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
@@ -82,7 +82,7 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                 usernameOverride={characterOverride?.document.body.username}
                 message={props.message}
                 additionalMenuItems={props.additionalMenuItems}
-                timeLink={timeLink}
+                timeLink={externalLink}
             />
             {props.beforeMessage}
             <AutoSummaryProvider limit={props.simple ? 0 : 1}>
@@ -123,8 +123,8 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')}
-                        target={timeLink ? '_blank' : '_self'}
+                        to={externalLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // TODO: Is props.message null check necessary?
+                        target={externalLink ? '_blank' : '_self'}
                     >
                         <Box itemProp="articleBody">
                             <SimpleNote message={props.message} />
