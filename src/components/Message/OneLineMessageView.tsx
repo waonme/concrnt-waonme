@@ -1,5 +1,5 @@
-import { Box, Link, IconButton, Tooltip } from '@mui/material'
-import { Link as routerLink, Link as RouterLink } from 'react-router-dom'
+import { Box, IconButton, Tooltip } from '@mui/material'
+import { Link as routerLink } from 'react-router-dom'
 import { CCAvatar } from '../ui/CCAvatar'
 import { TimeDiff } from '../ui/TimeDiff'
 import {
@@ -12,6 +12,7 @@ import { MarkdownRendererLite } from '../ui/MarkdownRendererLite'
 import { MarkdownRenderer } from '../ui/MarkdownRenderer'
 import { useEffect, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
+import { CCLink } from '../ui/CCLink'
 
 export interface OneLineMessageViewProps {
     message: Message<MarkdownMessageSchema | ReplyMessageSchema>
@@ -73,12 +74,11 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                     minWidth={0}
                     sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                 >
-                    <Link
-                        component={RouterLink}
+                    <CCLink
                         underline="none"
                         color="inherit"
-                        to={externalLink ?? `/${props.message.author}/${props.message.id}`}
-                        target={externalLink ? '_blank' : '_self'}
+                        fontSize="0.75rem"
+                        href={externalLink ?? `/${props.message.author}/${props.message.id}`}
                     >
                         <Tooltip
                             arrow
@@ -98,19 +98,17 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                                 />
                             </Box>
                         </Tooltip>
-                    </Link>
+                    </CCLink>
                 </Box>
             </Box>
-            <Link
-                component={RouterLink}
+            <CCLink
                 underline="hover"
                 color="inherit"
                 fontSize="0.75rem"
-                to={externalLink ?? `/${props.message.author}/${props.message.id}`}
-                target={externalLink ? '_blank' : '_self'}
+                href={externalLink ?? `/${props.message.author}/${props.message.id}`}
             >
                 <TimeDiff date={new Date(props.message.cdate)} />
-            </Link>
+            </CCLink>
         </Box>
     )
 }

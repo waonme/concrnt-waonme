@@ -1,11 +1,18 @@
-import { type ProfileSchema, type User } from '@concurrent-world/client'
+import {
+    type MarkdownMessageSchema,
+    type Message,
+    type ReplyMessageSchema,
+    type ProfileSchema,
+    type User
+} from '@concurrent-world/client'
 import { Box, IconButton, ListItem, Paper, type SxProps, Tooltip } from '@mui/material'
 import { UserProfileCard } from './UserProfileCard'
-import { Link as routerLink } from 'react-router-dom'
+import { Link as routerLink, useNavigate } from 'react-router-dom'
 import { CCAvatar } from './ui/CCAvatar'
 import { type ProfileOverride } from '@concurrent-world/client/dist/types/model/core'
 
 export interface ContentWithCCAvatarProps {
+    message?: Message<MarkdownMessageSchema | ReplyMessageSchema>
     author?: User
     profileOverride?: ProfileOverride
     characterOverride?: ProfileSchema
@@ -15,6 +22,7 @@ export interface ContentWithCCAvatarProps {
 }
 
 export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Element => {
+    const navigate = useNavigate()
     return (
         <>
             <Box itemProp="author" itemScope itemType="https://schema.org/Person">
@@ -103,7 +111,26 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                         ...props.sx
                     }}
                 >
-                    {props.children}
+                    <div
+                        style={{ cursor: 'pointer' }}
+                        onClick={(event: any) => {
+                            console.log(event.target)
+                            const selectedString = window.getSelection()?.toString()
+                            if (selectedString !== '') return
+                            const navigateTo =
+                                props.message?.document.meta.apObjectRef ??
+                                `/${props.message?.author}/${props.message?.id}`
+                            const isInternal =
+                                navigateTo.startsWith('/') || navigateTo.startsWith('https://concrnt.world')
+                            if (isInternal) {
+                                navigate(`/${props.message?.author}/${props.message?.id}`)
+                            } else {
+                                window.open(navigateTo, '_blank')
+                            }
+                        }}
+                    >
+                        {props.children}
+                    </div>
                 </Box>
             </ListItem>
         </>

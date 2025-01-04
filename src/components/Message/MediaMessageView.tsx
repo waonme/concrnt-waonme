@@ -1,5 +1,4 @@
-import { Box, Button, alpha, useTheme, Link } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Box, Button, alpha, useTheme } from '@mui/material'
 import { SimpleNote } from './SimpleNote'
 import { MessageHeader } from './MessageHeader'
 import { MessageActions } from './MessageActions'
@@ -72,6 +71,7 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
 
     return (
         <ContentWithCCAvatar
+            message={props.message}
             author={props.message.authorUser}
             profileOverride={props.message.document.body.profileOverride}
             avatarOverride={characterOverride?.document.body.avatar}
@@ -117,17 +117,9 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                             Show more
                         </Button>
                     </Box>
-                    <Link
-                        component={RouterLink}
-                        underline="none"
-                        color="inherit"
-                        to={externalLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // HACK: Is props.message null check necessary?
-                        target={externalLink ? '_blank' : '_self'}
-                    >
-                        <Box itemProp="articleBody">
-                            <SimpleNote message={props.message} />
-                        </Box>
-                    </Link>
+                    <Box itemProp="articleBody">
+                        <SimpleNote message={props.message} />
+                    </Box>
                 </Box>
 
                 {props.message.document.body.medias && <EmbeddedGallery medias={props.message.document.body.medias} />}

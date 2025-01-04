@@ -1,5 +1,4 @@
-import { Box, Button, Typography, alpha, useTheme, Link } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Box, Button, Typography, alpha, useTheme } from '@mui/material'
 import { MessageHeader } from './MessageHeader'
 import { MessageActions } from './MessageActions'
 import { MessageReactions } from './MessageReactions'
@@ -41,8 +40,6 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
-    const externalLink = props.message.document.meta?.apObjectRef // Link to external message
-
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
         client.api
@@ -78,7 +75,7 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
                 usernameOverride={characterOverride?.document.body.username}
                 message={props.message}
                 additionalMenuItems={props.additionalMenuItems}
-                timeLink={externalLink}
+                timeLink={props.message.document.meta?.apObjectRef} // Link to external message
             />
             {props.beforeMessage}
             <AutoSummaryProvider limit={props.simple ? 0 : 1}>
@@ -115,21 +112,14 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
                             Show more
                         </Button>
                     </Box>
-                    <Link
-                        component={RouterLink}
-                        underline="none"
-                        color="inherit"
-                        to={externalLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // HACK: Is props.message null check necessary?
+                    <Typography
+                        itemProp="articleBody"
+                        sx={{
+                            whiteSpace: 'pre-wrap'
+                        }}
                     >
-                        <Typography
-                            itemProp="articleBody"
-                            sx={{
-                                whiteSpace: 'pre-wrap'
-                            }}
-                        >
-                            {props.message.document.body.body}
-                        </Typography>
-                    </Link>
+                        {props.message.document.body.body}
+                    </Typography>
                 </Box>
             </AutoSummaryProvider>
             {(!props.simple && (
