@@ -137,7 +137,7 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                     underline="none"
                     color="inherit"
                     fontSize="0.75rem"
-                    to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '/')} // TODO: Align the link format(MessageHeader.tsx)
+                    to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // TODO: Align the link format(MessageHeader.tsx)
                     target={timeLink ? '_blank' : '_self'}
                 ></Link>
             </AutoSummaryProvider>

@@ -65,7 +65,7 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                                 underline="hover"
                                 color="inherit"
                                 fontSize="0.75rem"
-                                to={props.association.author ? `/${props.association.author}` : '/'}
+                                to={props.association.author ? `/${props.association.author}` : '#'}
                             >
                                 <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>
                                     {Nominative}
