@@ -570,6 +570,9 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 onToggle={() => {
                                     summary.update()
                                 }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                }}
                             >
                                 {children}
                             </details>

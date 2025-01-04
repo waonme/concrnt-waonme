@@ -64,6 +64,9 @@ export const UrlSummaryCard = (props: { url: string }): JSX.Element | null => {
             to={props.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => {
+                e.stopPropagation()
+            }}
         >
             {(preview.thumbnail || preview.icon) && (
                 <Box
