@@ -119,7 +119,7 @@ export const PlainMessageView = (props: PlainMessageViewProps): JSX.Element => {
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        to={externalLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // TODO: Is props.message null check necessary?
+                        to={externalLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')} // HACK: Is props.message null check necessary?
                     >
                         <Typography
                             itemProp="articleBody"
