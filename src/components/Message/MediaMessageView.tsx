@@ -42,8 +42,6 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
-    const externalLink = props.message.document.meta?.apObjectRef // Link to external message
-
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
         client.api
@@ -80,7 +78,7 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                 usernameOverride={characterOverride?.document.body.username}
                 message={props.message}
                 additionalMenuItems={props.additionalMenuItems}
-                timeLink={externalLink}
+                timeLink={props.message.document.meta?.apObjectRef} // Link to external message
             />
             {props.beforeMessage}
             <AutoSummaryProvider limit={props.simple ? 0 : 1}>
