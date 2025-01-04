@@ -71,24 +71,31 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                     minWidth={0}
                     sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                 >
-                    <Tooltip
-                        arrow
-                        placement="top"
-                        title={
-                            <MarkdownRenderer
-                                messagebody={props.message.document.body.body}
-                                emojiDict={props.message.document.body.emojis ?? {}}
-                            />
-                        }
+                    <Link
+                        component={RouterLink}
+                        underline="none"
+                        color="inherit"
+                        to={`/${props.message.author}/${props.message.id}`}
                     >
-                        <Box>
-                            <MarkdownRendererLite
-                                messagebody={props.message.document.body.body}
-                                emojiDict={props.message.document.body.emojis ?? {}}
-                                forceOneline={true}
-                            />
-                        </Box>
-                    </Tooltip>
+                        <Tooltip
+                            arrow
+                            placement="top"
+                            title={
+                                <MarkdownRenderer
+                                    messagebody={props.message.document.body.body}
+                                    emojiDict={props.message.document.body.emojis ?? {}}
+                                />
+                            }
+                        >
+                            <Box>
+                                <MarkdownRendererLite
+                                    messagebody={props.message.document.body.body}
+                                    emojiDict={props.message.document.body.emojis ?? {}}
+                                    forceOneline={true}
+                                />
+                            </Box>
+                        </Tooltip>
+                    </Link>
                 </Box>
             </Box>
             <Link
