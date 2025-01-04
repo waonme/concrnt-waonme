@@ -125,6 +125,7 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                         color="inherit"
                         fontSize="0.75rem"
                         to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '#')}
+                        target={timeLink ? '_blank' : '_self'}
                     >
                         <Box itemProp="articleBody">
                             <SimpleNote message={props.message} />

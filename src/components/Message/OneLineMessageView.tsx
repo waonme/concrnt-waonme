@@ -22,6 +22,8 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
+    const timeLink = props.message.document.meta?.apObjectRef
+
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
         client.api
@@ -75,7 +77,8 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                         component={RouterLink}
                         underline="none"
                         color="inherit"
-                        to={`/${props.message.author}/${props.message.id}`}
+                        to={timeLink ?? `/${props.message.author}/${props.message.id}`}
+                        target={timeLink ? '_blank' : '_self'}
                     >
                         <Tooltip
                             arrow
@@ -103,7 +106,8 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                 underline="hover"
                 color="inherit"
                 fontSize="0.75rem"
-                to={`/${props.message.author}/${props.message.id}`}
+                to={timeLink ?? `/${props.message.author}/${props.message.id}`}
+                target={timeLink ? '_blank' : '_self'}
             >
                 <TimeDiff date={new Date(props.message.cdate)} />
             </Link>
