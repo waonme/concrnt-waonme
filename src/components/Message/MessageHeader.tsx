@@ -46,19 +46,28 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                     overflow: 'hidden'
                 }}
             >
-                <Typography
-                    component="span"
-                    sx={{
-                        fontWeight: '700',
-                        fontSize: { xs: '0.9rem', sm: '0.95rem' },
-                        flexShrink: 0
-                    }}
+                <Link
+                    component={RouterLink}
+                    underline="hover"
+                    color="inherit"
+                    fontSize="0.75rem"
+                    to={props.timeLink ?? `/${props.message.author}`}
+                    target={props.timeLink ? '_blank' : '_self'}
                 >
-                    {props.usernameOverride ||
-                        props.message.document.body.profileOverride?.username ||
-                        props.message.authorUser?.profile?.username ||
-                        'anonymous'}
-                </Typography>
+                    <Typography
+                        component="span"
+                        sx={{
+                            fontWeight: '700',
+                            fontSize: { xs: '0.9rem', sm: '0.95rem' },
+                            flexShrink: 0
+                        }}
+                    >
+                        {props.usernameOverride ||
+                            props.message.document.body.profileOverride?.username ||
+                            props.message.authorUser?.profile?.username ||
+                            'anonymous'}
+                    </Typography>
+                </Link>
                 {props.message.document.body.profileOverride &&
                     Object.keys(props.message.document.body.profileOverride).length > 0 && <FaTheaterMasks />}{' '}
                 {myAck && (

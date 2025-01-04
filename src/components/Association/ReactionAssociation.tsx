@@ -44,6 +44,7 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
         (isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride) !==
         undefined
 
+    const targetLink = target ? `/${target.author}/${target.id}` : '#'
     useEffect(() => {
         props.association.getTargetMessage().then(setTarget)
     }, [props.association])
@@ -56,20 +57,32 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
             }
         >
             <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Box display="flex" overflow="hidden">
-                    <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
-                        <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>
-                        {masked && <FaTheaterMasks />}
-                        <Typography>reacted</Typography>
-                        <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
-                        <Typography>message with </Typography>
-                        <img
-                            height="13px"
-                            src={props.association.document.body.imageUrl}
-                            alt={props.association.document.body.shortcode}
-                        />
+                <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
+                    <Box display="flex" overflow="hidden">
+                        <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
+                            <Link
+                                component={RouterLink}
+                                underline="hover"
+                                color="inherit"
+                                fontSize="0.75rem"
+                                to={props.association.author ? `/${props.association.author}` : '/'}
+                            >
+                                <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>
+                                    {Nominative}
+                                </Typography>
+                            </Link>
+                            {masked && <FaTheaterMasks />}
+                            <Typography>reacted</Typography>
+                            <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
+                            <Typography>message with </Typography>
+                            <img
+                                height="13px"
+                                src={props.association.document.body.imageUrl}
+                                alt={props.association.document.body.shortcode}
+                            />
+                        </Box>
                     </Box>
-                </Box>
+                </Link>
                 <Box display="flex" gap={0.5}>
                     {(props.association.author === client?.ccid || props.association.owner === client?.ccid) && (
                         <IconButton
@@ -85,26 +98,22 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                             <MoreHorizIcon sx={{ fontSize: '80%' }} />
                         </IconButton>
                     )}
-                    <Link
-                        component={RouterLink}
-                        underline="hover"
-                        color="inherit"
-                        fontSize="0.75rem"
-                        to={target ? `/${target.author}/${target.id}` : '/'}
-                    >
+                    <Link component={RouterLink} underline="hover" color="inherit" fontSize="0.75rem" to={targetLink}>
                         <TimeDiff date={new Date(props.association.cdate)} />
                     </Link>
                 </Box>
             </Box>
-            {(!props.withoutContent && (
-                <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
-                    <MarkdownRendererLite
-                        messagebody={target?.document.body.body ?? 'no content'}
-                        emojiDict={target?.document.body.emojis ?? {}}
-                    />
-                </blockquote>
-            )) ||
-                undefined}
+            <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
+                {(!props.withoutContent && (
+                    <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
+                        <MarkdownRendererLite
+                            messagebody={target?.document.body.body ?? 'no content'}
+                            emojiDict={target?.document.body.emojis ?? {}}
+                        />
+                    </blockquote>
+                )) ||
+                    undefined}
+            </Link>
             <Menu
                 anchorEl={menuAnchor}
                 open={Boolean(menuAnchor)}

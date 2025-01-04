@@ -378,7 +378,15 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                             )
                         } else {
                             return (
-                                <Link href={href} target="_blank" color="secondary" underline="hover">
+                                <Link
+                                    href={href}
+                                    target="_blank"
+                                    color="secondary"
+                                    underline="hover"
+                                    onClick={(event: React.SyntheticEvent) => {
+                                        event.stopPropagation()
+                                    }}
+                                >
                                     {children}
                                 </Link>
                             )

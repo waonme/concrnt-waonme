@@ -1,4 +1,5 @@
-import { Box, Button, alpha, useTheme } from '@mui/material'
+import { Box, Button, alpha, useTheme, Link } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { SimpleNote } from './SimpleNote'
 import { MessageHeader } from './MessageHeader'
 import { MessageActions } from './MessageActions'
@@ -42,6 +43,8 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
 
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
+    const timeLink: string = props.message.document.meta?.apObjectRef
+
     useEffect(() => {
         if (!(client && props.message.document.body.profileOverride?.profileID)) return
         client.api
@@ -77,7 +80,7 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                 usernameOverride={characterOverride?.document.body.username}
                 message={props.message}
                 additionalMenuItems={props.additionalMenuItems}
-                timeLink={props.message.document.meta?.apObjectRef}
+                timeLink={timeLink}
             />
             {props.beforeMessage}
             <AutoSummaryProvider limit={props.simple ? 0 : 1}>
@@ -114,12 +117,29 @@ export const MediaMessageView = (props: MediaMessageViewProps): JSX.Element => {
                             Show more
                         </Button>
                     </Box>
-                    <Box itemProp="articleBody">
-                        <SimpleNote message={props.message} />
-                    </Box>
+                    <Link
+                        component={RouterLink}
+                        underline="none"
+                        color="inherit"
+                        fontSize="0.75rem"
+                        to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '/')} // TODO: Align the link format(MessageHeader.tsx)
+                        target={timeLink ? '_blank' : '_self'}
+                    >
+                        <Box itemProp="articleBody">
+                            <SimpleNote message={props.message} />
+                        </Box>
+                    </Link>
                 </Box>
 
                 {props.message.document.body.medias && <EmbeddedGallery medias={props.message.document.body.medias} />}
+                <Link
+                    component={RouterLink}
+                    underline="none"
+                    color="inherit"
+                    fontSize="0.75rem"
+                    to={timeLink ?? (props.message ? `/${props.message.author}/${props.message.id}` : '/')} // TODO: Align the link format(MessageHeader.tsx)
+                    target={timeLink ? '_blank' : '_self'}
+                ></Link>
             </AutoSummaryProvider>
 
             {(!props.simple && (
