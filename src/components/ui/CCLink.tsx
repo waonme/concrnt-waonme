@@ -1,10 +1,15 @@
-import { type SxProps, Link } from '@mui/material'
+import { type SxProps, Link, type TypographyOwnProps } from '@mui/material'
+import { type HTMLAttributeAnchorTarget } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 
 export interface CCLinkProps {
+    underline?: 'none' | 'hover' | 'always'
     sx?: SxProps
     href: string
-    children?: JSX.Element | string
+    children?: JSX.Element | Array<JSX.Element | undefined> | string
+    color?: TypographyOwnProps['color']
+    fontSize?: string
+    target?: HTMLAttributeAnchorTarget
 }
 
 export const CCLink = (props: CCLinkProps): JSX.Element => {
@@ -14,8 +19,12 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
         return (
             <Link
                 component={RouterLink}
+                underline={props.underline ?? 'hover'}
                 sx={props.sx}
+                color={props.color ?? 'inherit'}
+                fontSize={props.fontSize}
                 to={props.href}
+                target={props.target ?? '_self'}
                 onClick={(e) => {
                     e.stopPropagation()
                 }}
@@ -26,8 +35,12 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
     } else {
         return (
             <Link
+                underline={props.underline ?? 'hover'}
                 sx={props.sx}
+                color={props.color ?? 'inherit'}
+                fontSize={props.fontSize}
                 href={props.href}
+                target={props.target ?? '_blank'}
                 onClick={(e) => {
                     e.stopPropagation()
                 }}
