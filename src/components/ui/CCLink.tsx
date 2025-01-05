@@ -5,7 +5,7 @@ import { Link as RouterLink } from 'react-router-dom'
 export interface CCLinkProps {
     underline?: 'none' | 'hover' | 'always'
     sx?: SxProps
-    href: string
+    to: string
     children?: JSX.Element | Array<JSX.Element | undefined> | string
     color?: TypographyOwnProps['color']
     fontSize?: string
@@ -13,7 +13,7 @@ export interface CCLinkProps {
 }
 
 export const CCLink = (props: CCLinkProps): JSX.Element => {
-    const isInternal = props.href.startsWith('/') || props.href.startsWith('https://concrnt.world')
+    const isInternal = props.to.startsWith('/') || props.to.startsWith('https://concrnt.world')
 
     if (isInternal) {
         return (
@@ -23,7 +23,7 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 sx={props.sx}
                 color={props.color ?? 'inherit'}
                 fontSize={props.fontSize}
-                to={props.href}
+                to={props.to}
                 target={props.target ?? '_self'}
                 onClick={(e) => {
                     e.stopPropagation()
@@ -39,7 +39,7 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 sx={props.sx}
                 color={props.color ?? 'inherit'}
                 fontSize={props.fontSize}
-                href={props.href}
+                href={props.to}
                 target={props.target ?? '_blank'}
                 onClick={(e) => {
                     e.stopPropagation()

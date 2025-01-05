@@ -70,7 +70,7 @@ export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
                         return (
                             <CCLink
                                 key={e.id}
-                                href={'/timeline/' + e.cacheKey ?? e.id}
+                                to={'/timeline/' + e.cacheKey ?? e.id}
                                 underline="hover"
                                 sx={{
                                     fontweight: '400',

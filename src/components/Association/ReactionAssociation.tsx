@@ -18,6 +18,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { useClient } from '../../context/ClientContext'
 
 import { FaTheaterMasks } from 'react-icons/fa'
+import { CCLink } from '../ui/CCLink'
 
 export interface ReactionAssociationProps {
     association: Association<ReactionAssociationSchema>
@@ -52,36 +53,32 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
     return (
         <ContentWithCCAvatar
             author={actionUser}
+            linkTo={targetLink}
             profileOverride={
                 isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride
             }
         >
             <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
-                    <Box display="flex" overflow="hidden">
-                        <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
-                            <Link
-                                component={RouterLink}
-                                underline="hover"
-                                color="inherit"
-                                to={props.association.author ? `/${props.association.author}` : '#'}
-                            >
-                                <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>
-                                    {Nominative}
-                                </Typography>
-                            </Link>
-                            {masked && <FaTheaterMasks />}
-                            <Typography>reacted</Typography>
-                            <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
-                            <Typography>message with </Typography>
-                            <img
-                                height="13px"
-                                src={props.association.document.body.imageUrl}
-                                alt={props.association.document.body.shortcode}
-                            />
-                        </Box>
+                <Box display="flex" overflow="hidden">
+                    <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
+                        <CCLink
+                            underline="hover"
+                            color="inherit"
+                            to={props.association.author ? `/${props.association.author}` : '#'}
+                        >
+                            <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>
+                        </CCLink>
+                        {masked && <FaTheaterMasks />}
+                        <Typography>reacted</Typography>
+                        <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
+                        <Typography>message with </Typography>
+                        <img
+                            height="13px"
+                            src={props.association.document.body.imageUrl}
+                            alt={props.association.document.body.shortcode}
+                        />
                     </Box>
-                </Link>
+                </Box>
                 <Box display="flex" gap={0.5}>
                     {(props.association.author === client?.ccid || props.association.owner === client?.ccid) && (
                         <IconButton
@@ -91,6 +88,7 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                                 color: 'text.disabled'
                             }}
                             onClick={(e) => {
+                                e.stopPropagation()
                                 setMenuAnchor(e.currentTarget)
                             }}
                         >
@@ -102,36 +100,40 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                     </Link>
                 </Box>
             </Box>
-            <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
-                {(!props.withoutContent && (
-                    <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
-                        <MarkdownRendererLite
-                            messagebody={target?.document.body.body ?? 'no content'}
-                            emojiDict={target?.document.body.emojis ?? {}}
-                        />
-                    </blockquote>
-                )) ||
-                    undefined}
-            </Link>
-            <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={() => {
-                    setMenuAnchor(null)
+            {(!props.withoutContent && (
+                <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
+                    <MarkdownRendererLite
+                        messagebody={target?.document.body.body ?? 'no content'}
+                        emojiDict={target?.document.body.emojis ?? {}}
+                    />
+                </blockquote>
+            )) ||
+                undefined}
+            <div
+                onClick={(e) => {
+                    e.stopPropagation() // prevent to navigate other page
                 }}
             >
-                <MenuItem
-                    onClick={() => {
-                        props.association.delete()
+                <Menu
+                    anchorEl={menuAnchor}
+                    open={Boolean(menuAnchor)}
+                    onClose={() => {
                         setMenuAnchor(null)
                     }}
                 >
-                    <ListItemIcon>
-                        <DeleteForeverIcon sx={{ color: 'text.primary' }} />
-                    </ListItemIcon>
-                    <ListItemText>関連付けを削除</ListItemText>
-                </MenuItem>
-            </Menu>
+                    <MenuItem
+                        onClick={() => {
+                            props.association.delete()
+                            setMenuAnchor(null)
+                        }}
+                    >
+                        <ListItemIcon>
+                            <DeleteForeverIcon sx={{ color: 'text.primary' }} />
+                        </ListItemIcon>
+                        <ListItemText>関連付けを削除</ListItemText>
+                    </MenuItem>
+                </Menu>
+            </div>
         </ContentWithCCAvatar>
     )
 }

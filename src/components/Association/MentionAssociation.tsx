@@ -11,6 +11,7 @@ import { Box, Link, Typography } from '@mui/material'
 import { TimeDiff } from '../ui/TimeDiff'
 import { Link as RouterLink } from 'react-router-dom'
 import { type ReactElement, useEffect, useState } from 'react'
+import { CCLink } from '../ui/CCLink'
 
 export interface MentionAssociationProps {
     association: Association<ReactionAssociationSchema>
@@ -36,42 +37,44 @@ export const MentionAssociation = (props: MentionAssociationProps): ReactElement
     return (
         <ContentWithCCAvatar
             author={actionUser}
+            linkTo={targetLink}
             profileOverride={!isMeToOther ? target?.document.body.profileOverride : undefined}
         >
             <Box display="flex" justifyContent="space-between">
-                <Link component={RouterLink} underline="hover" color="inherit" to={targetLink}>
-                    <Typography>
-                        {isMeToOther ? (
-                            <>
-                                <b>{Nominative}</b> mentioned You in message with{' '}
-                                <img
-                                    height="13px"
-                                    src={props.association.document.body.imageUrl}
-                                    alt={props.association.document.body.shortcode}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                {Nominative} mentioned You in message with{' '}
-                                <img
-                                    height="13px"
-                                    src={props.association.document.body.imageUrl}
-                                    alt={props.association.document.body.shortcode}
-                                />
-                            </>
-                        )}
-                    </Typography>
+                <Typography>
+                    {isMeToOther ? (
+                        <>
+                            <CCLink to={actionUser ? `/${actionUser?.ccid}` : '#'}>
+                                <b>{Nominative}</b>
+                            </CCLink>{' '}
+                            mentioned You in message with{' '}
+                            <img
+                                height="13px"
+                                src={props.association.document.body.imageUrl}
+                                alt={props.association.document.body.shortcode}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            {Nominative} mentioned You in message with{' '}
+                            <img
+                                height="13px"
+                                src={props.association.document.body.imageUrl}
+                                alt={props.association.document.body.shortcode}
+                            />
+                        </>
+                    )}
+                </Typography>
+                <CCLink to={targetLink}>
                     <TimeDiff date={new Date(props.association.cdate)} />
-                </Link>
+                </CCLink>
             </Box>
-            <Link component={RouterLink} underline="hover" color="inherit" fontSize="0.75rem" to={targetLink}>
-                {(!props.withoutContent && (
-                    <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
-                        {target?.document.body.body}
-                    </blockquote>
-                )) ||
-                    undefined}
-            </Link>
+            {(!props.withoutContent && (
+                <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
+                    {target?.document.body.body}
+                </blockquote>
+            )) ||
+                undefined}
         </ContentWithCCAvatar>
     )
 }

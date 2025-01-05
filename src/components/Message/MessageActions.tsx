@@ -213,6 +213,9 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                 onClose={() => {
                     setMenuAnchor(null)
                 }}
+                onClick={(e) => {
+                    e.stopPropagation()
+                }}
             >
                 {isMobileSize ? (
                     <MenuItem
@@ -234,10 +237,10 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                 ) : (
                     <MenuItem
                         onClick={(e) => {
-                            e.stopPropagation()
                             const userid = props.message.authorUser?.alias ?? props.message.author
                             navigator.clipboard.writeText('https://concrnt.world/' + userid + '/' + props.message.id)
                             enqueueSnackbar(t('linkCopied'), { variant: 'success' })
+                            setMenuAnchor(null)
                         }}
                     >
                         <ListItemIcon>
@@ -248,7 +251,6 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                 )}
                 <MenuItem
                     onClick={(e) => {
-                        e.stopPropagation()
                         props.message.document.body.body &&
                             navigator.clipboard.writeText(props.message.document.body.body)
                         setMenuAnchor(null)
@@ -262,7 +264,6 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                 {enableConcord && (
                     <MenuItem
                         onClick={(e) => {
-                            e.stopPropagation()
                             concord.draftSuperReaction(props.message)
                             setMenuAnchor(null)
                         }}
@@ -281,7 +282,7 @@ export const MessageActions = (props: MessageActionsProps): JSX.Element => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
-                        e.stopPropagation()
+                        setMenuAnchor(null)
                     }}
                 >
                     <ListItemIcon>

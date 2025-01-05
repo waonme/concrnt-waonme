@@ -78,7 +78,7 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                         underline="none"
                         color="inherit"
                         fontSize="0.75rem"
-                        href={externalLink ?? `/${props.message.author}/${props.message.id}`}
+                        to={externalLink ?? `/${props.message.author}/${props.message.id}`}
                     >
                         <Tooltip
                             arrow
@@ -105,7 +105,7 @@ export const OneLineMessageView = (props: OneLineMessageViewProps): JSX.Element 
                 underline="hover"
                 color="inherit"
                 fontSize="0.75rem"
-                href={externalLink ?? `/${props.message.author}/${props.message.id}`}
+                to={externalLink ?? `/${props.message.author}/${props.message.id}`}
             >
                 <TimeDiff date={new Date(props.message.cdate)} />
             </CCLink>

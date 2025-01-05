@@ -94,7 +94,7 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                         gap: 0.5
                     }}
                 >
-                    <CCLink href={link} underline="hover" color="inherit">
+                    <CCLink to={link} underline="hover" color="inherit">
                         {username}
                     </CCLink>
                     {profileOverride?.avatar && <FaTheaterMasks />} rerouted{' '}

@@ -18,6 +18,7 @@ import { useClient } from '../../context/ClientContext'
 import { MarkdownRendererLite } from '../ui/MarkdownRendererLite'
 
 import { FaTheaterMasks } from 'react-icons/fa'
+import { CCLink } from '../ui/CCLink'
 
 export interface FavoriteAssociationProps {
     association: Association<LikeAssociationSchema>
@@ -52,31 +53,28 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
     return (
         <ContentWithCCAvatar
             author={actionUser}
+            linkTo={targetLink}
             profileOverride={
                 isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride
             }
         >
             <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Link component={RouterLink} underline="none" color="inherit" to={targetLink}>
-                    <Box display="flex" overflow="hidden">
-                        <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
-                            <Link
-                                component={RouterLink}
-                                underline="hover"
-                                color="inherit"
-                                to={props.association.author ? `/${props.association.author}` : '#'}
-                            >
-                                <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>
-                                    {Nominative}
-                                </Typography>
-                            </Link>
-                            {masked && <FaTheaterMasks />}
-                            <Typography>favorited</Typography>
-                            <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
-                            <Typography>message</Typography>
-                        </Box>
+                <Box display="flex" overflow="hidden">
+                    <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
+                        <Link
+                            component={RouterLink}
+                            underline="hover"
+                            color="inherit"
+                            to={props.association.author ? `/${props.association.author}` : '#'}
+                        >
+                            <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>
+                        </Link>
+                        {masked && <FaTheaterMasks />}
+                        <Typography>favorited</Typography>
+                        <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
+                        <Typography>message</Typography>
                     </Box>
-                </Link>
+                </Box>
                 <Box display="flex" gap={0.5}>
                     {(props.association.author === client?.ccid || props.association.owner === client?.ccid) && (
                         <IconButton
@@ -86,47 +84,52 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                                 color: 'text.disabled'
                             }}
                             onClick={(e) => {
+                                e.stopPropagation()
                                 setMenuAnchor(e.currentTarget)
                             }}
                         >
                             <MoreHorizIcon sx={{ fontSize: '80%' }} />
                         </IconButton>
                     )}
-                    <Link component={RouterLink} underline="hover" color="inherit" fontSize="0.75rem" to={targetLink}>
+                    <CCLink underline="hover" color="inherit" fontSize="0.75rem" to={targetLink}>
                         <TimeDiff date={new Date(props.association.cdate)} />
-                    </Link>
+                    </CCLink>
                 </Box>
             </Box>
-            <Link component={RouterLink} underline="none" color="inherit" fontSize="0.75rem" to={targetLink}>
-                {(!props.withoutContent && (
-                    <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
-                        <MarkdownRendererLite
-                            messagebody={target?.document.body.body ?? 'no content'}
-                            emojiDict={target?.document.body.emojis ?? {}}
-                        />
-                    </blockquote>
-                )) ||
-                    undefined}
-            </Link>
-            <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={() => {
-                    setMenuAnchor(null)
+            {(!props.withoutContent && (
+                <blockquote style={{ margin: 0, paddingLeft: '1rem', borderLeft: '4px solid #ccc' }}>
+                    <MarkdownRendererLite
+                        messagebody={target?.document.body.body ?? 'no content'}
+                        emojiDict={target?.document.body.emojis ?? {}}
+                    />
+                </blockquote>
+            )) ||
+                undefined}
+            <div
+                onClick={(e) => {
+                    e.stopPropagation() // prevent to navigate other page
                 }}
             >
-                <MenuItem
-                    onClick={() => {
-                        props.association.delete()
+                <Menu
+                    anchorEl={menuAnchor}
+                    open={Boolean(menuAnchor)}
+                    onClose={() => {
                         setMenuAnchor(null)
                     }}
                 >
-                    <ListItemIcon>
-                        <DeleteForeverIcon sx={{ color: 'text.primary' }} />
-                    </ListItemIcon>
-                    <ListItemText>関連付けを削除</ListItemText>
-                </MenuItem>
-            </Menu>
+                    <MenuItem
+                        onClick={() => {
+                            props.association.delete()
+                            setMenuAnchor(null)
+                        }}
+                    >
+                        <ListItemIcon>
+                            <DeleteForeverIcon sx={{ color: 'text.primary' }} />
+                        </ListItemIcon>
+                        <ListItemText>関連付けを削除</ListItemText>
+                    </MenuItem>
+                </Menu>
+            </div>
         </ContentWithCCAvatar>
     )
 }

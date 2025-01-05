@@ -49,7 +49,7 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                 <CCLink
                     underline="hover"
                     color="inherit"
-                    href={props.message.document.body.profileOverride?.link ?? `/${props.message.author}`}
+                    to={props.message.document.body.profileOverride?.link ?? `/${props.message.author}`}
                     target={props.message.document.body.profileOverride?.link ? '_blank' : '_self'}
                 >
                     <Typography
@@ -150,7 +150,7 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                     underline="hover"
                     color="inherit"
                     fontSize="0.75rem"
-                    href={props.timeLink ?? `/${props.message.author}/${props.message.id}`}
+                    to={props.timeLink ?? `/${props.message.author}/${props.message.id}`}
                 >
                     <TimeDiff date={new Date(props.message.document.signedAt)} base={new Date(props.message.cdate)} />
                 </CCLink>
