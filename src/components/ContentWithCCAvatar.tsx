@@ -50,7 +50,7 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                     if (selectedString !== '') return
                     const isInternal = navigateTo.startsWith('/') || navigateTo.startsWith('https://concrnt.world')
                     if (isInternal) {
-                        if (location.pathname !== navigateTo) navigate(navigateTo)
+                        if (location.pathname !== navigateTo) navigate(navigateTo) // blocked navigate when current location equals next page.
                     } else {
                         window.open(navigateTo, '_blank')
                     }
