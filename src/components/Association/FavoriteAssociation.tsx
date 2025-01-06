@@ -105,7 +105,7 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                 </blockquote>
             )) ||
                 undefined}
-            <div
+            <Box
                 onClick={(e) => {
                     e.stopPropagation() // prevent to navigate other page
                 }}
@@ -129,7 +129,7 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                         <ListItemText>関連付けを削除</ListItemText>
                     </MenuItem>
                 </Menu>
-            </div>
+            </Box>
         </ContentWithCCAvatar>
     )
 }

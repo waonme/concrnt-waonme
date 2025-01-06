@@ -36,13 +36,13 @@ export const ReadAccessAssociation = (props: ReadAccessAssociationProps): ReactE
             </Box>
             <Box>
                 {timeline && (
-                    <div
+                    <Box
                         onClick={(e) => {
                             e.stopPropagation() // prevent to navigate other page
                         }}
                     >
                         <WatchRequestAcceptButton noAvatar request={props.association} targetTimeline={timeline} />
-                    </div>
+                    </Box>
                 )}
             </Box>
         </ContentWithCCAvatar>

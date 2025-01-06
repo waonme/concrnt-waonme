@@ -109,7 +109,7 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                 </blockquote>
             )) ||
                 undefined}
-            <div
+            <Box
                 onClick={(e) => {
                     e.stopPropagation() // prevent to navigate other page
                 }}
@@ -133,7 +133,7 @@ export const ReactionAssociation = (props: ReactionAssociationProps): JSX.Elemen
                         <ListItemText>関連付けを削除</ListItemText>
                     </MenuItem>
                 </Menu>
-            </div>
+            </Box>
         </ContentWithCCAvatar>
     )
 }

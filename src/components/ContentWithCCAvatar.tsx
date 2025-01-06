@@ -43,8 +43,8 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                     </>
                 )}
             </Box>
-            <div
-                style={{ cursor: `${location.pathname !== navigateTo ? 'pointer' : 'auto'}` }}
+            <Box
+                sx={{ cursor: `${location.pathname !== navigateTo ? 'pointer' : 'auto'}` }}
                 onClick={() => {
                     const selectedString = window.getSelection()?.toString()
                     if (selectedString !== '') return
@@ -65,7 +65,7 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                     }}
                     disablePadding
                 >
-                    <div
+                    <Box
                         onClick={(e) => {
                             e.stopPropagation() // prevent to navigate other page
                         }}
@@ -123,7 +123,7 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                                 />
                             </IconButton>
                         </Tooltip>
-                    </div>
+                    </Box>
                     <Box
                         sx={{
                             display: 'flex',
@@ -137,7 +137,7 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                         {props.children}
                     </Box>
                 </ListItem>
-            </div>
+            </Box>
         </>
     )
 }
