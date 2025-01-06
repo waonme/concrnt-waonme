@@ -30,6 +30,7 @@ import { TimelineChip } from './TimelineChip'
 import { useMediaViewer } from '../../context/MediaViewer'
 import { useGlobalState } from '../../context/GlobalState'
 import { useAutoSummary } from '../../context/AutoSummaryContext'
+import { CCLink } from './CCLink'
 
 export interface MarkdownRendererProps {
     messagebody: string
@@ -378,17 +379,9 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                             )
                         } else {
                             return (
-                                <Link
-                                    href={href}
-                                    target="_blank"
-                                    color="secondary"
-                                    underline="hover"
-                                    onClick={(event: React.SyntheticEvent) => {
-                                        event.stopPropagation()
-                                    }}
-                                >
+                                <CCLink to={href} target="_blank" color="secondary" underline="hover">
                                     {children}
-                                </Link>
+                                </CCLink>
                             )
                         }
                     },

@@ -6,7 +6,7 @@ export interface CCLinkProps {
     underline?: 'none' | 'hover' | 'always'
     sx?: SxProps
     to: string
-    children?: JSX.Element | Array<JSX.Element | undefined> | string
+    children?: JSX.Element | Array<JSX.Element | undefined> | React.ReactNode | string
     color?: TypographyOwnProps['color']
     fontSize?: string
     target?: HTMLAttributeAnchorTarget
