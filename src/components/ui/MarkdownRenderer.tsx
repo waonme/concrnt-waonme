@@ -365,25 +365,11 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                             )
                         }
 
-                        const isInternalLink = new URL(href).host === 'concrnt.world'
-                        if (isInternalLink) {
-                            return (
-                                <Link
-                                    component={RouterLink}
-                                    to={href.replace('https://concrnt.world', '')}
-                                    color="secondary"
-                                    underline="hover"
-                                >
-                                    {children}
-                                </Link>
-                            )
-                        } else {
-                            return (
-                                <CCLink to={href} target="_blank" color="secondary" underline="hover">
-                                    {children}
-                                </CCLink>
-                            )
-                        }
+                        return (
+                            <CCLink to={href} target="_blank" color="secondary" underline="hover">
+                                {children}
+                            </CCLink>
+                        )
                     },
                     code: ({ node, children, inline }) => {
                         const language = node.position
