@@ -7,7 +7,7 @@ import {
 } from '@concurrent-world/client'
 import { Box, IconButton, ListItem, Paper, type SxProps, Tooltip } from '@mui/material'
 import { UserProfileCard } from './UserProfileCard'
-import { Link as routerLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link as routerLink, useNavigate } from 'react-router-dom'
 import { CCAvatar } from './ui/CCAvatar'
 import { type ProfileOverride } from '@concurrent-world/client/dist/types/model/core'
 
@@ -24,9 +24,6 @@ export interface ContentWithCCAvatarProps {
 
 export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Element => {
     const navigate = useNavigate()
-    const location = useLocation()
-    const navigateTo =
-        props.linkTo ?? props.message?.document.meta.apObjectRef ?? `/${props.message?.author}/${props.message?.id}`
     return (
         <>
             <Box itemProp="author" itemScope itemType="https://schema.org/Person">
@@ -44,16 +41,11 @@ export const ContentWithCCAvatar = (props: ContentWithCCAvatarProps): JSX.Elemen
                 )}
             </Box>
             <Box
-                sx={{ cursor: `${location.pathname !== navigateTo ? 'pointer' : 'auto'}` }}
+                sx={{ cursor: 'pointer' }}
                 onClick={() => {
                     const selectedString = window.getSelection()?.toString()
                     if (selectedString !== '') return
-                    const isInternal = navigateTo.startsWith('/') || navigateTo.startsWith('https://concrnt.world')
-                    if (isInternal) {
-                        if (location.pathname !== navigateTo) navigate(navigateTo) // blocked navigate when current location equals next page.
-                    } else {
-                        window.open(navigateTo, '_blank')
-                    }
+                    navigate(`/${props.author?.ccid}/${props.message?.id}`)
                 }}
             >
                 <ListItem

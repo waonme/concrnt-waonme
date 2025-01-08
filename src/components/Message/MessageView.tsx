@@ -17,7 +17,6 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useMemo, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
-import { UrlSummaryProvider } from '../../context/urlSummaryContext'
 import { AutoSummaryProvider } from '../../context/AutoSummaryContext'
 
 export interface MessageViewProps {
