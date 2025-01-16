@@ -27,19 +27,19 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
 
     const setAllowedUrl = (url: string): void => {
         const key = 'reveal:' + url
-        localStorage.setItem(key, 'true')
+        sessionStorage.setItem(key, 'true')
         setForceUpdate((prev) => prev + 1)
     }
 
     const resetAllowedUrls = (url: string): void => {
         const key = 'reveal:' + url
-        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
         setForceUpdate((prev) => prev + 1)
     }
 
     const checkUrlAllowed = (url: string): boolean => {
         const key = 'reveal:' + url
-        return localStorage.getItem(key) === 'true'
+        return sessionStorage.getItem(key) === 'true'
     }
 
     const isHidden = media.flag && !checkUrlAllowed(media.mediaURL)
