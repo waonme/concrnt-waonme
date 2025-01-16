@@ -135,7 +135,7 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                     src={media.mediaURL}
                                     camera-controls
                                     style={{
-                                        backgroundColor: '#fff',
+                                        backgroundColor: '#3f3f3f',
                                         width: '100%',
                                         height: '100%'
                                     }}
