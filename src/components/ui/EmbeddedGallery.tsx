@@ -10,6 +10,8 @@ import { type WorldMedia } from '../../model'
 import { Blurhash } from 'react-blurhash'
 import { useGlobalState } from '../../context/GlobalState'
 
+import poster from '../../resources/view-3dmodel.png'
+
 import '@google/model-viewer'
 
 export interface EmbeddedGalleryProps {
@@ -140,22 +142,18 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                 />
                             ) : (
                                 <Box
+                                    component="img"
+                                    src={poster}
                                     sx={{
                                         width: '100%',
                                         height: '100%',
                                         cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: '#eee',
-                                        backgroundColor: '#333'
+                                        objectFit: 'cover'
                                     }}
                                     onClick={() => {
                                         setShowModel(true)
                                     }}
-                                >
-                                    <Typography variant="h4">クリックして3Dモデルを表示</Typography>
-                                </Box>
+                                />
                             )}
                         </Box>
                     )}
