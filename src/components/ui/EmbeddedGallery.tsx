@@ -10,6 +10,8 @@ import { type WorldMedia } from '../../model'
 import { Blurhash } from 'react-blurhash'
 import { useGlobalState } from '../../context/GlobalState'
 
+import '@google/model-viewer'
+
 export interface EmbeddedGalleryProps {
     medias: WorldMedia[]
 }
@@ -18,7 +20,6 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
     const [_, setForceUpdate] = useState(0)
     const imageRef = useRef<HTMLImageElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
-    const [loadded, setLoadded] = useState(imageRef.current?.complete || videoRef.current?.readyState === 4)
 
     const { getImageURL } = useGlobalState()
 
@@ -40,6 +41,8 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
     }
 
     const isHidden = media.flag && !checkUrlAllowed(media.mediaURL)
+
+    const [showModel, setShowModel] = useState(false)
 
     return (
         <Box
@@ -82,9 +85,6 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                     objectFit: 'cover',
                                     cursor: 'pointer'
                                 }}
-                                onLoad={() => {
-                                    setLoadded(true)
-                                }}
                             />
                             <meta itemProp="contentUrl" content={media.mediaURL} />
                             <meta itemProp="caption" content={media.flag} />
@@ -106,9 +106,6 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                                 objectFit: 'contain',
                                 cursor: 'pointer'
                             }}
-                            onLoadedMetadata={() => {
-                                setLoadded(true)
-                            }}
                             onClick={(e) => {
                                 e.stopPropagation()
                             }}
@@ -118,6 +115,48 @@ export const MediaCard = ({ media, onExpand }: { media: WorldMedia; onExpand?: (
                         >
                             <meta itemProp="contentUrl" content={media.mediaURL} />
                             <meta itemProp="caption" content={media.flag} />
+                        </Box>
+                    )}
+
+                    {media.mediaType.startsWith('model') && (
+                        <Box
+                            onClick={(e) => {
+                                e.stopPropagation()
+                            }}
+                            sx={{
+                                backgroundCorlor: '#eee',
+                                height: '100%'
+                            }}
+                        >
+                            {showModel ? (
+                                <model-viewer
+                                    src={media.mediaURL}
+                                    camera-controls
+                                    style={{
+                                        backgroundColor: '#fff',
+                                        width: '100%',
+                                        height: '100%'
+                                    }}
+                                />
+                            ) : (
+                                <Box
+                                    sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#eee',
+                                        backgroundColor: '#333'
+                                    }}
+                                    onClick={() => {
+                                        setShowModel(true)
+                                    }}
+                                >
+                                    <Typography variant="h4">クリックして3Dモデルを表示</Typography>
+                                </Box>
+                            )}
                         </Box>
                     )}
 
@@ -286,4 +325,19 @@ export const EmbeddedGallery = (props: EmbeddedGalleryProps): JSX.Element => {
             )}
         </Box>
     )
+}
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace JSX {
+        interface IntrinsicElements {
+            'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+                src: string
+                alt?: string
+                'camera-controls'?: boolean
+                'auto-rotate'?: boolean
+                ar?: boolean
+            }
+        }
+    }
 }
