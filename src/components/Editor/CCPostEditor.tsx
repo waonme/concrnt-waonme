@@ -49,6 +49,8 @@ import { CCComboBox } from '../ui/CCComboBox'
 import { genBlurHash } from '../../util'
 import { SubprofileSelector } from '../SubprofileSelector'
 
+import modelPoster from '../../resources/view-3dmodel.png'
+
 const ModeSets = {
     plaintext: {
         icon: <TextFieldsIcon />,
@@ -646,8 +648,11 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                                 position: 'relative',
                                 width: '75px',
                                 height: '75px',
-                                backgroundImage: `url(${media.key})`,
-                                backgroundSize: 'cover'
+                                backgroundImage: `url(${
+                                    media.media.mediaType.startsWith('model') ? modelPoster : media.key
+                                })`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
                             }}
                             onClick={(e) => {
                                 setMediaMenuAnchorEl(e.currentTarget)
@@ -970,6 +975,7 @@ export const CCPostEditor = memo<CCPostEditorProps>((props: CCPostEditorProps): 
                         <MenuItem value="image/gif">GIF</MenuItem>
                         <MenuItem value="video/mp4">MP4</MenuItem>
                         <MenuItem value="video/mov">MOV</MenuItem>
+                        <MenuItem value="model/gltf-binary">GLB</MenuItem>
                     </Select>
                 </FormControl>
                 <CCComboBox
