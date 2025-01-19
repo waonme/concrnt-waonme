@@ -185,7 +185,11 @@ export const GeneralSettings = (): JSX.Element => {
                         marginLeft: 2
                     }}
                 >
-                    <TextDecreaseIcon />
+                    <TextDecreaseIcon
+                        sx={{
+                            fontSize: '18px'
+                        }}
+                    />
                     <Slider
                         value={baseFontSize}
                         onChange={(_, value) => {
@@ -198,7 +202,11 @@ export const GeneralSettings = (): JSX.Element => {
                         min={12}
                         max={20}
                     />
-                    <TextIncreaseIcon />
+                    <TextIncreaseIcon
+                        sx={{
+                            fontSize: '30px'
+                        }}
+                    />
                 </Box>
             </Box>
 
