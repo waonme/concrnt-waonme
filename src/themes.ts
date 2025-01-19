@@ -357,7 +357,7 @@ export function deepMerge(target: Record<string, any>, source: Record<string, an
     return output as ConcurrentTheme
 }
 
-export const createConcurrentThemeFromObject = (base: any, options: any): ConcurrentTheme => {
+export const createConcurrentThemeFromObject = (base: any, options?: any): ConcurrentTheme => {
     if (base.palette.text !== undefined) {
         if (base.palette.text.hint === undefined) base.palette.text.hint = alpha(base.palette.text.primary, 0.5)
         if (base.palette.text.disabled === undefined) base.palette.text.disabled = alpha(base.palette.text.primary, 0.5)
