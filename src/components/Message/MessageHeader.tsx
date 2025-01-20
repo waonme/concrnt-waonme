@@ -72,7 +72,7 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                         <CheckCircleIcon
                             sx={{
                                 fontSize: '1rem',
-                                color: 'primary.main'
+                                color: 'text.secondary'
                             }}
                         />
                     </Tooltip>
