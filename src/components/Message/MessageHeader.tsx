@@ -50,13 +50,15 @@ export const MessageHeader = (props: MessageHeaderProps): JSX.Element => {
                     underline="hover"
                     color="inherit"
                     to={props.message.document.body.profileOverride?.link ?? `/${props.message.author}`}
+                    sx={{
+                        flexShrink: 0
+                    }}
                 >
                     <Typography
                         component="span"
                         sx={{
                             fontWeight: '700',
-                            fontSize: { xs: '0.9rem', sm: '0.95rem' },
-                            flexShrink: 0
+                            fontSize: { xs: '0.9rem', sm: '0.95rem' }
                         }}
                     >
                         {props.usernameOverride ||
