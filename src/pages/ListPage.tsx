@@ -24,6 +24,7 @@ import { CCPostEditor } from '../components/Editor/CCPostEditor'
 import { useEditorModal } from '../components/EditorModal'
 import { type StreamList } from '../model'
 import { Helmet } from 'react-helmet-async'
+import { useGlobalActions } from '../context/GlobalActions'
 
 export function ListPage(): JSX.Element {
     const { client } = useClient()
@@ -31,6 +32,7 @@ export function ListPage(): JSX.Element {
     const navigate = useNavigate()
     const editorModal = useEditorModal()
     const { allKnownTimelines, allKnownSubscriptions, reloadList } = useGlobalState()
+    const { registerHomeButtonCallBack } = useGlobalActions()
     const [lists, _setLists] = usePreference('lists')
     const [showEditorOnTop] = usePreference('showEditorOnTop')
     const [showEditorOnTopMobile] = usePreference('showEditorOnTopMobile')
@@ -68,6 +70,12 @@ export function ListPage(): JSX.Element {
         if (!list) return true
         return list.defaultPostHome === undefined ? true : list.defaultPostHome
     }, [list])
+
+    useEffect(() => {
+        registerHomeButtonCallBack(() => {
+            timelineRef.current?.scrollToIndex(0, { align: 'start', smooth: true })
+        })
+    }, [timelineRef])
 
     useEffect(() => {
         if (title || text || url) {

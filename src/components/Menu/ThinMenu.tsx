@@ -79,7 +79,15 @@ export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                 </Box>
                 <Divider sx={{ mt: 1 }} />
                 <Box display="flex" flexDirection="column" alignItems="center">
-                    <IconButton sx={{ p: 0.5 }} component={Link} to="/" onClick={props.onClick}>
+                    <IconButton
+                        sx={{ p: 0.5 }}
+                        component={Link}
+                        to="/"
+                        onClick={() => {
+                            props.onClick?.()
+                            actions.onHomeButtonClick()
+                        }}
+                    >
                         <HomeIcon
                             sx={{
                                 color: 'background.contrastText'
