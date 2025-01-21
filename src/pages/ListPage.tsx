@@ -169,7 +169,20 @@ export function ListPage(): JSX.Element {
             >
                 <TimelineHeader
                     title={subscription?.document.body.name ?? 'No Name'}
-                    titleIcon={<ListIcon />}
+                    titleIcon={
+                        subscription?.document.body.iconURL ? (
+                            <img
+                                src={subscription.document.body.iconURL}
+                                alt="list icon"
+                                style={{
+                                    width: '1.125rem',
+                                    height: '1.125rem'
+                                }}
+                            />
+                        ) : (
+                            <ListIcon />
+                        )
+                    }
                     secondaryAction={<TuneIcon />}
                     onSecondaryActionClick={() => {
                         setListSettingsOpen(true)
@@ -189,7 +202,20 @@ export function ListPage(): JSX.Element {
                         <Tab
                             key={sub.id}
                             value={sub.id}
-                            label={sub.document.body.name}
+                            label={
+                                sub.document.body.iconURL && lists[sub.id].useIconTab ? (
+                                    <img
+                                        src={sub.document.body.iconURL}
+                                        alt="list icon"
+                                        style={{
+                                            width: '1.125rem',
+                                            height: '1.125rem'
+                                        }}
+                                    />
+                                ) : (
+                                    sub.document.body.name
+                                )
+                            }
                             onTouchStart={(a) => {
                                 tabPressStart(a.currentTarget, sub.id)
                             }}

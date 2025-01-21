@@ -1,6 +1,8 @@
 import {
     Box,
     Button,
+    Checkbox,
+    FormControlLabel,
     IconButton,
     List,
     ListItem,
@@ -34,6 +36,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { useEmojiPicker } from '../context/EmojiPickerContext'
 import { CCIconButton } from './ui/CCIconButton'
 import EmojiEmotions from '@mui/icons-material/EmojiEmotions'
+import { CheckBox } from '@mui/icons-material'
 
 export interface ListSettingsProps {
     subscription: CoreSubscription<any>
@@ -227,15 +230,42 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                         }}
                     />
                     <Typography variant="h3">{t('pin')}</Typography>
-                    <Switch
-                        checked={list.pinned}
-                        onChange={(_) => {
-                            updateList(props.subscription.id, {
-                                ...list,
-                                pinned: !list.pinned
-                            })
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 1,
+                            flex: 1,
+                            alignItems: 'center'
                         }}
-                    />
+                    >
+                        <Switch
+                            checked={list.pinned}
+                            onChange={(_) => {
+                                updateList(props.subscription.id, {
+                                    ...list,
+                                    pinned: !list.pinned
+                                })
+                            }}
+                        />
+                        {list.pinned && iconURL ? (
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={list.useIconTab}
+                                        onChange={(e) => {
+                                            updateList(props.subscription.id, {
+                                                ...list,
+                                                useIconTab: e.target.checked
+                                            })
+                                        }}
+                                    />
+                                }
+                                label={t('useIconTab')}
+                            />
+                        ) : (
+                            <></>
+                        )}
+                    </Box>
                 </>
             )}
             <Button
