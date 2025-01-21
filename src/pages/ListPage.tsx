@@ -85,6 +85,10 @@ export function ListPage(): JSX.Element {
                 return false
             }
         })
+
+        return () => {
+            registerHomeButtonCallBack(() => false)
+        }
     }, [timelineRef])
 
     useEffect(() => {
