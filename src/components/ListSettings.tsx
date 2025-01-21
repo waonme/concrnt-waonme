@@ -1,4 +1,17 @@
-import { Box, Button, IconButton, List, ListItem, Switch, Tab, Tabs, TextField, Typography } from '@mui/material'
+import {
+    Box,
+    Button,
+    IconButton,
+    List,
+    ListItem,
+    Switch,
+    Tab,
+    Tabs,
+    TextField,
+    Typography,
+    alpha,
+    useTheme
+} from '@mui/material'
 import { StreamPicker } from './ui/StreamPicker'
 import { useEffect, useState } from 'react'
 import { usePreference } from '../context/PreferenceContext'
@@ -17,6 +30,10 @@ import { type StreamList } from '../model'
 import { ProfilePicker } from './ui/ProfilePicker'
 import { useGlobalState } from '../context/GlobalState'
 import { useConfirm } from '../context/Confirm'
+import DeleteIcon from '@mui/icons-material/Delete'
+import { useEmojiPicker } from '../context/EmojiPickerContext'
+import { CCIconButton } from './ui/CCIconButton'
+import EmojiEmotions from '@mui/icons-material/EmojiEmotions'
 
 export interface ListSettingsProps {
     subscription: CoreSubscription<any>
@@ -34,6 +51,7 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
     const { allKnownTimelines } = useGlobalState()
 
     const [listName, setListName] = useState<string>('')
+    const [iconURL, setIconURL] = useState<string>('')
 
     const { t } = useTranslation('', { keyPrefix: 'ui.listSettings' })
 
@@ -41,8 +59,11 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
 
     const [tab, setTab] = useState<'stream' | 'user'>('stream')
 
+    const emojiPicker = useEmojiPicker()
+
     useEffect(() => {
         setListName(props.subscription.document.body.name)
+        setIconURL(props.subscription.document.body.iconURL ?? '')
 
         if (!list) return
         Promise.all(list.defaultPostStreams.map((streamID) => client.getTimeline(streamID))).then((streams) => {
@@ -69,7 +90,63 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
             {props.subscription.schema === Schemas.listSubscription && (
                 <>
                     <Typography variant="h3">{t('name')}</Typography>
-                    <Box display="flex" flexDirection="row" gap={1}>
+                    <Box display="flex" flexDirection="row" gap={1} alignItems="center">
+                        <Box
+                            sx={{
+                                position: 'relative',
+                                cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                                emojiPicker.open(e.currentTarget, (emoji) => {
+                                    setIconURL(emoji.imageURL)
+                                    emojiPicker.close()
+                                })
+                            }}
+                        >
+                            {iconURL ? (
+                                <Box
+                                    sx={{
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <img
+                                        src={iconURL}
+                                        alt="list icon"
+                                        style={{
+                                            width: 'calc(1.125rem * 1.6)',
+                                            height: 'calc(1.125rem * 1.6)'
+                                        }}
+                                    />
+                                    <CCIconButton
+                                        sx={{
+                                            position: 'absolute',
+                                            right: -8,
+                                            bottom: -8,
+                                            backgroundColor: 'background.paper',
+                                            padding: 0
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setIconURL('')
+                                        }}
+                                    >
+                                        <DeleteIcon sx={{ fontSize: '1.125rem' }} />
+                                    </CCIconButton>
+                                </Box>
+                            ) : (
+                                <CCIconButton
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        emojiPicker.open(e.currentTarget, (emoji) => {
+                                            setIconURL(emoji.imageURL)
+                                            emojiPicker.close()
+                                        })
+                                    }}
+                                >
+                                    <EmojiEmotions sx={{ fontSize: 'calc(1.125rem * 1.2)' }} />
+                                </CCIconButton>
+                            )}
+                        </Box>
                         <TextField
                             label="list name"
                             variant="outlined"
@@ -87,7 +164,8 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                                     .upsertSubscription<ListSubscriptionSchema>(
                                         props.subscription.schema,
                                         {
-                                            name: listName
+                                            name: listName,
+                                            iconURL
                                         },
                                         {
                                             id: props.subscription.id,

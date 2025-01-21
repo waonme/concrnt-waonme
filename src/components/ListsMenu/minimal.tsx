@@ -28,7 +28,7 @@ export const MinimalListsMenu = (): JSX.Element => {
                         textDecoration: 'none'
                     }}
                 >
-                    {listedSubscriptions[key]?.document?.body?.name[0] || '📝'}
+                    {listedSubscriptions[key]?.iconURL || listedSubscriptions[key]?.document?.body?.name[0] || '📝'}
                 </Avatar>
             ))}
         </Box>
