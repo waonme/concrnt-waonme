@@ -75,7 +75,6 @@ export function ListPage(): JSX.Element {
     // Homeボタンを押したときに一番上に行くやつ
     useEffect(() => {
         registerHomeButtonCallBack(() => {
-            console.log(timelineRef.current?.scrollOffset)
             // タイムラインがスクロールされてたら一番上に戻す
             if (timelineRef.current?.scrollOffset !== 0) {
                 timelineRef.current?.scrollToIndex(0, { align: 'start', smooth: true })
