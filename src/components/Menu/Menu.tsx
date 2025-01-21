@@ -104,9 +104,10 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                                 sx={{ gap: 1 }}
                                 component={NavLink}
                                 to="/"
-                                onClick={() => {
+                                onClick={(event) => {
                                     props.onClick?.()
-                                    onHomeButtonClick()
+                                    const res = onHomeButtonClick()
+                                    if (res) event.preventDefault()
                                 }}
                             >
                                 <HomeIcon

@@ -17,8 +17,8 @@ import { useGlobalState } from './GlobalState'
 export interface GlobalActionsState {
     openMobileMenu: (open?: boolean) => void
     openEmojipack: (url: EmojiPackage) => void
-    onHomeButtonClick: () => void
-    registerHomeButtonCallBack: (callback: () => void) => void
+    onHomeButtonClick: () => boolean
+    registerHomeButtonCallBack: (callback: () => boolean) => void
 }
 
 const GlobalActionsContext = createContext<GlobalActionsState | undefined>(undefined)
@@ -123,15 +123,16 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
         setEmojiPack(pack)
     }, [])
 
-    const [onHomeButtonClickCallBack, setOnHomeButtonClickCallBack] = useState<() => void>(() => {})
+    const [onHomeButtonClickCallBack, setOnHomeButtonClickCallBack] = useState<() => boolean>(() => () => false)
 
     const onHomeButtonClick = useCallback(() => {
         if (onHomeButtonClickCallBack) {
-            onHomeButtonClickCallBack()
+            return onHomeButtonClickCallBack()
         }
+        return false
     }, [onHomeButtonClickCallBack])
 
-    const registerHomeButtonCallBack = useCallback((callback: () => void) => {
+    const registerHomeButtonCallBack = useCallback((callback: () => boolean) => {
         setOnHomeButtonClickCallBack(() => callback)
     }, [])
 
@@ -379,7 +380,7 @@ export function useGlobalActions(): GlobalActionsState {
         return {
             openMobileMenu: () => {},
             openEmojipack: () => {},
-            onHomeButtonClick: () => {},
+            onHomeButtonClick: () => false,
             registerHomeButtonCallBack: () => {}
         }
     }

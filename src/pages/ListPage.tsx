@@ -25,6 +25,7 @@ import { useEditorModal } from '../components/EditorModal'
 import { type StreamList } from '../model'
 import { Helmet } from 'react-helmet-async'
 import { useGlobalActions } from '../context/GlobalActions'
+import { timeline } from '@google/model-viewer/lib/utilities/animation'
 
 export function ListPage(): JSX.Element {
     const { client } = useClient()
@@ -71,9 +72,19 @@ export function ListPage(): JSX.Element {
         return list.defaultPostHome === undefined ? true : list.defaultPostHome
     }, [list])
 
+    // Homeボタンを押したときに一番上に行くやつ
     useEffect(() => {
         registerHomeButtonCallBack(() => {
-            timelineRef.current?.scrollToIndex(0, { align: 'start', smooth: true })
+            console.log(timelineRef.current?.scrollOffset)
+            // タイムラインがスクロールされてたら一番上に戻す
+            if (timelineRef.current?.scrollOffset !== 0) {
+                timelineRef.current?.scrollToIndex(0, { align: 'start', smooth: true })
+                // preventDefault用
+                return true
+            } else {
+                // スクロールされてなかったらHomeに戻す
+                return false
+            }
         })
     }, [timelineRef])
 

@@ -64,7 +64,10 @@ export const MobileMenu = (): JSX.Element => {
                     minWidth: 0
                 }}
                 component={NavLink}
-                onClick={onHomeButtonClick}
+                onClick={(event) => {
+                    const res = onHomeButtonClick()
+                    if (res) event.preventDefault()
+                }}
                 to="/"
             >
                 <HomeIcon />

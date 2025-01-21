@@ -83,9 +83,10 @@ export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                         sx={{ p: 0.5 }}
                         component={Link}
                         to="/"
-                        onClick={() => {
+                        onClick={(e) => {
                             props.onClick?.()
-                            actions.onHomeButtonClick()
+                            const res = actions.onHomeButtonClick()
+                            if (res) e.preventDefault()
                         }}
                     >
                         <HomeIcon
