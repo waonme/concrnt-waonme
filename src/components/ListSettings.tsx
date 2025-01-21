@@ -93,7 +93,14 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
             {props.subscription.schema === Schemas.listSubscription && (
                 <>
                     <Typography variant="h3">{t('name')}</Typography>
-                    <Box display="flex" flexDirection="row" gap={1} alignItems="center">
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: 2,
+                            alignItems: 'center'
+                        }}
+                    >
                         <Box
                             sx={{
                                 position: 'relative',
@@ -123,10 +130,10 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                                     <CCIconButton
                                         sx={{
                                             position: 'absolute',
-                                            right: -8,
-                                            bottom: -8,
-                                            backgroundColor: 'background.paper',
-                                            padding: 0
+                                            p: 0.1,
+                                            right: -10,
+                                            bottom: -10,
+                                            backgroundColor: 'background.paper'
                                         }}
                                         onClick={(e) => {
                                             e.stopPropagation()
@@ -137,17 +144,7 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                                     </CCIconButton>
                                 </Box>
                             ) : (
-                                <CCIconButton
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        emojiPicker.open(e.currentTarget, (emoji) => {
-                                            setIconURL(emoji.imageURL)
-                                            emojiPicker.close()
-                                        })
-                                    }}
-                                >
-                                    <EmojiEmotions sx={{ fontSize: 'calc(1.125rem * 1.2)' }} />
-                                </CCIconButton>
+                                <EmojiEmotions sx={{ fontSize: 'calc(1.125rem * 1.6)' }} />
                             )}
                         </Box>
                         <TextField
