@@ -198,44 +198,48 @@ export function ListPage(): JSX.Element {
                     variant="scrollable"
                     scrollButtons={false}
                 >
-                    {pinnedSubscriptions.map((sub) => (
-                        <Tab
-                            key={sub.id}
-                            value={sub.id}
-                            label={
-                                sub.document.body.iconURL && lists[sub.id].useIconTab ? (
-                                    <img
-                                        src={sub.document.body.iconURL}
-                                        alt="list icon"
-                                        style={{
-                                            width: '1.125rem',
-                                            height: '1.125rem'
-                                        }}
-                                    />
-                                ) : (
-                                    sub.document.body.name
-                                )
-                            }
-                            onTouchStart={(a) => {
-                                tabPressStart(a.currentTarget, sub.id)
-                            }}
-                            onTouchEnd={() => {
-                                tabPressEnd(sub.id)
-                            }}
-                            onMouseDown={(a) => {
-                                tabPressStart(a.currentTarget, sub.id)
-                            }}
-                            onMouseUp={() => {
-                                tabPressEnd(sub.id)
-                            }}
-                            sx={{
-                                fontSize: '0.9rem',
-                                padding: '0',
-                                textTransform: 'none',
-                                userSelect: 'none'
-                            }}
-                        />
-                    ))}
+                    {pinnedSubscriptions.map((sub) => {
+                        const useIcon = sub.document.body.iconURL && lists[sub.id].useIconTab
+
+                        return (
+                            <Tab
+                                key={sub.id}
+                                value={sub.id}
+                                label={
+                                    useIcon ? (
+                                        <img
+                                            src={sub.document.body.iconURL}
+                                            alt="list icon"
+                                            style={{
+                                                width: '1.125rem',
+                                                height: '1.125rem'
+                                            }}
+                                        />
+                                    ) : (
+                                        sub.document.body.name
+                                    )
+                                }
+                                onTouchStart={(a) => {
+                                    tabPressStart(a.currentTarget, sub.id)
+                                }}
+                                onTouchEnd={() => {
+                                    tabPressEnd(sub.id)
+                                }}
+                                onMouseDown={(a) => {
+                                    tabPressStart(a.currentTarget, sub.id)
+                                }}
+                                onMouseUp={() => {
+                                    tabPressEnd(sub.id)
+                                }}
+                                sx={{
+                                    fontSize: '0.9rem',
+                                    padding: '0',
+                                    textTransform: 'none',
+                                    userSelect: 'none'
+                                }}
+                            />
+                        )
+                    })}
                 </Tabs>
 
                 {subscription ? (
