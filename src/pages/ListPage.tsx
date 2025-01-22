@@ -175,7 +175,6 @@ export function ListPage(): JSX.Element {
                                 src={subscription.document.body.iconURL}
                                 alt="list icon"
                                 style={{
-                                    width: '1.125rem',
                                     height: '1.125rem'
                                 }}
                             />
@@ -211,7 +210,6 @@ export function ListPage(): JSX.Element {
                                             src={sub.document.body.iconURL}
                                             alt="list icon"
                                             style={{
-                                                width: '1.125rem',
                                                 height: '1.125rem'
                                             }}
                                         />
