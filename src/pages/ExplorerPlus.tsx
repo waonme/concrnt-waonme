@@ -3,6 +3,9 @@ import {
     Avatar,
     Box,
     Button,
+    Card,
+    CardActions,
+    CardMedia,
     Collapse,
     Divider,
     IconButton,
@@ -14,12 +17,19 @@ import {
     TableHead,
     TableRow,
     TextField,
+    Tooltip,
     Typography,
     useTheme
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { StreamCard } from '../components/Stream/Card'
+import { CCWallpaper } from '../components/ui/CCWallpaper'
+import { WatchButton } from '../components/WatchButton'
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'
+import FindInPageIcon from '@mui/icons-material/FindInPage'
+import { CCIconButton } from '../components/ui/CCIconButton'
 
 export interface Domain {
     fqdn: string
@@ -118,7 +128,7 @@ export function ExplorerPlusPage(): JSX.Element {
     }, [query])
 
     const getDomainFromFQDN = useCallback(
-        (fqdn: string) => {
+        (fqdn: string | undefined) => {
             return domains.filter((d) => d.fqdn === fqdn)[0]
         },
         [domains]
@@ -155,70 +165,71 @@ export function ExplorerPlusPage(): JSX.Element {
                     <Box
                         sx={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                            gap: 2
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(384px, 1fr))',
+                            gap: 1
                         }}
                     >
                         {timelines.map((t) => {
                             return (
-                                <StreamCard
-                                    key={t.id}
-                                    streamID={t.id}
-                                    name={t._parsedDocument.body.name}
-                                    description={t._parsedDocument.body.description}
-                                    banner={t._parsedDocument.body.banner}
-                                    domain={t.domainFQDN ?? ''}
-                                />
+                                <Card key={t.id} sx={{ display: 'flex', flexDirection: 'row', gap: 1 }}>
+                                    <CardMedia sx={{ height: '100px', width: '100px' }}>
+                                        <CCWallpaper
+                                            sx={{
+                                                height: '100px',
+                                                width: '100px'
+                                            }}
+                                            override={t._parsedDocument.body.banner}
+                                        />
+                                    </CardMedia>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            paddingY: 0.3,
+                                            paddingX: 0.5,
+                                            height: '100%',
+                                            flex: 1,
+                                            minWidth: 0
+                                        }}
+                                    >
+                                        <Box flexGrow={1}>
+                                            <Typography variant={'body1'}>#{t._parsedDocument.body.name}</Typography>
+                                            <Typography
+                                                variant={'caption'}
+                                                sx={{
+                                                    textOverflow: 'ellipsis',
+                                                    overflow: 'hidden',
+                                                    display: 'black',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                {t._parsedDocument.body.description}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', marginTop: 'auto' }}>
+                                            <Avatar
+                                                src={getDomainFromFQDN(t.domainFQDN)?.meta?.logo}
+                                                sx={{ height: 18, width: 18 }}
+                                            />
+                                            <Typography variant="caption">
+                                                {getDomainFromFQDN(t.domainFQDN)?.meta?.nickname}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', gap: 1, marginLeft: 'auto' }}>
+                                                <WatchButton minimal small timelineID={t.id} />
+                                                <Tooltip title={'みてみる'} placement={'top'} arrow>
+                                                    <CCIconButton size={'small'}>
+                                                        <FindInPageIcon />
+                                                    </CCIconButton>
+                                                </Tooltip>
+                                            </Box>
+                                        </Box>
+                                    </Box>
+                                </Card>
                             )
                         })}
                     </Box>
                 </Box>
             </Box>
-        </>
-    )
-}
-
-function Row(props: { timeline: Timeline; domain: Domain }): JSX.Element {
-    const { timeline, domain } = props
-    return (
-        <>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-                <TableCell component="th" scope="row" colSpan={1}>
-                    <Typography>#{timeline._parsedDocument.body.name}</Typography>
-                </TableCell>
-                <TableCell colSpan={3}>
-                    <Typography variant={'caption'}>{timeline._parsedDocument.body.description}</Typography>
-                </TableCell>
-                <TableCell colSpan={1}>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <Avatar src={domain?.meta?.logo} sx={{ height: 24, width: 24 }} />
-                        <Typography variant="caption">{domain?.meta?.nickname}</Typography>
-                    </Box>
-                </TableCell>
-                <TableCell colSpan={1}>
-                    <Button size={'small'}>見てみる</Button>
-                </TableCell>
-            </TableRow>
-            {/* <TableRow> */}
-            {/*    <TableCell style={{ paddingBottom: 0, paddingTop: 0, paddingLeft: '80px' }} colSpan={6}> */}
-            {/*        <Collapse in={open} timeout="auto" unmountOnExit> */}
-            {/*            <Box sx={{ margin: 1 }}> */}
-            {/*                <Table size="small" aria-label="purchases"> */}
-            {/*                    <TableBody> */}
-            {/*                        {domain.timelines.map((timeline) => ( */}
-            {/*                            <TableRow key={timeline.id}> */}
-            {/*                                <TableCell component="th" scope="row"> */}
-            {/*                                    {timeline._parsedDocument.body.name} */}
-            {/*                                </TableCell> */}
-            {/*                                <TableCell>{timeline._parsedDocument.body.description}</TableCell> */}
-            {/*                            </TableRow> */}
-            {/*                        ))} */}
-            {/*                    </TableBody> */}
-            {/*                </Table> */}
-            {/*            </Box> */}
-            {/*        </Collapse> */}
-            {/*    </TableCell> */}
-            {/* </TableRow> */}
         </>
     )
 }
