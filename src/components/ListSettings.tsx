@@ -248,16 +248,16 @@ export function ListSettings(props: ListSettingsProps): JSX.Element {
                             <FormControlLabel
                                 control={
                                     <Checkbox
-                                        checked={list.useIconTab}
+                                        checked={list.isIconTab}
                                         onChange={(e) => {
                                             updateList(props.subscription.id, {
                                                 ...list,
-                                                useIconTab: e.target.checked
+                                                isIconTab: e.target.checked
                                             })
                                         }}
                                     />
                                 }
-                                label={t('useIconTab')}
+                                label={t('isIconTab')}
                             />
                         ) : (
                             <></>

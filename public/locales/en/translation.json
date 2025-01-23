@@ -127,7 +127,7 @@
             "community": "Community",
             "user": "User",
             "pin": "Pin",
-            "useIconTab": "Use icon on tab",
+            "isIconTab": "Use icon on tab",
             "delete": "Delete",
             "reallyDelete": "Really delete this list?",
             "confirmDelete": "Confirm"

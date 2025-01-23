@@ -198,7 +198,7 @@ export function ListPage(): JSX.Element {
                     scrollButtons={false}
                 >
                     {pinnedSubscriptions.map((sub) => {
-                        const useIcon = sub.document.body.iconURL && lists[sub.id].useIconTab
+                        const useIcon = sub.document.body.iconURL && lists[sub.id].isIconTab
 
                         return (
                             <Tab
