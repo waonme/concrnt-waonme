@@ -90,7 +90,7 @@ export function ExplorerPlusPage(): JSX.Element {
     const [textArea, setTextArea] = useState('')
 
     useEffect(() => {
-        fetch('https://c.kokopi.me/stat').then(async (result) => {
+        fetch('https://explorer.concrnt.world/stat').then(async (result) => {
             setStat(await result.json())
         })
     }, [])
@@ -98,16 +98,16 @@ export function ExplorerPlusPage(): JSX.Element {
     useEffect(() => {
         // fetch
         if (query === '') {
-            fetch('https://c.kokopi.me/timeline?random=true&limit=30').then(async (result) => {
+            fetch('https://explorer.concrnt.world/timeline?random=true&limit=30').then(async (result) => {
                 setTimelines(await result.json())
             })
         } else {
-            fetch('https://c.kokopi.me/timeline?q=' + query).then(async (result) => {
+            fetch('https://explorer.concrnt.world/timeline?q=' + query).then(async (result) => {
                 setTimelines(await result.json())
             })
         }
 
-        fetch('https://c.kokopi.me/domain').then(async (result) => {
+        fetch('https://explorer.concrnt.world/domain').then(async (result) => {
             setDomains(await result.json())
         })
     }, [query])
@@ -136,8 +136,8 @@ export function ExplorerPlusPage(): JSX.Element {
                     overflowY: 'scroll'
                 }}
             >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Typography variant="h2">{t('title')}</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1 }}>
+                    <Typography variant="h2">new {t('title')}</Typography>
                     <Divider sx={{ mb: 1 }} />
 
                     <Typography variant={'caption'}>

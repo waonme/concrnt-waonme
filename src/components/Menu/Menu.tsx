@@ -161,22 +161,6 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                                 <ListItemText primary={t('explore.title')} />
                             </ListItemButton>
                         </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton
-                                sx={{ gap: 1 }}
-                                component={NavLink}
-                                to="/explorerplus"
-                                onClick={props.onClick}
-                            >
-                                <ExploreIcon
-                                    sx={{
-                                        color: 'background.contrastText'
-                                    }}
-                                />
-
-                                <ListItemText primary={'explorerplus'} />
-                            </ListItemButton>
-                        </ListItem>
                         {enableConcord && (
                             <ListItem disablePadding>
                                 <ListItemButton
