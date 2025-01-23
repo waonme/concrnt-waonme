@@ -102,7 +102,7 @@ export function ExplorerPlusPage(): JSX.Element {
                 setTimelines(await result.json())
             })
         } else {
-            fetch('https://explorer.concrnt.world/timeline?q=' + query).then(async (result) => {
+            fetch('https://explorer.concrnt.world/timeline?limit=30&q=' + query).then(async (result) => {
                 setTimelines(await result.json())
             })
         }
