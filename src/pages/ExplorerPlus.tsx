@@ -1,35 +1,12 @@
 import { Helmet } from 'react-helmet-async'
-import {
-    Avatar,
-    Box,
-    Button,
-    Card,
-    CardActions,
-    CardMedia,
-    Collapse,
-    Divider,
-    IconButton,
-    Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField,
-    Tooltip,
-    Typography,
-    useTheme
-} from '@mui/material'
+import { Avatar, Box, Card, CardMedia, Divider, TextField, Tooltip, Typography, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { StreamCard } from '../components/Stream/Card'
+import { useCallback, useEffect, useState } from 'react'
 import { CCWallpaper } from '../components/ui/CCWallpaper'
 import { WatchButton } from '../components/WatchButton'
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye'
-import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'
 import FindInPageIcon from '@mui/icons-material/FindInPage'
 import { CCIconButton } from '../components/ui/CCIconButton'
+import { useTimelineDrawer } from '../context/TimelineDrawer'
 
 export interface Domain {
     fqdn: string
@@ -102,13 +79,21 @@ export interface Timeline {
 export function ExplorerPlusPage(): JSX.Element {
     const { t } = useTranslation('', { keyPrefix: 'pages.explore' })
     const theme = useTheme()
+    const { open } = useTimelineDrawer()
 
     const [timelines, setTimelines] = useState<Timeline[]>([])
     const [domains, setDomains] = useState<Domain[]>([])
+    const [stat, setStat] = useState<{ domains: number; timelines: number }>({ domains: 0, timelines: 0 })
 
     const [query, setQuery] = useState('')
 
     const [textArea, setTextArea] = useState('')
+
+    useEffect(() => {
+        fetch('https://c.kokopi.me/stat').then(async (result) => {
+            setStat(await result.json())
+        })
+    }, [])
 
     useEffect(() => {
         // fetch
@@ -151,15 +136,27 @@ export function ExplorerPlusPage(): JSX.Element {
                     overflowY: 'scroll'
                 }}
             >
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography variant="h2">{t('title')}</Typography>
                     <Divider sx={{ mb: 1 }} />
+
+                    <Typography variant={'caption'}>
+                        現在 {stat.domains} のアクティブなドメイン {stat.timelines} のアクティブなタイムライン
+                    </Typography>
+
+                    <Typography variant="h3">タイムライン</Typography>
+                    <Divider />
+
                     <TextField
                         value={textArea}
                         onChange={(e) => {
                             setTextArea(e.target.value)
                             setQuery(e.target.value)
                         }}
+                        label={'ここに入力してタイムラインを検索'}
+                        variant={'outlined'}
+                        fullWidth
+                        sx={{ marginY: 1 }}
                     />
 
                     <Box
@@ -193,13 +190,13 @@ export function ExplorerPlusPage(): JSX.Element {
                                         }}
                                     >
                                         <Box flexGrow={1}>
-                                            <Typography variant={'body1'}>#{t._parsedDocument.body.name}</Typography>
+                                            <Typography variant={'h4'}>{t._parsedDocument.body.name}</Typography>
                                             <Typography
                                                 variant={'caption'}
                                                 sx={{
                                                     textOverflow: 'ellipsis',
                                                     overflow: 'hidden',
-                                                    display: 'black',
+                                                    display: 'block',
                                                     whiteSpace: 'nowrap'
                                                 }}
                                             >
@@ -217,7 +214,12 @@ export function ExplorerPlusPage(): JSX.Element {
                                             <Box sx={{ display: 'flex', gap: 1, marginLeft: 'auto' }}>
                                                 <WatchButton minimal small timelineID={t.id} />
                                                 <Tooltip title={'みてみる'} placement={'top'} arrow>
-                                                    <CCIconButton size={'small'}>
+                                                    <CCIconButton
+                                                        size={'small'}
+                                                        onClick={() => {
+                                                            open(t.id)
+                                                        }}
+                                                    >
                                                         <FindInPageIcon />
                                                     </CCIconButton>
                                                 </Tooltip>
