@@ -41,6 +41,7 @@ import { Tutorial } from './pages/Tutorial'
 import { LogoutButton } from './components/Settings/LogoutButton'
 import { ConfirmProvider } from './context/Confirm'
 import { type ConcurrentTheme } from './model'
+import { TimelineDrawerProvider } from './context/TimelineDrawer'
 
 const SwitchMasterToSub = lazy(() => import('./components/SwitchMasterToSub'))
 
@@ -296,9 +297,11 @@ function App(): JSX.Element {
                             <StorageProvider>
                                 <ConcordProvider>
                                     <EditorModalProvider>
-                                        <ConfirmProvider>
-                                            <GlobalActionsProvider>{childs}</GlobalActionsProvider>
-                                        </ConfirmProvider>
+                                        <TimelineDrawerProvider>
+                                            <ConfirmProvider>
+                                                <GlobalActionsProvider>{childs}</GlobalActionsProvider>
+                                            </ConfirmProvider>
+                                        </TimelineDrawerProvider>
                                     </EditorModalProvider>
                                 </ConcordProvider>
                             </StorageProvider>
