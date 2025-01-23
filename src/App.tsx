@@ -30,6 +30,7 @@ import { StorageProvider } from './context/StorageContext'
 import { MarkdownRendererLite } from './components/ui/MarkdownRendererLite'
 import { useTranslation } from 'react-i18next'
 import { ManageSubsPage } from './pages/ManageSubs'
+import { ExplorerPlusPage } from './pages/ExplorerPlus'
 import { UseSoundFormats } from './constants'
 import { useGlobalState } from './context/GlobalState'
 import { ConcrntLogo } from './components/theming/ConcrntLogo'
@@ -454,6 +455,7 @@ function App(): JSX.Element {
                                 <Route path="/subscriptions" element={<ManageSubsPage />} />
                                 <Route path="/concord/*" element={<ConcordPage />} />
                                 <Route path="/tutorial" element={<Tutorial />} />
+                                <Route path="/explorerplus" element={<ExplorerPlusPage />} />
                             </Routes>
                         </Paper>
                         <Box
