@@ -231,7 +231,12 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                                             variant="dot"
                                             invisible={progress !== 0 || !isMasterSession}
                                         >
-                                            <MenuBookIcon sx={{ color: 'background.contrastText' }} />
+                                            <MenuBookIcon
+                                                sx={{
+                                                    color: 'background.contrastText',
+                                                    fontSize: '1.57rem'
+                                                }}
+                                            />
                                         </Badge>
                                     </Box>
                                     <ListItemText primary={t('tutorial.title')} />
