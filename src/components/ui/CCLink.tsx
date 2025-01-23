@@ -10,6 +10,8 @@ export interface CCLinkProps {
     fontSize?: string
     onMouseDown?: (event: React.MouseEvent<HTMLAnchorElement>) => void
     onMouseUp?: (event: React.MouseEvent<HTMLAnchorElement>) => void
+    onTouchStart?: (event: React.TouchEvent<HTMLAnchorElement>) => void
+    onTouchEnd?: (event: React.TouchEvent<HTMLAnchorElement>) => void
 }
 
 export const CCLink = (props: CCLinkProps): JSX.Element => {
@@ -34,6 +36,8 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 }}
                 onMouseDown={props.onMouseDown}
                 onMouseUp={props.onMouseUp}
+                onTouchStart={props.onTouchStart}
+                onTouchEnd={props.onTouchEnd}
             >
                 {props.children}
             </Link>
@@ -53,6 +57,8 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 }}
                 onMouseDown={props.onMouseDown}
                 onMouseUp={props.onMouseUp}
+                onTouchStart={props.onTouchStart}
+                onTouchEnd={props.onTouchEnd}
             >
                 {props.children}
             </Link>

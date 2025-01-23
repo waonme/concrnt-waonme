@@ -47,15 +47,18 @@ export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
     }, [props.message])
 
     const ButtonTimer = useRef<NodeJS.Timeout | null>(null)
-    const ButtonOnPress = useCallback((event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-        ButtonTimer.current = setTimeout(() => {
-            event.preventDefault()
-            timelineDrawer.open(id)
-            ButtonTimer.current = null
-        }, 500)
-    }, [])
+    const ButtonOnPress = useCallback(
+        (event: React.MouseEvent<HTMLAnchorElement> | React.TouchEvent<HTMLAnchorElement>, id: string) => {
+            ButtonTimer.current = setTimeout(() => {
+                event.preventDefault()
+                timelineDrawer.open(id)
+                ButtonTimer.current = null
+            }, 500)
+        },
+        []
+    )
 
-    const ButtonOnRelease = useCallback((_event: React.MouseEvent<HTMLAnchorElement>) => {
+    const ButtonOnRelease = useCallback(() => {
         if (ButtonTimer.current) {
             if (ButtonTimer.current) {
                 clearTimeout(ButtonTimer.current)
@@ -107,6 +110,10 @@ export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
                                     ButtonOnPress(event, e.id)
                                 }}
                                 onMouseUp={ButtonOnRelease}
+                                onTouchStart={(event) => {
+                                    ButtonOnPress(event, e.id)
+                                }}
+                                onTouchEnd={ButtonOnRelease}
                             >
                                 {isPrivate ? (
                                     <LockIcon sx={{ height: '1rem', width: '1rem' }} />
