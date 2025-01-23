@@ -8,6 +8,8 @@ export interface CCLinkProps {
     children?: JSX.Element | Array<JSX.Element | undefined> | React.ReactNode | string
     color?: TypographyOwnProps['color']
     fontSize?: string
+    onMouseDown?: (event: React.MouseEvent<HTMLAnchorElement>) => void
+    onMouseUp?: (event: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
 export const CCLink = (props: CCLinkProps): JSX.Element => {
@@ -30,6 +32,8 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 onClick={(e) => {
                     e.stopPropagation()
                 }}
+                onMouseDown={props.onMouseDown}
+                onMouseUp={props.onMouseUp}
             >
                 {props.children}
             </Link>
@@ -47,6 +51,8 @@ export const CCLink = (props: CCLinkProps): JSX.Element => {
                 onClick={(e) => {
                     e.stopPropagation()
                 }}
+                onMouseDown={props.onMouseDown}
+                onMouseUp={props.onMouseUp}
             >
                 {props.children}
             </Link>

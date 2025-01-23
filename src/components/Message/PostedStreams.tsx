@@ -6,7 +6,7 @@ import {
     type RerouteMessageSchema
 } from '@concurrent-world/client'
 import { Box, Tooltip } from '@mui/material'
-import { useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 
 import { useClient } from '../../context/ClientContext'
 import { CCUserIcon } from '../ui/CCUserIcon'
@@ -19,6 +19,7 @@ import { isPrivateTimeline } from '../../util'
 import { useGlobalState } from '../../context/GlobalState'
 import { SubprofileBadge } from '../ui/SubprofileBadge'
 import { CCLink } from '../ui/CCLink'
+import { useTimelineDrawer } from '../../context/TimelineDrawer'
 
 export interface PostedStreamsProps {
     useUserIcon?: boolean
@@ -28,6 +29,8 @@ export interface PostedStreamsProps {
 export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
     const { client } = useClient()
     const { allKnownTimelines } = useGlobalState()
+
+    const timelineDrawer = useTimelineDrawer()
 
     const postedStreams = useMemo(() => {
         const streams =
@@ -42,6 +45,24 @@ export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
         const uniq = [...new Set(streams)]
         return uniq
     }, [props.message])
+
+    const ButtonTimer = useRef<NodeJS.Timeout | null>(null)
+    const ButtonOnPress = useCallback((event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+        ButtonTimer.current = setTimeout(() => {
+            event.preventDefault()
+            timelineDrawer.open(id)
+            ButtonTimer.current = null
+        }, 500)
+    }, [])
+
+    const ButtonOnRelease = useCallback((_event: React.MouseEvent<HTMLAnchorElement>) => {
+        if (ButtonTimer.current) {
+            if (ButtonTimer.current) {
+                clearTimeout(ButtonTimer.current)
+                ButtonTimer.current = null
+            }
+        }
+    }, [])
 
     return (
         <Box
@@ -82,6 +103,10 @@ export const PostedStreams = (props: PostedStreamsProps): JSX.Element => {
                                     alignItems: 'center',
                                     flexShrink: 0
                                 }}
+                                onMouseDown={(event) => {
+                                    ButtonOnPress(event, e.id)
+                                }}
+                                onMouseUp={ButtonOnRelease}
                             >
                                 {isPrivate ? (
                                     <LockIcon sx={{ height: '1rem', width: '1rem' }} />
