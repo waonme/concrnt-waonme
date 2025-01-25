@@ -9,12 +9,22 @@ import BubbleSound from '../../resources/Bubble.wav'
 import NotificationSound from '../../resources/Notification.wav'
 import Bright_Post from '../../resources/Bright_Post.wav'
 import Bright_Notification from '../../resources/Bright_Notification.wav'
+import Arakoshi_Notify from '../../resources/Arakoshi_Notify.wav'
+import Arakoshi_Send from '../../resources/Arakoshi_Send.wav'
+import Arakoshi_Send2 from '../../resources/Arakoshi_Send2.wav'
+import Arakoshi_Suzu from '../../resources/Arakoshi_Suzu.wav'
+import Arakoshi_Up from '../../resources/Arakoshi_Up.wav'
 
 const soundOptions: Record<string, string> = {
     pop: BubbleSound,
     popi: NotificationSound,
     Bright_Post,
-    Bright_Notification
+    Bright_Notification,
+    Arakoshi_Notify,
+    Arakoshi_Send,
+    Arakoshi_Send2,
+    Arakoshi_Suzu,
+    Arakoshi_Up
 }
 
 const soundOptionLabels = Object.keys(soundOptions)
