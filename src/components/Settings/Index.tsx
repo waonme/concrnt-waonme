@@ -1,6 +1,4 @@
-import { Typography, Box, ButtonBase, Button, Paper } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
-import { CCAvatar } from '../ui/CCAvatar'
+import { Typography, Box, Button, Paper, Alert, AlertTitle } from '@mui/material'
 import { useClient } from '../../context/ClientContext'
 import SettingsIcon from '@mui/icons-material/Settings'
 import PaletteIcon from '@mui/icons-material/Palette'
@@ -19,9 +17,20 @@ import ImportExportIcon from '@mui/icons-material/ImportExport'
 import EventNoteIcon from '@mui/icons-material/EventNote'
 import { useMemo } from 'react'
 
+// @ts-expect-error vite dynamic import
+import buildTime from '~build/time'
+// @ts-expect-error vite dynamic import
+import { branch, sha } from '~build/info'
+import { useGlobalState } from '../../context/GlobalState'
+import { type Identity } from '@concurrent-world/client'
+
+const branchName = branch || window.location.host.split('.')[0]
+
 export function SettingsIndex(): JSX.Element {
     const { client } = useClient()
     const { enqueueSnackbar } = useSnackbar()
+    const { setSwitchToSub } = useGlobalState()
+    const identity: Identity = JSON.parse(localStorage.getItem('Identity') || 'null')
 
     const { t } = useTranslation('', { keyPrefix: '' })
 
@@ -40,7 +49,7 @@ export function SettingsIndex(): JSX.Element {
     }
 
     const isDomainApAvailable = useMemo(() => {
-        return 'activitypub' in client.domainServices
+        return 'activitypub' in client.domainServices || 'world.concrnt.ap-bridge' in client.domainServices
     }, [client.domainServices])
 
     return (
@@ -51,49 +60,27 @@ export function SettingsIndex(): JSX.Element {
                 gap: 1
             }}
         >
-            <Box /* header */ display="flex" flexDirection="row" justifyContent="space-between" width="100%">
-                <ButtonBase
-                    component={RouterLink}
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'left',
-                        gap: 1
-                    }}
-                    to={'/settings/profile'}
+            {identity && (
+                <Alert
+                    severity="info"
+                    action={
+                        <Button
+                            variant="text"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                setSwitchToSub(true)
+                            }}
+                        >
+                            {t('settings.privileged.action')}
+                        </Button>
+                    }
                 >
-                    <CCAvatar
-                        avatarURL={client?.user?.profile?.avatar}
-                        identiconSource={client.ccid}
-                        sx={{
-                            width: '40px',
-                            height: '40px'
-                        }}
-                    />
-                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', flexFlow: 'column' }}>
-                        <Typography color="contrastText">{client?.user?.profile?.username}</Typography>
-                        <Typography variant="caption" color="background.contrastText">
-                            {client.api.host}
-                        </Typography>
-                    </Box>
-                </ButtonBase>
-                {/*
-                <Button
-                    onClick={(_) => {
-                        if (client.api.host === undefined) {
-                            return
-                        }
-                        window.open(
-                            `https://${client.api.host}/web/login?token=${client.api.generateApiToken()}`,
-                            '_blank',
-                            'noreferrer'
-                        )
-                    }}
-                >
-                    Goto Domain Home
-                </Button>
-                */}
-            </Box>
+                    <AlertTitle>{t('settings.privileged.title')}</AlertTitle>
+                    {t('settings.privileged.desc')}
+                </Alert>
+            )}
+
             <Paper /* menu */
                 variant="outlined"
                 sx={{
@@ -129,7 +116,7 @@ export function SettingsIndex(): JSX.Element {
                     label={t('settings.emoji.title')}
                     to="/settings/emoji"
                 />
-                <IconButtonWithLabel link icon={PhotoIcon} label={t('settings.media.title')} to="/settings/media" />
+                <IconButtonWithLabel link icon={PhotoIcon} label={t('settings.media.title')} to="/settings/storage" />
                 <IconButtonWithLabel
                     link
                     disabled={!isDomainApAvailable}
@@ -167,6 +154,7 @@ export function SettingsIndex(): JSX.Element {
                 <Typography variant="h2" gutterBottom>
                     {t('pages.settings.actions.title')}
                 </Typography>
+
                 <Button
                     onClick={(_) => {
                         deleteAllCache()
@@ -182,6 +170,24 @@ export function SettingsIndex(): JSX.Element {
                     {t('pages.settings.actions.forceReload')}
                 </Button>
                 <LogoutButton />
+            </Paper>
+            <Paper
+                variant="outlined"
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    padding: 1
+                }}
+            >
+                <Typography variant="h2" gutterBottom>
+                    Concrnt-World
+                </Typography>
+                buildTime: {buildTime.toLocaleString()}
+                <br />
+                branch: {branchName}
+                <br />
+                sha: {sha}
             </Paper>
         </Box>
     )

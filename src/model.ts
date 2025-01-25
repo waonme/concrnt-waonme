@@ -39,6 +39,7 @@ export interface RawEmojiPackage {
 
 export interface EmojiPackage extends RawEmojiPackage {
     packageURL: string
+    fetchedAt?: Date
 }
 
 export interface ImgurSettings {
@@ -84,18 +85,16 @@ export interface ConcurrentTheme extends Theme {
 
 export interface StreamList {
     pinned: boolean
+    isIconTab: boolean
     expanded: boolean
+    defaultPostHome: boolean
     defaultPostStreams: string[]
+    defaultProfile?: string
 }
 
 export interface userHomeStream {
     streamID: string
     userID: string
-}
-
-export interface StreamWithDomain {
-    domain: string
-    stream: Timeline<CommunityTimelineSchema>
 }
 
 export type CCID = string
@@ -133,4 +132,31 @@ export interface JobRequest {
     type: string
     payload: string
     scheduled: string
+}
+
+export interface Badge {
+    classId: string
+    badgeId: string
+    name: string
+    description: string
+    uri: string
+    creator: string
+    owner: string
+    transferable: boolean
+}
+
+export interface WorldMedia {
+    mediaURL: string
+    mediaType: string
+    thumbnailURL?: string
+    blurhash?: string
+    flag?: string
+}
+
+export interface NotificationSubscription {
+    vendorID: string
+    owner: string
+    schemas: string[]
+    timelines: string[]
+    subscription: string
 }

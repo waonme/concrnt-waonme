@@ -10,6 +10,7 @@ import { useGlobalState } from '../context/GlobalState'
 export interface WatchButtonProps {
     timelineID: string
     minimal?: boolean
+    small?: boolean
 }
 
 export const WatchButton = (props: WatchButtonProps): JSX.Element => {
@@ -22,7 +23,7 @@ export const WatchButton = (props: WatchButtonProps): JSX.Element => {
 
     const { t } = useTranslation('', { keyPrefix: 'common' })
 
-    const watching = allKnownTimelines.find((e) => e.id === props.timelineID) !== undefined
+    const watching = allKnownTimelines.find((e) => (e.cacheKey ?? e.id) === props.timelineID) !== undefined
 
     return (
         <Box>
@@ -30,6 +31,7 @@ export const WatchButton = (props: WatchButtonProps): JSX.Element => {
                 <Tooltip title="リストに追加" placement="top" arrow>
                     <IconButton
                         sx={{ flexGrow: 0 }}
+                        size={props.small ? 'small' : 'medium'}
                         onClick={(e) => {
                             setMenuAnchor(e.currentTarget)
                         }}
@@ -51,7 +53,6 @@ export const WatchButton = (props: WatchButtonProps): JSX.Element => {
                                 client.api
                                     .subscribe(props.timelineID, Object.keys(listedSubscriptions)[0])
                                     .then((subscription) => {
-                                        console.log(subscription)
                                         reloadList()
                                     })
                             }

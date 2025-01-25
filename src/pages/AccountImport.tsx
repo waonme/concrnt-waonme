@@ -10,10 +10,11 @@ import { IconButtonWithLabel } from '../components/ui/IconButtonWithLabel'
 import { useTranslation } from 'react-i18next'
 import { Suspense, lazy, useState } from 'react'
 import { Client } from '@concurrent-world/client'
+import { Helmet } from 'react-helmet-async'
 
 const QRCodeReader = lazy(() => import('../components/ui/QRCodeReader'))
 
-export function AccountImport(): JSX.Element {
+export default function AccountImport(): JSX.Element {
     const { t } = useTranslation('', { keyPrefix: 'import' })
 
     const [importMode, setImportMode] = useState<'none' | 'scan' | 'manual'>('none')
@@ -33,6 +34,9 @@ export function AccountImport(): JSX.Element {
                 </Button>
             }
         >
+            <Helmet>
+                <meta name="robots" content="noindex" />
+            </Helmet>
             <Paper
                 sx={{
                     display: 'flex',
@@ -77,7 +81,6 @@ export function AccountImport(): JSX.Element {
                         <Suspense fallback={<Typography>loading...</Typography>}>
                             <QRCodeReader
                                 onRead={(result) => {
-                                    console.log(result)
                                     try {
                                         Client.createFromSubkey(result).then((client) => {
                                             localStorage.setItem('Domain', JSON.stringify(client.host))
@@ -94,9 +97,9 @@ export function AccountImport(): JSX.Element {
                 )}
                 {importMode === 'manual' && (
                     <>
-                        <ImportSubkey />
-                        <Divider>または</Divider>
                         <ImportMasterKey />
+                        <Divider>または</Divider>
+                        <ImportSubkey />
                     </>
                 )}
             </Paper>

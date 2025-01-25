@@ -1,4 +1,4 @@
-import { Box, ButtonBase, Divider, IconButton } from '@mui/material'
+import { Badge, Box, ButtonBase, Divider, IconButton } from '@mui/material'
 import CreateIcon from '@mui/icons-material/Create'
 import { Link } from 'react-router-dom'
 
@@ -7,6 +7,7 @@ import ExploreIcon from '@mui/icons-material/Explore'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ContactsIcon from '@mui/icons-material/Contacts'
 import NotificationsIcon from '@mui/icons-material/Notifications'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import { memo } from 'react'
 import { CCAvatar } from '../ui/CCAvatar'
 import { useClient } from '../../context/ClientContext'
@@ -15,6 +16,8 @@ import { useGlobalActions } from '../../context/GlobalActions'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 import { MinimalListsMenu } from '../ListsMenu/minimal'
 import TerminalIcon from '@mui/icons-material/Terminal'
+import { useEditorModal } from '../EditorModal'
+import { useGlobalState } from '../../context/GlobalState'
 
 export interface MenuProps {
     onClick?: () => void
@@ -23,8 +26,13 @@ export interface MenuProps {
 export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
     const { client } = useClient()
     const actions = useGlobalActions()
+    const editorModal = useEditorModal()
     const [devMode] = usePreference('devMode')
     const [showEditorOnTop] = usePreference('showEditorOnTop')
+
+    const { isMasterSession } = useGlobalState()
+    const [progress] = usePreference('tutorialProgress')
+    const [tutorialCompleted] = usePreference('tutorialCompleted')
 
     return (
         <Box
@@ -71,7 +79,16 @@ export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                 </Box>
                 <Divider sx={{ mt: 1 }} />
                 <Box display="flex" flexDirection="column" alignItems="center">
-                    <IconButton sx={{ p: 0.5 }} component={Link} to="/" onClick={props.onClick}>
+                    <IconButton
+                        sx={{ p: 0.5 }}
+                        component={Link}
+                        to="/"
+                        onClick={(e) => {
+                            props.onClick?.()
+                            const res = actions.onHomeButtonClick()
+                            if (res) e.preventDefault()
+                        }}
+                    >
                         <HomeIcon
                             sx={{
                                 color: 'background.contrastText'
@@ -92,13 +109,25 @@ export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                             }}
                         />
                     </IconButton>
-                    <IconButton sx={{ p: 0.5 }} component={Link} to="/explorer/stream" onClick={props.onClick}>
+                    <IconButton sx={{ p: 0.5 }} component={Link} to="/explorer/timelines" onClick={props.onClick}>
                         <ExploreIcon
                             sx={{
                                 color: 'background.contrastText'
                             }}
                         />
                     </IconButton>
+                    {!tutorialCompleted && (
+                        <IconButton sx={{ p: 0.5 }} component={Link} to="/tutorial" onClick={props.onClick}>
+                            <Badge color="secondary" variant="dot" invisible={progress !== 0 || !isMasterSession}>
+                                <MenuBookIcon
+                                    sx={{
+                                        color: 'background.contrastText'
+                                    }}
+                                />
+                            </Badge>
+                        </IconButton>
+                    )}
+
                     {devMode && (
                         <IconButton sx={{ p: 0.5 }} component={Link} to="/devtool" onClick={props.onClick}>
                             <TerminalIcon
@@ -135,7 +164,7 @@ export const ThinMenu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                     {!showEditorOnTop && (
                         <IconButton
                             onClick={() => {
-                                actions.openDraft()
+                                editorModal.open()
                             }}
                             sx={{
                                 color: 'background.contrastText'

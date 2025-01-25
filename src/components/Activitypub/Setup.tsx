@@ -34,7 +34,6 @@ export const ApSetup = (): JSX.Element => {
                 .fetchWithCredential(client.api.host, `/ap/api/entity?id=${userID}`, requestOptions)
                 .then(async (res) => await res.json())
                 .then((profile) => {
-                    console.log('profile', profile)
                     setEntityFound(true)
                 })
                 .catch((_e) => {
@@ -79,7 +78,6 @@ export const ApSetup = (): JSX.Element => {
             {
                 semanticID: 'world.concrnt.t-ap',
                 indexable: false,
-                domainOwned: false,
                 policy: 'https://policy.concrnt.world/t/inline-read-write.json',
                 policyParams: JSON.stringify({
                     isWritePublic: false,
@@ -90,11 +88,7 @@ export const ApSetup = (): JSX.Element => {
             }
         )
 
-        client.api
-            .subscribe('world.concrnt.t-ap@' + client.ccid, Object.keys(listedSubscriptions)[0])
-            .then((subscription) => {
-                console.log(subscription)
-            })
+        client.api.subscribe('world.concrnt.t-ap@' + client.ccid, Object.keys(listedSubscriptions)[0])
 
         await client.api
             .fetchWithCredential(client.api.host, `/ap/api/entity`, {

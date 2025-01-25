@@ -3,22 +3,28 @@ import {
     type CoreEntity,
     type CommunityTimelineSchema,
     type CoreSubscription,
-    Schemas
+    type CoreProfile
 } from '@concurrent-world/client'
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useClient } from './ClientContext'
 import { usePreference } from './PreferenceContext'
+import { useMediaQuery, useTheme } from '@mui/material'
 
 export interface GlobalState {
     isCanonicalUser: boolean
     isRegistered: boolean
     isDomainOffline: boolean
     isMasterSession: boolean
+    isMobileSize: boolean
 
     allKnownTimelines: Array<Timeline<CommunityTimelineSchema>>
     allKnownSubscriptions: Array<CoreSubscription<any>>
     listedSubscriptions: Record<string, CoreSubscription<any>>
+    allProfiles: Array<CoreProfile<any>>
     reloadList: () => void
+    getImageURL: (url?: string, params?: { maxWidth?: number; maxHeight?: number; format?: string }) => string
+    setSwitchToSub: (state: boolean) => void
+    switchToSubOpen: boolean
 }
 
 const GlobalStateContext = createContext<GlobalState | undefined>(undefined)
@@ -35,15 +41,40 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
     const [entity, setEntity] = useState<CoreEntity | null>(null)
     const isCanonicalUser = entity ? entity.domain === client?.host : true
     const [isRegistered, setIsRegistered] = useState<boolean>(true)
-    const isMasterSession = JSON.parse(localStorage.getItem('Identity') || 'null') !== null
+    const identity = JSON.parse(localStorage.getItem('Identity') || 'null')
+    const isMasterSession = identity !== null
+    const theme = useTheme()
+    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
 
+    const [allProfiles, setAllProfiles] = useState<Array<CoreProfile<any>>>([])
     const [allKnownTimelines, setAllKnownTimelines] = useState<Array<Timeline<CommunityTimelineSchema>>>([])
     const [allKnownSubscriptions, setAllKnownSubscriptions] = useState<Array<CoreSubscription<any>>>([])
     const [listedSubscriptions, setListedSubscriptions] = useState<Record<string, CoreSubscription<any>>>({})
 
+    const [switchToSubOpen, setKeyModalOpen] = useState<boolean>(false)
+
+    const getImageURL = useCallback(
+        (url?: string, opts?: { maxWidth?: number; maxHeight?: number; format?: string }) => {
+            if (!url) return ''
+            if (url.startsWith('data:')) return url
+            if ('world.concrnt.hyperproxy.image' in client.domainServices) {
+                return `https://${client.host}${client.domainServices['world.concrnt.hyperproxy.image'].path}/${
+                    opts?.maxWidth ?? ''
+                }x${opts?.maxHeight ?? ''}${opts?.format ? ',' + opts.format : ''}/${url}`
+            } else {
+                return url
+            }
+        },
+        [client]
+    )
+
     useEffect(() => {
         client.api.getOwnSubscriptions<any>().then((subs) => {
             setAllKnownSubscriptions(subs)
+        })
+        client.api.getProfiles({ author: client.ccid }).then((characters) => {
+            const profiles = (characters ?? []).filter((c) => c.schema !== 'https://schema.concrnt.world/p/main.json')
+            setAllProfiles(profiles)
         })
     }, [])
 
@@ -58,7 +89,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
                         return [id, sub]
                     })
                     .catch((e) => {
-                        console.log(e)
                         return [id, null]
                     })
             )
@@ -75,7 +105,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
             uniq.forEach((id) => {
                 client.getTimeline<CommunityTimelineSchema>(id).then((stream) => {
                     if (stream && !unmounted) {
-                        if (stream.schema !== Schemas.communityTimeline) return
                         setAllKnownTimelines((prev) => [...prev, stream])
                     }
                 })
@@ -97,7 +126,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
                         return [id, sub]
                     })
                     .catch((e) => {
-                        console.log(e)
                         return [id, null]
                     })
             )
@@ -133,7 +161,6 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
                     setIsRegistered(false)
                 }
                 res.json().then((json) => {
-                    console.log('hogehoge', json.content)
                     setEntity(json.content)
                 })
             })
@@ -143,17 +170,26 @@ export const GlobalStateProvider = ({ children }: GlobalStateProps): JSX.Element
             })
     }, [client])
 
+    const setSwitchToSub = useCallback((state: boolean) => {
+        setKeyModalOpen(state)
+    }, [])
+
     return (
         <GlobalStateContext.Provider
             value={{
                 isCanonicalUser,
                 isRegistered,
                 isDomainOffline,
+                isMobileSize,
                 isMasterSession,
                 allKnownTimelines,
                 allKnownSubscriptions,
                 listedSubscriptions,
-                reloadList
+                reloadList,
+                allProfiles,
+                getImageURL,
+                setSwitchToSub,
+                switchToSubOpen
             }}
         >
             {children}
@@ -169,10 +205,15 @@ export function useGlobalState(): GlobalState {
             isRegistered: false,
             isDomainOffline: false,
             isMasterSession: false,
+            isMobileSize: false,
             allKnownTimelines: [],
             allKnownSubscriptions: [],
             listedSubscriptions: {},
-            reloadList: () => {}
+            reloadList: () => {},
+            allProfiles: [],
+            getImageURL: (url?: string, _options?: any) => url ?? '',
+            setSwitchToSub: (_state: boolean) => {},
+            switchToSubOpen: false
         }
     }
     return context

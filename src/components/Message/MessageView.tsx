@@ -3,7 +3,6 @@ import { SimpleNote } from './SimpleNote'
 import { MessageHeader } from './MessageHeader'
 import { MessageActions } from './MessageActions'
 import { MessageReactions } from './MessageReactions'
-import { MessageUrlPreview } from './MessageUrlPreview'
 import {
     type RerouteMessageSchema,
     type Message,
@@ -18,6 +17,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ReplayIcon from '@mui/icons-material/Replay'
 import { useEffect, useMemo, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
+import { AutoSummaryProvider } from '../../context/AutoSummaryContext'
 
 export interface MessageViewProps {
     message: Message<MarkdownMessageSchema | ReplyMessageSchema>
@@ -43,9 +43,9 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
     const [characterOverride, setProfileOverride] = useState<CoreProfile<any> | undefined>(undefined)
 
     useEffect(() => {
-        if (!(client && props.message.document.body.profileOverride?.characterID)) return
+        if (!(client && props.message.document.body.profileOverride?.profileID)) return
         client.api
-            .getProfileByID(props.message.document.body.profileOverride?.characterID, props.message.author)
+            .getProfileByID(props.message.document.body.profileOverride?.profileID, props.message.author)
             .then((profile) => {
                 setProfileOverride(profile ?? undefined)
             })
@@ -69,52 +69,59 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
 
     return (
         <ContentWithCCAvatar
+            message={props.message}
             author={props.message.authorUser}
             profileOverride={props.message.document.body.profileOverride}
             avatarOverride={characterOverride?.document.body.avatar}
+            characterOverride={characterOverride?.document.body}
         >
             <MessageHeader
                 usernameOverride={characterOverride?.document.body.username}
                 message={props.message}
                 additionalMenuItems={props.additionalMenuItems}
+                timeLink={props.message.document.meta?.apObjectRef} // Link to external message
             />
             {props.beforeMessage}
-            <Box
-                sx={{
-                    position: 'relative',
-                    maxHeight: expanded ? 'none' : `${clipHeight}px`,
-                    overflow: 'hidden'
-                }}
-            >
+            <AutoSummaryProvider limit={props.simple ? 0 : 1}>
                 <Box
                     sx={{
-                        display: expanded ? 'none' : 'flex',
-                        position: 'absolute',
-                        top: `${clipHeight - gradationHeight}px`,
-                        left: '0',
-                        width: '100%',
-                        height: `${gradationHeight}px`,
-                        background: `linear-gradient(${alpha(theme.palette.background.paper, 0)}, ${
-                            theme.palette.background.paper
-                        })`,
-                        alignItems: 'center',
-                        zIndex: 1,
-                        justifyContent: 'center'
+                        position: 'relative',
+                        maxHeight: expanded ? 'none' : `${clipHeight}px`,
+                        overflow: 'hidden'
                     }}
                 >
-                    <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => {
-                            setExpanded(true)
+                    <Box
+                        sx={{
+                            display: expanded ? 'none' : 'flex',
+                            position: 'absolute',
+                            top: `${clipHeight - gradationHeight}px`,
+                            left: '0',
+                            width: '100%',
+                            height: `${gradationHeight}px`,
+                            background: `linear-gradient(${alpha(theme.palette.background.paper, 0)}, ${
+                                theme.palette.background.paper
+                            })`,
+                            alignItems: 'center',
+                            zIndex: 1,
+                            justifyContent: 'center'
                         }}
                     >
-                        Show more
-                    </Button>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setExpanded(true)
+                            }}
+                        >
+                            Show more
+                        </Button>
+                    </Box>
+                    <Box itemProp="articleBody">
+                        <SimpleNote message={props.message} />
+                    </Box>
                 </Box>
-                <SimpleNote message={props.message} />
-                {!props.simple && <MessageUrlPreview messageBody={props.message.document.body.body} />}
-            </Box>
+            </AutoSummaryProvider>
             {(!props.simple && (
                 <>
                     <MessageReactions message={props.message} />
@@ -123,9 +130,10 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                             display: 'flex',
                             flexDirection: 'row-reverse',
                             justifyContent: 'space-between',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
+                            flexWrap: 'wrap',
                             gap: 1,
-                            flexWrap: 'wrap'
+                            mt: 1
                         }}
                     >
                         <Box display="flex" flexDirection="row" alignItems="center">
@@ -140,7 +148,15 @@ export const MessageView = (props: MessageViewProps): JSX.Element => {
                                     </>
                                 ))}
                         </Box>
-                        <MessageActions message={props.message} userCCID={props.userCCID} />
+                        <Box
+                            flex={1}
+                            display="flex"
+                            flexDirection="row"
+                            alignItems="center"
+                            justifyContent="flex-start"
+                        >
+                            <MessageActions message={props.message} userCCID={props.userCCID} />
+                        </Box>
                     </Box>
                 </>
             )) ||

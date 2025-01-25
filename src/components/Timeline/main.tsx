@@ -20,6 +20,7 @@ export interface TimelineProps {
     perspective?: string
     header?: JSX.Element
     onScroll?: (top: number) => void
+    noRealtime?: boolean
 }
 
 const PTR_HEIGHT = 60
@@ -69,27 +70,31 @@ const timeline = forwardRef((props: TimelineProps, ref: ForwardedRef<VListHandle
         let isCancelled = false
         if (props.streams.length === 0) return
         setTimelineLoading(true)
-        const mt = client.newTimelineReader().then((t) => {
-            if (isCancelled) return
-            timeline.current = t
-            t.onUpdate = () => {
-                timelineChanged()
-            }
-            t.onRealtimeEvent = (event) => {
-                if (event.document?.type === 'message') {
-                    playBubbleRef.current()
+        const mt = client
+            .newTimelineReader({
+                withoutSocket: props.noRealtime ?? false
+            })
+            .then((t) => {
+                if (isCancelled) return
+                timeline.current = t
+                t.onUpdate = () => {
+                    timelineChanged()
                 }
-            }
-            timeline.current
-                .listen(props.streams)
-                .then((hasMore) => {
-                    setHasMoreData(hasMore)
-                })
-                .finally(() => {
-                    setTimelineLoading(false)
-                })
-            return t
-        })
+                t.onRealtimeEvent = (event) => {
+                    if (event.document?.type === 'message') {
+                        playBubbleRef.current()
+                    }
+                }
+                timeline.current
+                    .listen(props.streams)
+                    .then((hasMore) => {
+                        setHasMoreData(hasMore)
+                    })
+                    .finally(() => {
+                        setTimelineLoading(false)
+                    })
+                return t
+            })
         return () => {
             isCancelled = true
             mt.then((t) => {
@@ -158,7 +163,6 @@ const timeline = forwardRef((props: TimelineProps, ref: ForwardedRef<VListHandle
         setIsFetching(true)
         alreadyFetchInThisRender = true
 
-        console.log('readMore!!')
         timeline.current
             ?.readMore()
             .then((hasMore) => {
@@ -223,102 +227,93 @@ const timeline = forwardRef((props: TimelineProps, ref: ForwardedRef<VListHandle
                     flexDirection: 'column'
                 }}
             >
-                {timelineLoading ? (
-                    <Box
-                        sx={{
-                            height: '100%',
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    >
+                <VList
+                    style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        listStyle: 'none',
+                        overflowX: 'hidden',
+                        overflowY: 'auto',
+                        overscrollBehaviorY: 'none',
+                        scrollbarGutter: 'stable'
+                    }}
+                    onScroll={(top) => {
+                        positionRef.current = top
+                        props.onScroll?.(top)
+                    }}
+                    onRangeChange={(_, end) => {
+                        if (end + 3 > count && hasMoreData) readMore()
+                    }}
+                    ref={ref}
+                >
+                    {props.header}
+
+                    {(timeline.current?.body.length ?? 0) === 0
+                        ? !timelineLoading && (
+                              <Box
+                                  sx={{
+                                      width: '100%',
+                                      display: 'flex',
+                                      justifyContent: 'center'
+                                  }}
+                              >
+                                  <Typography
+                                      sx={{
+                                          color: 'text.secondary'
+                                      }}
+                                  >
+                                      No currents yet here!
+                                  </Typography>
+                              </Box>
+                          )
+                        : (timelineLoading ? [] : timeline.current?.body ?? []).map((e) => {
+                              let element
+                              const type = e.resourceID[0]
+                              switch (type) {
+                                  case 'm':
+                                      element = (
+                                          <MessageContainer
+                                              dimOnHover
+                                              sx={timelineElemSx}
+                                              messageID={e.resourceID}
+                                              messageOwner={e.owner}
+                                              resolveHint={e.timelineID.split('@')[1]}
+                                              lastUpdated={e.lastUpdate?.getTime() ?? 0}
+                                              after={divider}
+                                              timestamp={e.cdate}
+                                          />
+                                      )
+                                      break
+                                  case 'a':
+                                      element = (
+                                          <AssociationFrame
+                                              dimOnHover
+                                              sx={timelineElemSx}
+                                              associationID={e.resourceID}
+                                              associationOwner={e.owner}
+                                              lastUpdated={e.lastUpdate?.getTime() ?? 0}
+                                              after={divider}
+                                              perspective={props.perspective}
+                                          />
+                                      )
+                                      break
+                                  default:
+                                      element = <Typography>Unknown message type: {type}</Typography>
+                                      break
+                              }
+
+                              return (
+                                  <React.Fragment key={e.resourceID}>
+                                      <ErrorBoundary FallbackComponent={renderError}>{element}</ErrorBoundary>
+                                  </React.Fragment>
+                              )
+                          })}
+
+                    {!timelineLoading && isFetching && (
                         <Loading key={0} message="Loading..." color={theme.palette.text.primary} />
-                    </Box>
-                ) : (
-                    <VList
-                        style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            listStyle: 'none',
-                            overflowX: 'hidden',
-                            overflowY: 'auto',
-                            overscrollBehaviorY: 'none'
-                        }}
-                        onScroll={(top) => {
-                            positionRef.current = top
-                            props.onScroll?.(top)
-                        }}
-                        onRangeChange={(_, end) => {
-                            if (end + 3 > count && hasMoreData) readMore()
-                        }}
-                        ref={ref}
-                    >
-                        {props.header}
-
-                        {(timeline.current?.body.length ?? 0) === 0 ? (
-                            <Box
-                                sx={{
-                                    width: '100%',
-                                    display: 'flex',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <Typography
-                                    sx={{
-                                        color: 'text.secondary'
-                                    }}
-                                >
-                                    No currents yet here!
-                                </Typography>
-                            </Box>
-                        ) : (
-                            timeline.current?.body.map((e) => {
-                                let element
-                                const type = e.resourceID[0]
-                                switch (type) {
-                                    case 'm':
-                                        element = (
-                                            <MessageContainer
-                                                sx={timelineElemSx}
-                                                messageID={e.resourceID}
-                                                messageOwner={e.owner}
-                                                resolveHint={e.timelineID.split('@')[1]}
-                                                lastUpdated={e.lastUpdate?.getTime() ?? 0}
-                                                after={divider}
-                                                timestamp={e.cdate}
-                                            />
-                                        )
-                                        break
-                                    case 'a':
-                                        element = (
-                                            <AssociationFrame
-                                                sx={timelineElemSx}
-                                                associationID={e.resourceID}
-                                                associationOwner={e.owner}
-                                                lastUpdated={e.lastUpdate?.getTime() ?? 0}
-                                                after={divider}
-                                                perspective={props.perspective}
-                                            />
-                                        )
-                                        break
-                                    default:
-                                        element = <Typography>Unknown message type: {type}</Typography>
-                                        break
-                                }
-
-                                return (
-                                    <React.Fragment key={e.resourceID}>
-                                        <ErrorBoundary FallbackComponent={renderError}>{element}</ErrorBoundary>
-                                    </React.Fragment>
-                                )
-                            })
-                        )}
-
-                        {isFetching && <Loading key={0} message="Loading..." color={theme.palette.text.primary} />}
-                    </VList>
-                )}
+                    )}
+                </VList>
             </Box>
         </>
     )
@@ -326,6 +321,8 @@ const timeline = forwardRef((props: TimelineProps, ref: ForwardedRef<VListHandle
 timeline.displayName = 'timeline'
 
 const renderError = ({ error }: FallbackProps): JSX.Element => {
+    const [isDevMode] = usePreference('devMode')
+    if (!isDevMode) return <></>
     return (
         <ListItem>
             <ListItemIcon>

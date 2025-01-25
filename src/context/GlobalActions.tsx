@@ -1,39 +1,24 @@
-import { Box, Paper, Modal, Typography, Divider, Button, Drawer, useTheme, useMediaQuery, Tooltip } from '@mui/material'
+import { Box, Paper, Modal, Typography, Divider, Button, Drawer, useTheme, Tooltip } from '@mui/material'
 import { InspectorProvider } from '../context/Inspector'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useClient } from './ClientContext'
-import {
-    type Message,
-    type Timeline,
-    type CommunityTimelineSchema,
-    Schemas,
-    type CoreTimeline
-} from '@concurrent-world/client'
-import { Draft } from '../components/Draft'
-import { MobileDraft } from '../components/MobileDraft'
+import { type CommunityTimelineSchema, Schemas, type CoreTimeline } from '@concurrent-world/client'
 import { usePreference } from './PreferenceContext'
 import { ProfileEditor } from '../components/ProfileEditor'
-import { MessageContainer } from '../components/Message/MessageContainer'
 import { Menu } from '../components/Menu/Menu'
 import { CCDrawer } from '../components/ui/CCDrawer'
 import { type EmojiPackage } from '../model'
 import { experimental_VGrid as VGrid } from 'virtua'
 import { useSnackbar } from 'notistack'
-import { ImagePreviewModal } from '../components/ui/ImagePreviewModal'
 import { StreamCard } from '../components/Stream/Card'
 import { LogoutButton } from '../components/Settings/LogoutButton'
 import { useGlobalState } from './GlobalState'
 
 export interface GlobalActionsState {
-    openDraft: (text?: string) => void
-    openReply: (target: Message<any>) => void
-    openReroute: (target: Message<any>) => void
     openMobileMenu: (open?: boolean) => void
-    draft: string
     openEmojipack: (url: EmojiPackage) => void
-    openImageViewer: (url: string) => void
-    postStreams: Array<Timeline<CommunityTimelineSchema>>
-    setPostStreams: (streams: Array<Timeline<CommunityTimelineSchema>>) => void
+    onHomeButtonClick: () => boolean
+    registerHomeButtonCallBack: (callback: () => boolean) => void
 }
 
 const GlobalActionsContext = createContext<GlobalActionsState | undefined>(undefined)
@@ -44,48 +29,31 @@ interface GlobalActionsProps {
 
 const style = {
     position: 'absolute',
-    top: '30%',
+    top: '10%',
     left: '50%',
-    transform: 'translate(-50%, -50%)',
+    transform: 'translate(-50%, 0%)',
     width: '700px',
-    maxWidth: '90vw'
+    maxWidth: '90vw',
+    maxHeight: '80vh',
+    overflowY: 'auto'
 }
 
 const RowEmojiCount = 6
 
 export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element => {
     const { client } = useClient()
-    const globalState = useGlobalState()
+    const { isRegistered, isCanonicalUser, reloadList } = useGlobalState()
     const [lists, setLists] = usePreference('lists')
     const [emojiPackages, setEmojiPackages] = usePreference('emojiPackages')
     const { enqueueSnackbar } = useSnackbar()
     const theme = useTheme()
-    const [draft, setDraft] = useState<string>('')
-    const [mode, setMode] = useState<'compose' | 'reply' | 'reroute' | 'none'>('none')
-    const [targetMessage, setTargetMessage] = useState<Message<any> | null>(null)
-
-    const [postStreams, setPostStreams] = useState<Array<Timeline<CommunityTimelineSchema>>>([])
-
-    const isPostStreamsPublic = useMemo(() => postStreams.every((stream) => stream.indexable), [postStreams])
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
-    const [previewImage, setPreviewImage] = useState<string | undefined>()
 
     const [emojiPack, setEmojiPack] = useState<EmojiPackage>()
     const emojiPackAlreadyAdded = useMemo(() => {
         return emojiPackages.find((p) => p === emojiPack?.packageURL) !== undefined
     }, [emojiPack, emojiPackages])
-
-    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
-
-    const [viewportHeight, setViewportHeight] = useState<number>(visualViewport?.height ?? 0)
-    useEffect(() => {
-        function handleResize(): void {
-            setViewportHeight(visualViewport?.height ?? 0)
-        }
-        visualViewport?.addEventListener('resize', handleResize)
-        return () => visualViewport?.removeEventListener('resize', handleResize)
-    }, [])
 
     const setupAccountRequired = client?.user !== null && client?.user.profile === undefined
     const noListDetected = Object.keys(lists).length === 0
@@ -101,7 +69,7 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                     {
                         name: 'Home'
                     },
-                    { indexable: false, domainOwned: false }
+                    { indexable: false }
                 )
                 .then(async (sub) => {
                     if (timeline) {
@@ -114,12 +82,14 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                     const list = {
                         [sub.id]: {
                             pinned: true,
+                            isIconTab: false,
                             expanded: false,
+                            defaultPostHome: true,
                             defaultPostStreams: timeline ? [timeline] : []
                         }
                     }
                     setLists(list)
-                    globalState.reloadList()
+                    reloadList()
                 })
         },
         [client]
@@ -130,271 +100,57 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
             client
                 .getTimelinesBySchema<CommunityTimelineSchema>(client.host, Schemas.communityTimeline)
                 .then((timelines) => {
+                    const preferredTimeline = localStorage.getItem('preferredTimeline')
+                    if (preferredTimeline && timelines.find((t) => t.id === preferredTimeline)) {
+                        setSelectedTimeline(preferredTimeline)
+                        // move to the top
+                        const t = timelines.find((t) => t.id === preferredTimeline)
+                        if (t) {
+                            timelines.splice(timelines.indexOf(t), 1)
+                            timelines.unshift(t)
+                        }
+                    }
+
                     setTimelines(timelines)
                 })
         }
     }, [])
 
-    const openDraft = useCallback(
-        (draft?: string) => {
-            setDraft(draft ?? '')
-            setMode('compose')
-        },
-        [setDraft, setMode]
-    )
-
-    const openReply = useCallback((target: Message<any>) => {
-        setTargetMessage(target)
-        setMode('reply')
-    }, [])
-
-    const openReroute = useCallback(
-        (target: Message<any>) => {
-            setTargetMessage(target)
-            setMode('reroute')
-        },
-        [setTargetMessage, setMode]
-    )
-
     const openMobileMenu = useCallback((open?: boolean) => {
         setMobileMenuOpen(open ?? true)
     }, [])
-
-    const handleKeyPress = useCallback(
-        (event: KeyboardEvent) => {
-            if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
-                return
-            }
-            switch (event.key) {
-                case 'n':
-                    setTimeout(() => {
-                        // XXX: this is a hack to prevent the keypress from being captured by the draft
-                        openDraft()
-                    }, 0)
-                    break
-            }
-        },
-        [openDraft]
-    )
 
     const openEmojipack = useCallback((pack: EmojiPackage) => {
         setEmojiPack(pack)
     }, [])
 
-    const openImageViewer = useCallback((url: string) => {
-        setPreviewImage(url)
-    }, [])
+    const [onHomeButtonClickCallBack, setOnHomeButtonClickCallBack] = useState<() => boolean>(() => () => false)
 
-    useEffect(() => {
-        // attach the event listener
-        document.addEventListener('keydown', handleKeyPress)
-
-        // remove the event listener
-        return () => {
-            document.removeEventListener('keydown', handleKeyPress)
+    const onHomeButtonClick = useCallback(() => {
+        if (onHomeButtonClickCallBack) {
+            return onHomeButtonClickCallBack()
         }
-    }, [handleKeyPress])
+        return false
+    }, [onHomeButtonClickCallBack])
 
-    const modalProps = isMobileSize
-        ? {
-              backdrop: {
-                  sx: {
-                      backgroundColor: 'background.default'
-                  }
-              }
-          }
-        : {}
+    const registerHomeButtonCallBack = useCallback((callback: () => boolean) => {
+        setOnHomeButtonClickCallBack(() => callback)
+    }, [])
 
     return (
         <GlobalActionsContext.Provider
             value={useMemo(() => {
                 return {
-                    openDraft,
-                    openReply,
-                    openReroute,
                     openMobileMenu,
-                    draft,
                     openEmojipack,
-                    openImageViewer,
-                    postStreams,
-                    setPostStreams
+                    onHomeButtonClick,
+                    registerHomeButtonCallBack
                 }
-            }, [
-                openDraft,
-                openReply,
-                openReroute,
-                openMobileMenu,
-                draft,
-                openEmojipack,
-                openImageViewer,
-                postStreams,
-                setPostStreams
-            ])}
+            }, [openMobileMenu, openEmojipack, onHomeButtonClick, registerHomeButtonCallBack])}
         >
             <InspectorProvider>
                 <>{props.children}</>
-                <Modal
-                    open={mode !== 'none'}
-                    onClose={() => {
-                        setMode('none')
-                    }}
-                    slotProps={modalProps}
-                >
-                    <>
-                        {isMobileSize ? (
-                            <>
-                                <Box
-                                    sx={{
-                                        height: viewportHeight,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        overflow: 'hidden',
-                                        p: 0.5,
-                                        backgroundColor: 'background.default'
-                                    }}
-                                >
-                                    <Paper
-                                        sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            overflow: 'hidden',
-                                            flex: 1,
-                                            p: 0.5
-                                        }}
-                                    >
-                                        {mode === 'compose' && (
-                                            <MobileDraft
-                                                streamPickerInitial={postStreams}
-                                                defaultPostHome={isPostStreamsPublic}
-                                                streamPickerOptions={globalState.allKnownTimelines}
-                                                onSubmit={async (text: string, destinations: string[], options) => {
-                                                    await client
-                                                        .createMarkdownCrnt(text, destinations, options)
-                                                        .catch((e) => {
-                                                            return e
-                                                        })
-                                                        .finally(() => {
-                                                            setMode('none')
-                                                        })
-                                                    return null
-                                                }}
-                                                onCancel={() => {
-                                                    setMode('none')
-                                                }}
-                                            />
-                                        )}
-                                        {targetMessage && (mode === 'reply' || mode === 'reroute') && (
-                                            <MobileDraft
-                                                allowEmpty={mode === 'reroute'}
-                                                defaultPostHome={isPostStreamsPublic}
-                                                submitButtonLabel={mode === 'reply' ? 'Reply' : 'Reroute'}
-                                                streamPickerInitial={
-                                                    mode === 'reroute' ? postStreams : targetMessage.postedStreams ?? []
-                                                }
-                                                streamPickerOptions={
-                                                    mode === 'reroute'
-                                                        ? globalState.allKnownTimelines
-                                                        : targetMessage.postedStreams ?? []
-                                                }
-                                                onSubmit={async (text, streams, options): Promise<Error | null> => {
-                                                    if (mode === 'reroute') {
-                                                        await targetMessage.reroute(streams, text, options)
-                                                    } else if (mode === 'reply') {
-                                                        await targetMessage.reply(streams, text, options)
-                                                    }
-                                                    setMode('none')
-                                                    return null
-                                                }}
-                                                onCancel={() => {
-                                                    setMode('none')
-                                                }}
-                                                context={
-                                                    <Box width="100%" maxHeight="3rem" overflow="auto">
-                                                        <MessageContainer
-                                                            simple
-                                                            messageID={targetMessage.id}
-                                                            messageOwner={targetMessage.author}
-                                                        />
-                                                    </Box>
-                                                }
-                                            />
-                                        )}
-                                    </Paper>
-                                </Box>
-                            </>
-                        ) : (
-                            <>
-                                {mode === 'compose' && (
-                                    <Paper sx={style}>
-                                        <Box sx={{ display: 'flex' }}>
-                                            <Draft
-                                                autoFocus
-                                                defaultPostHome={isPostStreamsPublic}
-                                                value={draft}
-                                                streamPickerInitial={postStreams}
-                                                streamPickerOptions={globalState.allKnownTimelines}
-                                                onSubmit={async (text: string, destinations: string[], options) => {
-                                                    await client
-                                                        .createMarkdownCrnt(text, destinations, options)
-                                                        .catch((e) => {
-                                                            return e
-                                                        })
-                                                        .finally(() => {
-                                                            setMode('none')
-                                                        })
-                                                    return null
-                                                }}
-                                                sx={{
-                                                    p: 1
-                                                }}
-                                            />
-                                        </Box>
-                                    </Paper>
-                                )}
-                                {targetMessage && (mode === 'reply' || mode === 'reroute') && (
-                                    <Paper sx={style}>
-                                        <Box p={1}>
-                                            <MessageContainer
-                                                messageID={targetMessage.id}
-                                                messageOwner={targetMessage.author}
-                                            />
-                                        </Box>
-                                        <Divider />
-                                        <Box sx={{ display: 'flex' }}>
-                                            <Draft
-                                                autoFocus
-                                                defaultPostHome={isPostStreamsPublic}
-                                                allowEmpty={mode === 'reroute'}
-                                                submitButtonLabel={mode === 'reply' ? 'Reply' : 'Reroute'}
-                                                streamPickerInitial={
-                                                    mode === 'reroute' ? postStreams : targetMessage.postedStreams ?? []
-                                                }
-                                                streamPickerOptions={
-                                                    mode === 'reroute'
-                                                        ? globalState.allKnownTimelines
-                                                        : targetMessage.postedStreams ?? []
-                                                }
-                                                onSubmit={async (text, streams, options): Promise<Error | null> => {
-                                                    if (mode === 'reroute') {
-                                                        await targetMessage.reroute(streams, text, options)
-                                                    } else if (mode === 'reply') {
-                                                        await targetMessage.reply(streams, text, options)
-                                                    }
-                                                    setMode('none')
-                                                    return null
-                                                }}
-                                                sx={{
-                                                    p: 1
-                                                }}
-                                            />
-                                        </Box>
-                                    </Paper>
-                                )}
-                            </>
-                        )}
-                    </>
-                </Modal>
-                <Modal open={!globalState.isRegistered} onClose={() => {}}>
+                <Modal open={!isRegistered} onClose={() => {}}>
                     <Paper
                         sx={{
                             ...style,
@@ -410,10 +166,7 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                         <LogoutButton />
                     </Paper>
                 </Modal>
-                <Modal
-                    open={globalState.isCanonicalUser && setupAccountRequired && globalState.isRegistered}
-                    onClose={() => {}}
-                >
+                <Modal open={isCanonicalUser && setupAccountRequired && isRegistered} onClose={() => {}}>
                     <Paper
                         sx={{
                             ...style,
@@ -430,7 +183,7 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                     </Paper>
                 </Modal>
 
-                <Modal open={globalState.isCanonicalUser && noListDetected} onClose={() => {}}>
+                <Modal open={isCanonicalUser && noListDetected} onClose={() => {}}>
                     <Paper sx={style}>
                         <Box
                             sx={{
@@ -510,12 +263,6 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                     </Paper>
                 </Modal>
 
-                <ImagePreviewModal
-                    src={previewImage}
-                    onClose={() => {
-                        setPreviewImage(undefined)
-                    }}
-                />
                 <Drawer
                     anchor={'left'}
                     open={mobileMenuOpen}
@@ -527,7 +274,6 @@ export const GlobalActionsProvider = (props: GlobalActionsProps): JSX.Element =>
                             width: '200px',
                             pt: 1,
                             borderRadius: `0 ${theme.shape.borderRadius * 2}px ${theme.shape.borderRadius * 2}px 0`,
-                            overflow: 'hidden',
                             backgroundColor: 'background.default'
                         }
                     }}
@@ -633,15 +379,10 @@ export function useGlobalActions(): GlobalActionsState {
     const actions = useContext(GlobalActionsContext)
     if (!actions) {
         return {
-            openDraft: () => {},
-            openReply: () => {},
-            openReroute: () => {},
             openMobileMenu: () => {},
-            draft: '',
             openEmojipack: () => {},
-            openImageViewer: () => {},
-            postStreams: [],
-            setPostStreams: () => {}
+            onHomeButtonClick: () => false,
+            registerHomeButtonCallBack: () => {}
         }
     }
     return actions

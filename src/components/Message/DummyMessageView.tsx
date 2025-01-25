@@ -1,4 +1,4 @@
-import { Box, IconButton, ListItem, Typography } from '@mui/material'
+import { Box, IconButton, ListItem, type SxProps, Typography } from '@mui/material'
 import { CCAvatar } from '../ui/CCAvatar'
 import { type ProfileSchema, type ReplyMessageSchema, type MarkdownMessageSchema } from '@concurrent-world/client'
 import { MarkdownRenderer } from '../ui/MarkdownRenderer'
@@ -11,6 +11,7 @@ import RepeatIcon from '@mui/icons-material/Repeat'
 import ReplyIcon from '@mui/icons-material/Reply'
 import { TimeDiff } from '../ui/TimeDiff'
 import { SubprofileBadge } from '../ui/SubprofileBadge'
+import { AutoSummaryProvider } from '../../context/AutoSummaryContext'
 
 export interface DummyMessageViewProps {
     message?: MarkdownMessageSchema | ReplyMessageSchema
@@ -20,6 +21,7 @@ export interface DummyMessageViewProps {
     hideActions?: boolean
     onAvatarClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
     subprofileID?: string
+    sx?: SxProps
 }
 
 export const DummyMessageView = (props: DummyMessageViewProps): JSX.Element => {
@@ -29,7 +31,8 @@ export const DummyMessageView = (props: DummyMessageViewProps): JSX.Element => {
                 wordBreak: 'break-word',
                 alignItems: 'flex-start',
                 flex: 1,
-                gap: { xs: 1, sm: 2 }
+                gap: 1,
+                ...props.sx
             }}
             disablePadding
         >
@@ -109,7 +112,9 @@ export const DummyMessageView = (props: DummyMessageViewProps): JSX.Element => {
                                 </Typography>
                             )}
                         </Box>
-                        <MarkdownRenderer messagebody={props.message.body} emojiDict={props.message.emojis ?? {}} />
+                        <AutoSummaryProvider limit={1}>
+                            <MarkdownRenderer messagebody={props.message.body} emojiDict={props.message.emojis ?? {}} />
+                        </AutoSummaryProvider>
                         <Box
                             sx={{
                                 display: props.hideActions ? 'none' : 'flex',

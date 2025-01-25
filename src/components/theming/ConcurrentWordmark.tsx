@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material'
-import { ConcurrentLogo } from './ConcurrentLogo'
+import { ConcrntLogo } from './ConcrntLogo'
 
 export interface ConcurrentWordmarkProps {
     color: string
@@ -14,13 +14,8 @@ export function ConcurrentWordmark(props: ConcurrentWordmarkProps): JSX.Element 
                 justifyContent: 'center'
             }}
         >
-            <Box>
-                <ConcurrentLogo
-                    size="32px"
-                    upperColor={props.color}
-                    lowerColor={props.color}
-                    frameColor={props.color}
-                />
+            <Box id="emblem">
+                <ConcrntLogo size="32px" color={props.color} />
             </Box>
             <Typography
                 sx={{

@@ -18,12 +18,12 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { type ConcurrentTheme } from '../model'
 import { Themes, createConcurrentThemeFromObject } from '../themes'
-import { ConcurrentLogo } from './theming/ConcurrentLogo'
 import { usePreference } from '../context/PreferenceContext'
 import { useClient } from '../context/ClientContext'
 import { HexColorPicker } from 'react-colorful'
 import ColorizeIcon from '@mui/icons-material/Colorize'
-import { useGlobalActions } from '../context/GlobalActions'
+import { ConcrntLogoSplitted } from './theming/ConcrntLogo_Splitted'
+import { useEditorModal } from './EditorModal'
 
 export interface ColorPickerProps {
     label: string
@@ -107,7 +107,7 @@ export const ColorPicker = (props: ColorPickerProps): JSX.Element => {
 
 export const ThemeCreator = (): JSX.Element => {
     const { client } = useClient()
-    const actions = useGlobalActions()
+    const editorModal = useEditorModal()
     const theme = useTheme<ConcurrentTheme>()
     const [currentTheme, setCurrentTheme] = usePreference('themeName')
     const [customThemes, setCustomThemes] = usePreference('customThemes')
@@ -137,7 +137,6 @@ export const ThemeCreator = (): JSX.Element => {
     const comment = _comment.trim().length > 0 ? _comment : undefined
 
     useEffect(() => {
-        console.log('currentTHeme:', currentTheme)
         setTitle(currentTheme)
     }, [currentTheme])
 
@@ -273,7 +272,7 @@ export const ThemeCreator = (): JSX.Element => {
                                 background: newTheme.palette.primary.contrastText
                             }}
                         >
-                            <ConcurrentLogo
+                            <ConcrntLogoSplitted
                                 size="50px"
                                 upperColor={newTheme.palette.primary.main}
                                 lowerColor={newTheme.palette.background.default}
@@ -535,10 +534,12 @@ export const ThemeCreator = (): JSX.Element => {
                             />
                             <Button
                                 onClick={() => {
-                                    actions.openDraft(`
+                                    editorModal.open({
+                                        draft: `
 \`\`\`theme
 ${serialized}
-\`\`\``)
+\`\`\``
+                                    })
                                 }}
                             >
                                 Share

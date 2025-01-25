@@ -14,7 +14,9 @@ import {
 } from '../../util'
 import { CCUserChip } from './CCUserChip'
 import { LinkChip } from './LinkChip'
-import { StreamChip } from './StreamChip'
+import { TimelineChip } from './TimelineChip'
+import { useGlobalState } from '../../context/GlobalState'
+import { CCLink } from './CCLink'
 
 export interface MarkdownRendererProps {
     messagebody: string
@@ -24,6 +26,8 @@ export interface MarkdownRendererProps {
 }
 
 export function MarkdownRendererLite(props: MarkdownRendererProps): JSX.Element {
+    const { getImageURL } = useGlobalState()
+
     return (
         <Box
             sx={{
@@ -113,7 +117,7 @@ export function MarkdownRendererLite(props: MarkdownRendererProps): JSX.Element 
                         return <CCUserChip ccid={ccid} />
                     },
                     streamlink: ({ streamId }) => {
-                        return <StreamChip streamID={streamId} />
+                        return <TimelineChip timelineID={streamId} />
                     },
                     social: ({ href, icon, service, children }) => {
                         return (
@@ -224,21 +228,12 @@ export function MarkdownRendererLite(props: MarkdownRendererProps): JSX.Element 
                         </blockquote>
                     ),
                     a: ({ children, href }) => {
-                        if (href?.endsWith('.wav') || href?.endsWith('.mp3')) {
-                            return (
-                                <audio controls src={href}>
-                                    <Link href={href} target="_blank">
-                                        {children}
-                                    </Link>
-                                </audio>
-                            )
-                        } else {
-                            return (
-                                <Link href={href} target="_blank" color="secondary" underline="hover">
-                                    {children}
-                                </Link>
-                            )
-                        }
+                        if (!href) return <></>
+                        return (
+                            <CCLink to={href} color="secondary" underline="hover">
+                                {children}
+                            </CCLink>
+                        )
                     },
                     code: ({ node, children, inline }) => {
                         const language = node.position
@@ -288,7 +283,7 @@ export function MarkdownRendererLite(props: MarkdownRendererProps): JSX.Element 
                         const emoji = props.emojiDict[shortcode]
                         return emoji ? (
                             <img
-                                src={emoji?.animURL ?? emoji?.imageURL ?? ''}
+                                src={getImageURL(emoji?.animURL ?? emoji?.imageURL, { maxHeight: 128 })}
                                 style={{
                                     height: '1.25em',
                                     verticalAlign: '-0.45em',

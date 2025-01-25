@@ -1,27 +1,28 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Divider, Typography } from '@mui/material'
-import { Draft } from '../components/Draft'
+import { Box, Divider } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import { TimelineHeader } from '../components/TimelineHeader'
 import { useClient } from '../context/ClientContext'
 import { Timeline } from '../components/Timeline/main'
 import { StreamInfo } from '../components/StreamInfo'
 import { usePreference } from '../context/PreferenceContext'
-import { type CommunityTimelineSchema } from '@concurrent-world/client'
+import { type CommunityTimelineSchema, type Timeline as typeTimeline } from '@concurrent-world/client'
 import { CCDrawer } from '../components/ui/CCDrawer'
 import WatchingStreamContextProvider from '../context/WatchingStreamContext'
 import { type VListHandle } from 'virtua'
-import { useGlobalActions } from '../context/GlobalActions'
 
 import TagIcon from '@mui/icons-material/Tag'
 import TuneIcon from '@mui/icons-material/Tune'
 import InfoIcon from '@mui/icons-material/Info'
 import LockIcon from '@mui/icons-material/Lock'
 import { useGlobalState } from '../context/GlobalState'
+import { CCPostEditor } from '../components/Editor/CCPostEditor'
+import { useEditorModal } from '../components/EditorModal'
+import { PrivateTimelineDoor } from '../components/PrivateTimelineDoor'
+import { Helmet } from 'react-helmet-async'
 
 export const StreamPage = memo((): JSX.Element => {
     const { client } = useClient()
-    const { postStreams, setPostStreams } = useGlobalActions()
     const { allKnownTimelines } = useGlobalState()
 
     const { id } = useParams()
@@ -32,7 +33,7 @@ export const StreamPage = memo((): JSX.Element => {
     const timelineRef = useRef<VListHandle>(null)
 
     const targetStreamID = id ?? ''
-    const targetStream = postStreams[0]
+    const [targetStream, setTargetStream] = useState<typeTimeline<CommunityTimelineSchema> | null>(null)
 
     const [streamInfoOpen, setStreamInfoOpen] = useState<boolean>(false)
 
@@ -40,20 +41,19 @@ export const StreamPage = memo((): JSX.Element => {
         return targetStream?.author === client.ccid
     }, [targetStream])
 
-    const writeable = useMemo(
-        // () => isOwner || targetStream?.writer.length === 0 || targetStream?.writer.includes(client.ccid ?? ''),
-        () => true,
-        [targetStream]
-    )
+    const isRestricted = targetStream?.policy === 'https://policy.concrnt.world/t/inline-read-write.json'
 
-    const readable = useMemo(
-        // () => isOwner || targetStream?.reader.length === 0 || targetStream?.reader.includes(client.ccid ?? ''),
-        () => true,
-        [targetStream]
-    )
+    const writeable = isRestricted
+        ? targetStream?.policyParams?.isWritePublic
+            ? true
+            : targetStream?.policyParams?.writer?.includes(client.ccid ?? '')
+        : true
 
-    // const nonPublic = useMemo(() => targetStream?.reader.length !== 0 || !targetStream?.visible, [targetStream])
-    const nonPublic = useMemo(() => false, [targetStream])
+    const readable = isRestricted
+        ? targetStream?.policyParams?.isReadPublic
+            ? true
+            : targetStream?.policyParams?.reader?.includes(client.ccid ?? '')
+        : true
 
     const streams = useMemo(() => {
         return targetStream ? [targetStream] : []
@@ -65,12 +65,30 @@ export const StreamPage = memo((): JSX.Element => {
 
     useEffect(() => {
         client.getTimeline<CommunityTimelineSchema>(targetStreamID).then((stream) => {
-            if (stream) setPostStreams([stream])
+            if (stream) {
+                setTargetStream(stream)
+            }
         })
     }, [id])
 
+    const editorModal = useEditorModal()
+    useEffect(() => {
+        if (!targetStream) return
+        const opts = {
+            streamPickerInitial: [targetStream]
+        }
+        editorModal.registerOptions(opts)
+        return () => {
+            editorModal.unregisterOptions(opts)
+        }
+    }, [targetStream])
+
     return (
         <>
+            <Helmet>
+                <title>{`#${targetStream?.document.body.name ?? 'Not Found'} - Concrnt`}</title>
+                <meta name="description" content={targetStream?.document.body.description ?? ''} />
+            </Helmet>
             <Box
                 sx={{
                     width: '100%',
@@ -82,7 +100,7 @@ export const StreamPage = memo((): JSX.Element => {
             >
                 <TimelineHeader
                     title={targetStream?.document.body.name ?? 'Not Found'}
-                    titleIcon={<TagIcon />}
+                    titleIcon={isRestricted ? <LockIcon /> : <TagIcon />}
                     secondaryAction={isOwner ? <TuneIcon /> : <InfoIcon />}
                     onTitleClick={() => {
                         timelineRef.current?.scrollToIndex(0, { align: 'start', smooth: true })
@@ -112,20 +130,11 @@ export const StreamPage = memo((): JSX.Element => {
                                                 }
                                             }}
                                         >
-                                            <Draft
-                                                defaultPostHome={!nonPublic}
+                                            <CCPostEditor
+                                                minRows={3}
+                                                maxRows={7}
                                                 streamPickerInitial={streams}
                                                 streamPickerOptions={[...new Set([...allKnownTimelines, ...streams])]}
-                                                onSubmit={async (
-                                                    text: string,
-                                                    destinations: string[],
-                                                    options
-                                                ): Promise<Error | null> => {
-                                                    await client
-                                                        .createMarkdownCrnt(text, destinations, options)
-                                                        .catch((e) => e)
-                                                    return null
-                                                }}
                                                 sx={{
                                                     p: 1
                                                 }}
@@ -141,22 +150,7 @@ export const StreamPage = memo((): JSX.Element => {
                 ) : (
                     <Box>
                         <StreamInfo id={targetStreamID} />
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                height: '100%'
-                            }}
-                        >
-                            <LockIcon
-                                sx={{
-                                    fontSize: '10rem'
-                                }}
-                            />
-                            <Typography variant="h5">このストリームは鍵がかかっています。</Typography>
-                        </Box>
+                        {targetStream && <PrivateTimelineDoor timeline={targetStream} />}
                     </Box>
                 )}
             </Box>
@@ -166,7 +160,12 @@ export const StreamPage = memo((): JSX.Element => {
                     setStreamInfoOpen(false)
                 }}
             >
-                <StreamInfo detailed id={targetStreamID} />
+                <StreamInfo
+                    detailed
+                    id={targetStreamID}
+                    writers={targetStream?.policyParams?.writer}
+                    readers={targetStream?.policyParams?.reader}
+                />
             </CCDrawer>
         </>
     )

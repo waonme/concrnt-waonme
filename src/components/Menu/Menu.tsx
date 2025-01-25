@@ -7,30 +7,29 @@ import {
     ListItem,
     ListItemButton,
     ListItemText,
-    Typography
+    Typography,
+    Link,
+    Badge
 } from '@mui/material'
 import CreateIcon from '@mui/icons-material/Create'
-import { Link } from 'react-router-dom'
-
+import { Link as NavLink } from 'react-router-dom'
 import HomeIcon from '@mui/icons-material/Home'
 import TerminalIcon from '@mui/icons-material/Terminal'
 import ExploreIcon from '@mui/icons-material/Explore'
 import SettingsIcon from '@mui/icons-material/Settings'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import ContactsIcon from '@mui/icons-material/Contacts'
+import CellTowerIcon from '@mui/icons-material/CellTower'
+import MenuBookIcon from '@mui/icons-material/MenuBook'
 import { memo } from 'react'
-// @ts-expect-error vite dynamic import
-import buildTime from '~build/time'
-// @ts-expect-error vite dynamic import
-import { branch, sha } from '~build/info'
 import { ListsMenu } from '../ListsMenu/main'
 import { CCAvatar } from '../ui/CCAvatar'
 import { useClient } from '../../context/ClientContext'
 import { usePreference } from '../../context/PreferenceContext'
-import { useGlobalActions } from '../../context/GlobalActions'
 import { useTranslation } from 'react-i18next'
-
-const branchName = branch || window.location.host.split('.')[0]
+import { useEditorModal } from '../EditorModal'
+import { useGlobalState } from '../../context/GlobalState'
+import { useGlobalActions } from '../../context/GlobalActions'
 
 export interface MenuProps {
     onClick?: () => void
@@ -38,10 +37,15 @@ export interface MenuProps {
 
 export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
     const { client } = useClient()
-    const actions = useGlobalActions()
+    const editorModal = useEditorModal()
+    const { onHomeButtonClick } = useGlobalActions()
     const { t } = useTranslation('', { keyPrefix: 'pages' })
     const [devMode] = usePreference('devMode')
+    const [enableConcord] = usePreference('enableConcord')
     const [showEditorOnTop] = usePreference('showEditorOnTop')
+    const { isMasterSession, isMobileSize } = useGlobalState()
+    const [progress] = usePreference('tutorialProgress')
+    const [tutorialCompleted] = usePreference('tutorialCompleted')
 
     return (
         <Box
@@ -60,7 +64,7 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
             >
                 <Box sx={{ px: 2, pb: 1 }}>
                     <ButtonBase
-                        component={Link}
+                        component={NavLink}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -96,78 +100,183 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                 >
                     <List dense sx={{ py: 0.5, width: '100%' }}>
                         <ListItem disablePadding>
-                            <ListItemButton sx={{ gap: 1 }} component={Link} to="/" onClick={props.onClick}>
-                                <HomeIcon
+                            <ListItemButton
+                                sx={{ gap: 1 }}
+                                component={NavLink}
+                                to="/"
+                                onClick={(event) => {
+                                    props.onClick?.()
+                                    const res = onHomeButtonClick()
+                                    if (res) event.preventDefault()
+                                }}
+                            >
+                                <Box
                                     sx={{
-                                        color: 'background.contrastText'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '1.75rem',
+                                        justifyContent: 'center'
                                     }}
-                                />
+                                >
+                                    <HomeIcon sx={{ color: 'background.contrastText' }} />
+                                </Box>
                                 <ListItemText primary={t('home.title')} />
                             </ListItemButton>
                         </ListItem>
                         <ListItem disablePadding>
                             <ListItemButton
                                 sx={{ gap: 1 }}
-                                component={Link}
+                                component={NavLink}
                                 to="/notifications"
                                 onClick={props.onClick}
                             >
-                                <NotificationsIcon
+                                <Box
                                     sx={{
-                                        color: 'background.contrastText'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '1.75rem',
+                                        justifyContent: 'center'
                                     }}
-                                />
-
+                                >
+                                    <NotificationsIcon sx={{ color: 'background.contrastText' }} />
+                                </Box>
                                 <ListItemText primary={t('notifications.title')} />
                             </ListItemButton>
                         </ListItem>
                         <ListItem disablePadding>
-                            <ListItemButton sx={{ gap: 1 }} component={Link} to="/contacts" onClick={props.onClick}>
-                                <ContactsIcon
+                            <ListItemButton sx={{ gap: 1 }} component={NavLink} to="/contacts" onClick={props.onClick}>
+                                <Box
                                     sx={{
-                                        color: 'background.contrastText'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '1.75rem',
+                                        justifyContent: 'center'
                                     }}
-                                />
-
+                                >
+                                    <ContactsIcon
+                                        sx={{
+                                            color: 'background.contrastText',
+                                            fontSize: '1.5rem'
+                                        }}
+                                    />
+                                </Box>
                                 <ListItemText primary={t('contacts.title')} />
                             </ListItemButton>
                         </ListItem>
                         <ListItem disablePadding>
                             <ListItemButton
                                 sx={{ gap: 1 }}
-                                component={Link}
-                                to="/explorer/streams"
+                                component={NavLink}
+                                to="/explorer/timelines"
                                 onClick={props.onClick}
                             >
-                                <ExploreIcon
+                                <Box
                                     sx={{
-                                        color: 'background.contrastText'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '1.75rem',
+                                        justifyContent: 'center'
                                     }}
-                                />
-
+                                >
+                                    <ExploreIcon
+                                        sx={{
+                                            color: 'background.contrastText',
+                                            fontSize: '1.65rem'
+                                        }}
+                                    />
+                                </Box>
                                 <ListItemText primary={t('explore.title')} />
                             </ListItemButton>
                         </ListItem>
+                        {enableConcord && (
+                            <ListItem disablePadding>
+                                <ListItemButton
+                                    sx={{ gap: 1 }}
+                                    component={NavLink}
+                                    to="/concord/assets"
+                                    onClick={props.onClick}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            width: '1.75rem',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <CellTowerIcon sx={{ color: 'background.contrastText' }} />
+                                    </Box>
+                                    <ListItemText primary={'Concord'} />
+                                </ListItemButton>
+                            </ListItem>
+                        )}
+                        {!tutorialCompleted && (
+                            <ListItem disablePadding>
+                                <ListItemButton
+                                    sx={{ gap: 1 }}
+                                    component={NavLink}
+                                    to="/tutorial"
+                                    onClick={props.onClick}
+                                >
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            width: '1.75rem',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <Badge
+                                            color="secondary"
+                                            variant="dot"
+                                            invisible={progress !== 0 || !isMasterSession}
+                                        >
+                                            <MenuBookIcon
+                                                sx={{
+                                                    color: 'background.contrastText',
+                                                    fontSize: '1.57rem'
+                                                }}
+                                            />
+                                        </Badge>
+                                    </Box>
+                                    <ListItemText primary={t('tutorial.title')} />
+                                </ListItemButton>
+                            </ListItem>
+                        )}
                         {devMode && (
                             <ListItem disablePadding>
-                                <ListItemButton sx={{ gap: 1 }} component={Link} to="/devtool" onClick={props.onClick}>
-                                    <TerminalIcon
+                                <ListItemButton
+                                    sx={{ gap: 1 }}
+                                    component={NavLink}
+                                    to="/devtool"
+                                    onClick={props.onClick}
+                                >
+                                    <Box
                                         sx={{
-                                            color: 'background.contrastText'
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            width: '1.75rem',
+                                            justifyContent: 'center'
                                         }}
-                                    />
-
+                                    >
+                                        <TerminalIcon sx={{ color: 'background.contrastText' }} />
+                                    </Box>
                                     <ListItemText primary={t('devtool.title')} />
                                 </ListItemButton>
                             </ListItem>
                         )}
                         <ListItem disablePadding>
-                            <ListItemButton sx={{ gap: 1 }} component={Link} to="/settings" onClick={props.onClick}>
-                                <SettingsIcon
+                            <ListItemButton sx={{ gap: 1 }} component={NavLink} to="/settings" onClick={props.onClick}>
+                                <Box
                                     sx={{
-                                        color: 'background.contrastText'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        width: '1.75rem',
+                                        justifyContent: 'center'
                                     }}
-                                />
+                                >
+                                    <SettingsIcon sx={{ color: 'background.contrastText' }} />
+                                </Box>
                                 <ListItemText primary={t('settings.title')} />
                             </ListItemButton>
                         </ListItem>
@@ -179,7 +288,7 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                         flex: 1,
                         scrollbarGutter: 'stable',
                         overflowX: 'hidden',
-                        overflowY: 'hidden',
+                        overflowY: isMobileSize ? 'auto' : 'hidden',
                         '&:hover': {
                             overflowY: 'auto'
                         }
@@ -191,7 +300,7 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                     <Button
                         endIcon={<CreateIcon />}
                         onClick={() => {
-                            actions.openDraft()
+                            editorModal.open()
                         }}
                         sx={{
                             display: { xs: 'none', sm: 'flex' },
@@ -213,13 +322,35 @@ export const Menu = memo<MenuProps>((props: MenuProps): JSX.Element => {
                     }}
                 >
                     <Box sx={{ textAlign: 'center', fontWeight: 600, mb: 'env(safe-area-inset-bottom)' }}>
-                        開発中α版
+                        Concrnt-World 開発中β版
+                        <br />
+                        <Link
+                            underline="hover"
+                            color="background.contrastText"
+                            href="https://square.concrnt.net/"
+                            target="_blank"
+                        >
+                            ドキュメント
+                        </Link>
+                        {' / '}
+                        <Link
+                            underline="hover"
+                            color="background.contrastText"
+                            href="https://github.com/orgs/concrnt/discussions"
+                            target="_blank"
+                        >
+                            フォーラム
+                        </Link>
+                        {' / '}
+                        <Link
+                            underline="hover"
+                            color="background.contrastText"
+                            href="https://github.com/totegamma/concurrent-world"
+                            target="_blank"
+                        >
+                            GitHub
+                        </Link>
                     </Box>
-                    buildTime: {buildTime.toLocaleString()}
-                    <br />
-                    branch: {branchName}
-                    <br />
-                    sha: {sha.slice(0, 7)}
                 </Box>
             </Box>
         </Box>

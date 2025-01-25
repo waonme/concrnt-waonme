@@ -17,6 +17,9 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { useClient } from '../../context/ClientContext'
 import { MarkdownRendererLite } from '../ui/MarkdownRendererLite'
 
+import { FaTheaterMasks } from 'react-icons/fa'
+import { CCLink } from '../ui/CCLink'
+
 export interface FavoriteAssociationProps {
     association: Association<LikeAssociationSchema>
     perspective?: string
@@ -28,31 +31,50 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
     const [target, setTarget] = useState<Message<MarkdownMessageSchema | ReplyMessageSchema> | null>(null)
     const isMeToOther = props.association?.authorUser?.ccid !== props.perspective
 
-    const Nominative = props.association?.authorUser?.profile?.username ?? 'anonymous'
+    const Nominative =
+        props.association.document.body.profileOverride?.username ??
+        props.association?.authorUser?.profile?.username ??
+        'anonymous'
     const Possessive =
         (target?.document.body.profileOverride?.username ?? target?.authorUser?.profile?.username ?? 'anonymous') + "'s"
 
     const actionUser: User | undefined = isMeToOther ? props.association.authorUser : target?.authorUser
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
 
+    const masked =
+        (isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride) !==
+        undefined
+
+    const targetLink = target ? `/${target.author}/${target.id}` : '#' // Link to favorite message
     useEffect(() => {
         props.association.getTargetMessage().then(setTarget)
     }, [props.association])
 
     return (
-        <ContentWithCCAvatar author={actionUser} profileOverride={target?.document.body.profileOverride}>
-            <Box display="flex" justifyContent="space-between">
-                <Typography>
-                    {isMeToOther ? (
-                        <>
-                            <b>{Nominative}</b> favorited {Possessive} message
-                        </>
-                    ) : (
-                        <>
-                            {Nominative} favorited <b>{Possessive}</b>&apos;s message
-                        </>
-                    )}
-                </Typography>
+        <ContentWithCCAvatar
+            author={actionUser}
+            linkTo={targetLink}
+            profileOverride={
+                isMeToOther ? props.association.document.body.profileOverride : target?.document.body.profileOverride
+            }
+        >
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box display="flex" overflow="hidden">
+                    <Box display="flex" alignItems="center" flexShrink={0} gap={0.5}>
+                        <Link
+                            component={RouterLink}
+                            underline="hover"
+                            color="inherit"
+                            to={props.association.author ? `/${props.association.author}` : '#'}
+                        >
+                            <Typography style={{ fontWeight: isMeToOther ? 600 : 'inherit' }}>{Nominative}</Typography>
+                        </Link>
+                        {masked && <FaTheaterMasks />}
+                        <Typography>favorited</Typography>
+                        <Typography style={{ fontWeight: !isMeToOther ? 600 : 'inherit' }}>{Possessive}</Typography>
+                        <Typography>message</Typography>
+                    </Box>
+                </Box>
                 <Box display="flex" gap={0.5}>
                     {(props.association.author === client?.ccid || props.association.owner === client?.ccid) && (
                         <IconButton
@@ -62,21 +84,16 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                                 color: 'text.disabled'
                             }}
                             onClick={(e) => {
+                                e.stopPropagation()
                                 setMenuAnchor(e.currentTarget)
                             }}
                         >
                             <MoreHorizIcon sx={{ fontSize: '80%' }} />
                         </IconButton>
                     )}
-                    <Link
-                        component={RouterLink}
-                        underline="hover"
-                        color="inherit"
-                        fontSize="0.75rem"
-                        to={`/${target?.author ?? ''}/${target?.id ?? ''}`}
-                    >
+                    <CCLink fontSize="0.75rem" to={targetLink}>
                         <TimeDiff date={new Date(props.association.cdate)} />
-                    </Link>
+                    </CCLink>
                 </Box>
             </Box>
             {(!props.withoutContent && (
@@ -88,25 +105,31 @@ export const FavoriteAssociation = (props: FavoriteAssociationProps): JSX.Elemen
                 </blockquote>
             )) ||
                 undefined}
-            <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={() => {
-                    setMenuAnchor(null)
+            <Box
+                onClick={(e) => {
+                    e.stopPropagation() // prevent to navigate other page
                 }}
             >
-                <MenuItem
-                    onClick={() => {
-                        props.association.delete()
+                <Menu
+                    anchorEl={menuAnchor}
+                    open={Boolean(menuAnchor)}
+                    onClose={() => {
                         setMenuAnchor(null)
                     }}
                 >
-                    <ListItemIcon>
-                        <DeleteForeverIcon sx={{ color: 'text.primary' }} />
-                    </ListItemIcon>
-                    <ListItemText>関連付けを削除</ListItemText>
-                </MenuItem>
-            </Menu>
+                    <MenuItem
+                        onClick={() => {
+                            props.association.delete()
+                            setMenuAnchor(null)
+                        }}
+                    >
+                        <ListItemIcon>
+                            <DeleteForeverIcon sx={{ color: 'text.primary' }} />
+                        </ListItemIcon>
+                        <ListItemText>関連付けを削除</ListItemText>
+                    </MenuItem>
+                </Menu>
+            </Box>
         </ContentWithCCAvatar>
     )
 }

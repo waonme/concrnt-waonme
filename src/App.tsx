@@ -1,22 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
-import { Routes, Route, Link as RouterLink } from 'react-router-dom'
-import { darken, Box, Paper, ThemeProvider, CssBaseline, Typography, useMediaQuery } from '@mui/material'
-import { SnackbarProvider, enqueueSnackbar } from 'notistack'
+import { useEffect, useRef, Suspense, lazy } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { darken, Box, Paper, Typography, Modal, useTheme, Button } from '@mui/material'
+import { SnackbarProvider, closeSnackbar, enqueueSnackbar } from 'notistack'
+import { ConcordProvider } from './context/ConcordContext'
 
-import { loadConcurrentTheme } from './themes'
 import { Menu } from './components/Menu/Menu'
-import type { ConcurrentTheme } from './model'
-import {
-    Associations,
-    Explorer,
-    Notifications,
-    Settings,
-    StreamPage,
-    EntityPage,
-    MessagePage,
-    ListPage,
-    Devtool
-} from './pages'
+import { Explorer, Notifications, Settings, StreamPage, EntityPage, MessagePage, ListPage, Devtool } from './pages'
 
 import useSound from 'use-sound'
 import { MobileMenu } from './components/Menu/MobileMenu'
@@ -25,7 +14,6 @@ import { GlobalActionsProvider } from './context/GlobalActions'
 import { EmojiPickerProvider } from './context/EmojiPickerContext'
 
 import { ThinMenu } from './components/Menu/ThinMenu'
-import { ConcurrentLogo } from './components/theming/ConcurrentLogo'
 import { usePreference } from './context/PreferenceContext'
 import TickerProvider from './context/Ticker'
 import { ContactsPage } from './pages/Contacts'
@@ -42,20 +30,109 @@ import { StorageProvider } from './context/StorageContext'
 import { MarkdownRendererLite } from './components/ui/MarkdownRendererLite'
 import { useTranslation } from 'react-i18next'
 import { ManageSubsPage } from './pages/ManageSubs'
+import { ExplorerPlusPage } from './pages/ExplorerPlus'
 import { UseSoundFormats } from './constants'
 import { useGlobalState } from './context/GlobalState'
+import { ConcrntLogo } from './components/theming/ConcrntLogo'
+import { ConcordPage } from './pages/Concord'
+import { EditorModalProvider } from './components/EditorModal'
+import { MediaViewerProvider } from './context/MediaViewer'
+import { Tutorial } from './pages/Tutorial'
+import { LogoutButton } from './components/Settings/LogoutButton'
+import { ConfirmProvider } from './context/Confirm'
+import { type ConcurrentTheme } from './model'
+import { TimelineDrawerProvider } from './context/TimelineDrawer'
+
+const SwitchMasterToSub = lazy(() => import('./components/SwitchMasterToSub'))
 
 function App(): JSX.Element {
     const { client } = useClient()
-    const globalState = useGlobalState()
-    const [themeName] = usePreference('themeName')
+    const { isMobileSize, isMasterSession, isCanonicalUser, isDomainOffline, setSwitchToSub, switchToSubOpen } =
+        useGlobalState()
     const [sound] = usePreference('sound')
-    const [customThemes] = usePreference('customThemes')
-    const [theme, setTheme] = useState<ConcurrentTheme>(loadConcurrentTheme(themeName, customThemes))
-    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
+
+    const theme = useTheme<ConcurrentTheme>()
+
     const subscription = useRef<Subscription>()
 
+    const identity = JSON.parse(localStorage.getItem('Identity') || 'null')
+    const [progress] = usePreference('tutorialProgress')
+
     const { t } = useTranslation()
+
+    useEffect(() => {
+        if (!('serviceWorker' in navigator)) return
+
+        const doUpdate = (): void => {
+            enqueueSnackbar(t('app.updateAvailable'), {
+                persist: true,
+                variant: 'info',
+                anchorOrigin: {
+                    horizontal: 'center',
+                    vertical: 'top'
+                },
+                action: (key) => (
+                    <Button
+                        onClick={() => {
+                            navigator.serviceWorker.getRegistration().then((registration) => {
+                                key && closeSnackbar(key)
+                                console.log('registration', registration)
+                                if (!registration) {
+                                    console.error('No active service worker')
+                                    return
+                                }
+                                registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
+                                registration.waiting?.addEventListener('statechange', (e: any) => {
+                                    if (e.target?.state === 'activated') {
+                                        if (window.caches) {
+                                            caches.keys().then((names) => {
+                                                // Delete all the cache files
+                                                names.forEach((name) => {
+                                                    caches.delete(name)
+                                                })
+                                            })
+                                        }
+
+                                        window.location.reload()
+                                    } else {
+                                        console.log('State Change', e.target?.state)
+                                    }
+                                })
+                            })
+                        }}
+                    >
+                        {t('app.updateNow')}
+                    </Button>
+                )
+            })
+        }
+
+        navigator.serviceWorker.ready.then((registration) => {
+            console.log('Service Worker Ready', registration)
+
+            if (registration.waiting) {
+                doUpdate()
+            }
+
+            registration.addEventListener('updatefound', () => {
+                console.log('Update Found')
+                const installingWorker = registration.installing
+                if (installingWorker == null) return
+
+                installingWorker.addEventListener('statechange', () => {
+                    console.log('State Change', installingWorker.state)
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        console.log('New update available')
+                        doUpdate()
+                    }
+                })
+            })
+
+            setInterval(() => {
+                registration.update()
+            }, 1000 * 60 * 10) // 10 minutes
+        })
+    }, [])
 
     useEffect(() => {
         if (!client) return
@@ -70,7 +147,6 @@ function App(): JSX.Element {
                 if (!a) return
                 if (a.schema === Schemas.replyAssociation) {
                     const replyassociation = a as CCDocument.Association<ReplyAssociationSchema>
-                    console.log(replyassociation)
                     client?.api
                         .getMessageWithAuthor(replyassociation.body.messageId, replyassociation.body.messageAuthor)
                         .then((m) => {
@@ -121,47 +197,58 @@ function App(): JSX.Element {
                 }
 
                 if (a.schema === Schemas.likeAssociation) {
-                    client?.api.getMessageWithAuthor(a.target, event.item.owner).then((m) => {
-                        m &&
-                            client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', a.signer).then((c) => {
-                                playNotificationRef.current()
-                                const profile = c?.document.body
-                                enqueueSnackbar(
-                                    <Box display="flex" flexDirection="column">
-                                        <Typography>{profile?.username ?? 'anonymous'} favorited</Typography>
-                                        <MarkdownRendererLite
-                                            messagebody={m.document.body.body as string}
-                                            emojiDict={m.document.body.emojis ?? {}}
-                                            limit={128}
-                                        />
-                                    </Box>
-                                )
-                            })
+                    client?.api.getMessageWithAuthor(a.target, event.item.owner).then(async (m) => {
+                        if (!m) return
+                        let username = a.body.profileOverride?.username
+                        if (!username) {
+                            const profile = await client.api.getProfileBySemanticID<ProfileSchema>(
+                                'world.concrnt.p',
+                                a.signer
+                            )
+                            username = profile?.document.body.username
+                        }
+
+                        playNotificationRef.current()
+                        enqueueSnackbar(
+                            <Box display="flex" flexDirection="column">
+                                <Typography>{username ?? 'anonymous'} liked your message: </Typography>
+                                <MarkdownRendererLite
+                                    messagebody={m.document.body.body as string}
+                                    emojiDict={m.document.body.emojis ?? {}}
+                                    limit={128}
+                                />
+                            </Box>
+                        )
                     })
                     return
                 }
 
                 if (a.schema === Schemas.reactionAssociation) {
-                    client.api.getMessageWithAuthor(a.target, event.item.owner).then((m) => {
-                        console.log(m)
-                        m &&
-                            client.api.getProfileBySemanticID<ProfileSchema>('world.concrnt.p', a.signer).then((c) => {
-                                playNotificationRef.current()
-                                const profile = c?.document.body
-                                enqueueSnackbar(
-                                    <Box display="flex" flexDirection="column">
-                                        <Typography>
-                                            {profile?.username ?? 'anonymous'} reacted{' '}
-                                            <img src={a.body.imageUrl as string} style={{ height: '1em' }} />
-                                        </Typography>
-                                        <MarkdownRendererLite
-                                            messagebody={m.document.body.body as string}
-                                            emojiDict={m.document.body.emojis ?? {}}
-                                            limit={128}
-                                        />
-                                    </Box>
-                                )
-                            })
+                    client.api.getMessageWithAuthor(a.target, event.item.owner).then(async (m) => {
+                        if (!m) return
+                        let username = a.body.profileOverride?.username
+                        if (!username) {
+                            const profile = await client.api.getProfileBySemanticID<ProfileSchema>(
+                                'world.concrnt.p',
+                                a.signer
+                            )
+                            username = profile?.document.body.username
+                        }
+
+                        playNotificationRef.current()
+                        enqueueSnackbar(
+                            <Box display="flex" flexDirection="column">
+                                <Typography>
+                                    {username ?? 'anonymous'} reacted{' '}
+                                    <img src={a.body.imageUrl as string} style={{ height: '1em' }} />
+                                </Typography>
+                                <MarkdownRendererLite
+                                    messagebody={m.document.body.body as string}
+                                    emojiDict={m.document.body.emojis ?? {}}
+                                    limit={128}
+                                />
+                            </Box>
+                        )
                     })
                 }
 
@@ -194,18 +281,6 @@ function App(): JSX.Element {
         playNotificationRef.current = playNotification
     }, [playNotification])
 
-    useEffect(() => {
-        const newtheme = loadConcurrentTheme(themeName, customThemes)
-        setTheme(newtheme)
-        let themeColorMetaTag: HTMLMetaElement = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement
-        if (!themeColorMetaTag) {
-            themeColorMetaTag = document.createElement('meta')
-            themeColorMetaTag.name = 'theme-color'
-            document.head.appendChild(themeColorMetaTag)
-        }
-        themeColorMetaTag.content = newtheme.palette.background.default
-    }, [themeName, customThemes])
-
     if (!client) {
         return <>building api service...</>
     }
@@ -215,18 +290,25 @@ function App(): JSX.Element {
             preventDuplicate
             classes={isMobileSize ? { containerRoot: 'snackbar-container-mobile' } : undefined}
         >
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <TickerProvider>
-                    <UrlSummaryProvider host={client.host}>
+            <TickerProvider>
+                <UrlSummaryProvider host={client.host}>
+                    <MediaViewerProvider>
                         <EmojiPickerProvider>
                             <StorageProvider>
-                                <GlobalActionsProvider>{childs}</GlobalActionsProvider>
+                                <ConcordProvider>
+                                    <EditorModalProvider>
+                                        <TimelineDrawerProvider>
+                                            <ConfirmProvider>
+                                                <GlobalActionsProvider>{childs}</GlobalActionsProvider>
+                                            </ConfirmProvider>
+                                        </TimelineDrawerProvider>
+                                    </EditorModalProvider>
+                                </ConcordProvider>
                             </StorageProvider>
                         </EmojiPickerProvider>
-                    </UrlSummaryProvider>
-                </TickerProvider>
-            </ThemeProvider>
+                    </MediaViewerProvider>
+                </UrlSummaryProvider>
+            </TickerProvider>
         </SnackbarProvider>
     )
 
@@ -244,7 +326,8 @@ function App(): JSX.Element {
                     )})`,
                     width: '100vw',
                     height: '100dvh',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    userSelect: { xs: 'none', sm: 'text', md: 'text' }
                 }}
             >
                 <Box
@@ -256,7 +339,7 @@ function App(): JSX.Element {
                         flexDirection: 'column'
                     }}
                 >
-                    {!globalState.isCanonicalUser && (
+                    {!isCanonicalUser && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
@@ -269,22 +352,25 @@ function App(): JSX.Element {
                             現在所属ドメインではないドメインにログインしています。引っ越し作業が完了次第、再ログインしてください。
                         </Typography>
                     )}
-                    {globalState.isMasterSession && globalState.isCanonicalUser && (
+                    {isMasterSession && isCanonicalUser && progress !== 0 && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
                                 color: 'error.contrastText',
                                 fontSize: '0.8em',
                                 fontWeight: 'bold',
-                                padding: '10px'
+                                padding: '10px',
+                                textDecoration: 'underline'
                             }}
-                            component={RouterLink}
-                            to="/settings/identity"
+                            onClick={() => {
+                                setSwitchToSub(true)
+                            }}
                         >
+                            {' '}
                             {t('settings.identity.loginType.masterKey')}
                         </Typography>
                     )}
-                    {globalState.isDomainOffline && (
+                    {isDomainOffline && (
                         <Typography
                             sx={{
                                 textAlign: 'center',
@@ -359,15 +445,20 @@ function App(): JSX.Element {
                             <Routes>
                                 <Route index element={<ListPage />} />
                                 <Route path="/:id" element={<EntityPage />} />
-                                <Route path="/timeline/:id" element={<StreamPage />} />
+                                <Route path="/intent" element={<ListPage />} />
+                                <Route path="/settings/*" element={<Settings />} />
+                                <Route path="/:id/media" element={<EntityPage />} />
+                                <Route path="/:id/activity" element={<EntityPage />} />
                                 <Route path="/:authorID/:messageID" element={<MessagePage />} />
-                                <Route path="/associations" element={<Associations />} />
+                                <Route path="/timeline/:id" element={<StreamPage />} />
                                 <Route path="/contacts" element={<ContactsPage />} />
                                 <Route path="/explorer/:tab" element={<Explorer />} />
                                 <Route path="/notifications" element={<Notifications />} />
-                                <Route path="/settings/*" element={<Settings />} />
                                 <Route path="/devtool" element={<Devtool />} />
                                 <Route path="/subscriptions" element={<ManageSubsPage />} />
+                                <Route path="/concord/*" element={<ConcordPage />} />
+                                <Route path="/tutorial" element={<Tutorial />} />
+                                <Route path="/explorerplus" element={<ExplorerPlusPage />} />
                             </Routes>
                         </Paper>
                         <Box
@@ -384,29 +475,55 @@ function App(): JSX.Element {
                     </Box>
                 </Box>
                 <Box
+                    id="emblem"
                     sx={{
                         position: 'fixed',
                         zIndex: '-1',
-                        opacity: { xs: '0.2', sm: '0.1' },
+                        opacity: { xs: '0', sm: '0.1', md: '0.1' },
                         left: '-30px',
                         bottom: '-30px',
                         width: '300px',
                         height: '300px',
-                        display: {
-                            xs: 'none',
-                            sm: 'block',
-                            md: 'block'
-                        }
+                        display: 'block'
                     }}
                 >
-                    <ConcurrentLogo
-                        size="300px"
-                        upperColor={theme.palette.background.contrastText}
-                        lowerColor={theme.palette.background.contrastText}
-                        frameColor={theme.palette.background.contrastText}
-                    />
+                    <ConcrntLogo size="300px" color={theme.palette.background.contrastText} />
                 </Box>
             </Box>
+            <Modal
+                open={switchToSubOpen}
+                onClose={() => {
+                    setSwitchToSub(false)
+                }}
+            >
+                <Paper
+                    sx={{
+                        position: 'absolute',
+                        top: '10%',
+                        left: '50%',
+                        transform: 'translate(-50%, 0%)',
+                        width: '700px',
+                        maxWidth: '90vw',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1
+                    }}
+                >
+                    <Box>
+                        <Typography variant="h2">
+                            {t('settings.identity.switchMasterToSub.exitPrivilegedMode')}
+                        </Typography>
+                        <Typography variant="caption">
+                            {t('settings.identity.switchMasterToSub.privilegeModeDesc')}
+                        </Typography>
+                    </Box>
+                    <Suspense fallback={<>loading...</>}>
+                        <SwitchMasterToSub identity={identity} />
+                    </Suspense>
+                    <LogoutButton />
+                </Paper>
+            </Modal>
         </>
     )
 }

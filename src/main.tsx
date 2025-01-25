@@ -1,20 +1,26 @@
 import ReactDOM from 'react-dom/client'
 import { ErrorBoundary } from 'react-error-boundary'
 import { EmergencyKit } from './components/EmergencyKit'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginGuard } from './utils/LoginGuard'
 import { Suspense, lazy } from 'react'
 import { FullScreenLoading } from './components/ui/FullScreenLoading'
-import { Registration } from './pages/Registration'
-import { AccountImport } from './pages/AccountImport'
-import { GuestTimelinePage } from './pages/GuestTimeline'
-import ApiProvider from './context/ClientContext'
 import { PreferenceProvider } from './context/PreferenceContext'
-import './i18n'
 import { GlobalStateProvider } from './context/GlobalState'
+import { ClientProvider } from './context/ClientContext'
+import { HelmetProvider } from 'react-helmet-async'
+
+import './i18n'
+import { GA4Provider } from './context/GA4'
+import { ConcrntThemeProvider } from './context/Theme'
 
 const AppPage = lazy(() => import('./App'))
 const Welcome = lazy(() => import('./pages/Welcome'))
+const Registration = lazy(() => import('./pages/Registration'))
+const AccountImport = lazy(() => import('./pages/AccountImport'))
+const GuestTimelinePage = lazy(() => import('./pages/GuestTimeline'))
+const GuestMessagePage = lazy(() => import('./pages/GuestMessage'))
+const GuestProfilePage = lazy(() => import('./pages/GuestProfile'))
 
 let domain = ''
 let prvkey = ''
@@ -23,53 +29,114 @@ let subkey = ''
 try {
     domain = JSON.parse(localStorage.getItem('Domain') || '')
 } catch (e) {
-    console.log(e)
+    console.error(e)
 }
 
 try {
     prvkey = JSON.parse(localStorage.getItem('PrivateKey') || '')
 } catch (e) {
-    console.log(e)
+    console.error(e)
 }
 
 try {
     subkey = JSON.parse(localStorage.getItem('SubKey') || '')
 } catch (e) {
-    console.log(e)
+    console.error(e)
 }
 
 const logined = domain !== '' && (prvkey !== '' || subkey !== '')
 
+const tag = 'G-Y4V0V7XYWX'
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <ErrorBoundary FallbackComponent={EmergencyKit}>
-        <Suspense fallback={<FullScreenLoading message="Loading..." />}>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/welcome" element={<Welcome />} />
-                    <Route path="/register" element={<Registration />} />
-                    <Route path="/import" element={<AccountImport />} />
-                    {!logined && <Route path="/:id" element={<GuestTimelinePage page="entity" />} />}
-                    {!logined && <Route path="/:authorID/:messageID" element={<GuestTimelinePage page="message" />} />}
-                    {!logined && <Route path="/timeline/:id" element={<GuestTimelinePage page="timeline" />} />}
-                    <Route
-                        path="*"
-                        element={
-                            <LoginGuard
-                                component={
-                                    <ApiProvider>
-                                        <PreferenceProvider>
-                                            <GlobalStateProvider>
-                                                <AppPage />
-                                            </GlobalStateProvider>
-                                        </PreferenceProvider>
-                                    </ApiProvider>
+        <Suspense fallback={<FullScreenLoading message="Downloading Updates..." />}>
+            <HelmetProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/crash" element={<EmergencyKit error={null} resetErrorBoundary={() => {}} />} />
+                        <Route
+                            path="/welcome"
+                            element={
+                                <GA4Provider tag={tag}>
+                                    <Welcome />
+                                </GA4Provider>
+                            }
+                        />
+                        {!logined ? (
+                            <Route
+                                path="/register"
+                                element={
+                                    <GA4Provider tag={tag}>
+                                        <Registration />
+                                    </GA4Provider>
                                 }
-                                redirect="/welcome"
                             />
-                        }
-                    />
-                </Routes>
-            </BrowserRouter>
+                        ) : (
+                            <Route path="/register" element={<Navigate to="/" />} />
+                        )}
+                        <Route
+                            path="/import"
+                            element={
+                                <GA4Provider tag={tag}>
+                                    <AccountImport />
+                                </GA4Provider>
+                            }
+                        />
+                        {!logined && (
+                            <Route
+                                path="/:id"
+                                element={
+                                    <GA4Provider tag={tag}>
+                                        <GuestProfilePage />
+                                    </GA4Provider>
+                                }
+                            />
+                        )}
+                        {!logined && (
+                            <Route
+                                path="/:authorID/:messageID"
+                                element={
+                                    <GA4Provider tag={tag}>
+                                        <GuestMessagePage />
+                                    </GA4Provider>
+                                }
+                            />
+                        )}
+                        {!logined && (
+                            <Route
+                                path="/timeline/:id"
+                                element={
+                                    <GA4Provider tag={tag}>
+                                        <GuestTimelinePage />
+                                    </GA4Provider>
+                                }
+                            />
+                        )}
+                        <Route
+                            path="*"
+                            element={
+                                <GA4Provider tag={tag}>
+                                    <LoginGuard
+                                        component={
+                                            <ClientProvider>
+                                                <PreferenceProvider>
+                                                    <ConcrntThemeProvider>
+                                                        <GlobalStateProvider>
+                                                            <AppPage />
+                                                        </GlobalStateProvider>
+                                                    </ConcrntThemeProvider>
+                                                </PreferenceProvider>
+                                            </ClientProvider>
+                                        }
+                                        redirect="/welcome"
+                                    />
+                                </GA4Provider>
+                            }
+                        />
+                    </Routes>
+                </BrowserRouter>
+            </HelmetProvider>
         </Suspense>
     </ErrorBoundary>
 )

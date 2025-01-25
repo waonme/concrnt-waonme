@@ -1,4 +1,4 @@
-import { type CoreProfile } from '@concurrent-world/client'
+import { Schemas, type CoreProfile } from '@concurrent-world/client'
 import { Box, Chip, IconButton, Menu, Paper, Typography } from '@mui/material'
 import { CCWallpaper } from './ui/CCWallpaper'
 import { CCAvatar } from './ui/CCAvatar'
@@ -16,6 +16,7 @@ export interface SubProfileCardProps {
     character: CoreProfile<any>
     additionalMenuItems?: JSX.Element | JSX.Element[]
     children?: JSX.Element | JSX.Element[]
+    resolveHint?: string
 }
 
 export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
@@ -23,6 +24,13 @@ export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
     const { enqueueSnackbar } = useSnackbar()
 
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+
+    const hint = props.resolveHint ? '@' + props.resolveHint : ''
+
+    const link =
+        props.character.schema === Schemas.profile
+            ? '/' + props.character.author + hint
+            : '/' + props.character.author + hint + '#' + props.character.id
 
     return (
         <Paper variant="outlined">
@@ -58,7 +66,7 @@ export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
                     <Box position="relative" height={0}>
                         <Box
                             component={routerLink}
-                            to={'/' + props.character.author}
+                            to={link}
                             position="relative"
                             sx={{
                                 top: '-30px',
@@ -81,10 +89,10 @@ export const SubProfileCard = (props: SubProfileCardProps): JSX.Element => {
                         flexDirection="row"
                         justifyContent="flex-end"
                         alignItems="center"
-                        height="40px"
                         gap={1}
                         px={1}
                         mb={1}
+                        minHeight="30px"
                     >
                         {props.children}
                     </Box>

@@ -7,16 +7,22 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    build: {
+        sourcemap: true,
+    },
     server: {
       host: '0.0.0.0',
     },
     plugins: [
         react(),
         VitePWA({
+            devOptions: {
+                enabled: true,
+                type: 'module',
+            },
             registerType: 'autoUpdate',
             includeAssets: [
                 'offline.html',
-                'favicon.svg',
                 'favicon.ico',
                 'robots.txt',
                 'apple-touch-icon.png',
@@ -29,7 +35,8 @@ export default defineConfig({
                 "start_url" : "/",
                 "name" : "Concrnt",
                 "short_name" : "Concrnt",
-                icons: [
+                "description" : "Concrnt is a next-gen decentralized social network platform designed to make your world richer.",
+                "icons": [
                     {
                         "src": "192.png",
                         "sizes": "192x192",
@@ -48,14 +55,41 @@ export default defineConfig({
                         "type": "image/png",
                         "purpose": "any"
                     }
-                ]
+                ],
+                "screenshots": [
+                    {
+                        "src": "screenshot_narrow.jpg",
+                        "type": "image/jpeg",
+                        "sizes": "1170x2532",
+                        "form_factor": "narrow"
+                    },
+                    {
+                        "src": "screenshot_wide.png",
+                        "type": "image/png",
+                        "sizes": "1419x1260",
+                        "form_factor": "wide"
+                    }
+                ],
+                "share_target": {
+                    "action": "/intent",
+                    "method": "GET",
+                    "enctype": "application/x-www-form-urlencoded",
+                    "params": {
+                        "title": "title",
+                        "text": "text",
+                        "url": "url"
+                    }
+                }
             },
+            strategies: 'injectManifest',
             workbox: {
                 cleanupOutdatedCaches: true,
                 skipWaiting: true,
                 clientsClaim: true,
                 globDirectory: 'dist',
                 globPatterns: ['**/*.{js,css,png,jpg,jpeg,svg,gif,woff,woff2,eot,ttf,otf,mp3}'],
+                // 10MB
+                maximumFileSizeToCacheInBytes: 10 * 1024 ** 2,
                 runtimeCaching: [
                     {
                         urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif)$/,

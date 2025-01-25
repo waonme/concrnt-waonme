@@ -13,6 +13,7 @@ import { IdentitySettings } from '../components/Settings/Identity'
 import { BreadcrumbList } from '../components/ui/BreadcrumbList'
 import { ImportExport } from '../components/Settings/ImportExport'
 import { Jobs } from '../components/Settings/Jobs'
+import { Helmet } from 'react-helmet-async'
 
 const pathTitles: Record<string, string> = {
     '/settings': 'settings.title',
@@ -22,7 +23,7 @@ const pathTitles: Record<string, string> = {
     '/settings/theme': 'settings.theme.title',
     '/settings/sound': 'settings.sound.title',
     '/settings/emoji': 'settings.emoji.title',
-    '/settings/media': 'settings.media.title',
+    '/settings/storage': 'settings.media.title',
     '/settings/activitypub': 'settings.ap.title',
     '/settings/loginqr': 'settings.qr.title',
     '/settings/importexport': 'settings.importexport.title',
@@ -31,33 +32,40 @@ const pathTitles: Record<string, string> = {
 
 export function Settings(): JSX.Element {
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                padding: '20px',
-                backgroundColor: 'background.paper',
-                minHeight: '100%',
-                overflowY: 'scroll'
-            }}
-        >
-            <BreadcrumbList pathTitles={pathTitles} />
-            <Divider />
-            <Routes>
-                <Route path="/" element={<SettingsIndex />} />
-                <Route path="/general" element={<GeneralSettings />} />
-                <Route path="/profile" element={<ProfileSettings />} />
-                <Route path="/identity" element={<IdentitySettings />} />
-                <Route path="/theme" element={<ThemeSettings />} />
-                <Route path="/sound" element={<SoundSettings />} />
-                <Route path="/emoji" element={<EmojiSettings />} />
-                <Route path="/media" element={<MediaSettings />} />
-                <Route path="/activitypub" element={<APSettings />} />
-                <Route path="/loginqr" element={<LoginQR />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/importexport/:tab" element={<ImportExport />} />
-            </Routes>
-        </Box>
+        <>
+            <Helmet>
+                <title>Settings - Concrnt</title>
+                <meta name="description" content="Settings" />
+            </Helmet>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    paddingX: 1,
+                    paddingTop: 1,
+                    backgroundColor: 'background.paper',
+                    minHeight: '100%',
+                    overflowX: 'hidden',
+                    overflowY: 'scroll'
+                }}
+            >
+                <BreadcrumbList pathTitles={pathTitles} />
+                <Divider sx={{ marginBottom: 1 }} />
+                <Routes>
+                    <Route path="/" element={<SettingsIndex />} />
+                    <Route path="/general" element={<GeneralSettings />} />
+                    <Route path="/profile" element={<ProfileSettings />} />
+                    <Route path="/identity" element={<IdentitySettings />} />
+                    <Route path="/theme" element={<ThemeSettings />} />
+                    <Route path="/sound" element={<SoundSettings />} />
+                    <Route path="/emoji" element={<EmojiSettings />} />
+                    <Route path="/storage" element={<MediaSettings />} />
+                    <Route path="/activitypub" element={<APSettings />} />
+                    <Route path="/loginqr" element={<LoginQR />} />
+                    <Route path="/jobs" element={<Jobs />} />
+                    <Route path="/importexport/:tab" element={<ImportExport />} />
+                </Routes>
+            </Box>
+        </>
     )
 }

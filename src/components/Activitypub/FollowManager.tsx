@@ -1,9 +1,10 @@
 import { memo, useEffect, useState } from 'react'
 import { useClient } from '../../context/ClientContext'
-import { Avatar, Box, Button, Divider, IconButton, Link, Paper, TextField, Typography } from '@mui/material'
+import { Avatar, Box, Button, Divider, IconButton, Link, Paper, Skeleton, TextField, Typography } from '@mui/material'
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
 import { CCDrawer } from '../ui/CCDrawer'
+import { useGlobalState } from '../../context/GlobalState'
 
 interface Stats {
     follows: string[]
@@ -26,7 +27,6 @@ export const ApFollowManager = (): JSX.Element => {
             })
             .then(async (res) => await res.json())
             .then((data) => {
-                console.log(data)
                 getStats()
                 setDrawerOpen(false)
             })
@@ -42,7 +42,6 @@ export const ApFollowManager = (): JSX.Element => {
             })
             .then(async (res) => await res.json())
             .then((data) => {
-                console.log(data)
                 getStats()
             })
     }
@@ -62,8 +61,16 @@ export const ApFollowManager = (): JSX.Element => {
 
     return (
         <>
-            <Box display="flex" flexDirection={{ xs: 'column', sm: 'column', md: 'row' }} gap={1}>
-                <Box flex={1} display="flex" flexDirection="column" gap={1}>
+            <Box
+                display="flex"
+                flexDirection={{ xs: 'column', sm: 'column', md: 'row' }}
+                gap={1}
+                sx={{
+                    overflowX: 'hidden',
+                    width: '100%'
+                }}
+            >
+                <Box flex={1} display="flex" flexDirection="column" gap={1} overflow="hidden">
                     <Box display="flex" alignItems="center" justifyContent="space-between" height="40px">
                         <Typography variant="h2">{stats?.follows.length}フォロー</Typography>
                         <IconButton
@@ -95,7 +102,7 @@ export const ApFollowManager = (): JSX.Element => {
                         />
                     ))}
                 </Box>
-                <Box flex={1} display="flex" flexDirection="column" gap={1}>
+                <Box flex={1} display="flex" flexDirection="column" gap={1} overflow="hidden">
                     <Box display="flex" alignItems="center" justifyContent="space-between" height="40px">
                         <Typography variant="h2">{stats?.followers.length}フォロワー</Typography>
                     </Box>
@@ -141,6 +148,8 @@ export const APUserCard = memo<{ url: string; remove?: (_: { URL: string; shortI
         const host = props.url.split('/')[2]
         const shortID = `@${person?.preferredUsername}@${host}`
 
+        const { getImageURL } = useGlobalState()
+
         useEffect(() => {
             client.api
                 .fetchWithCredential(client.api.host, `/ap/api/resolve/${encodeURIComponent(props.url)}`, {
@@ -155,33 +164,39 @@ export const APUserCard = memo<{ url: string; remove?: (_: { URL: string; shortI
                 })
         }, [props.url])
 
-        console.log(person)
-
-        if (!person) return <>loading...</>
+        if (!person) return <Skeleton variant="rectangular" height={64} />
 
         return (
             <Paper
+                variant="outlined"
                 sx={{
                     display: 'flex',
                     p: 1,
-                    backgroundImage: person.image ? `url(${person.image.url})` : undefined,
+                    backgroundImage: person.image
+                        ? `url(${getImageURL(person.image.url, { maxHeight: 256 })})`
+                        : undefined,
                     backgroundSize: 'cover',
                     gap: 1,
-                    textDecoration: 'none'
+                    textDecoration: 'none',
+                    overflow: 'hidden',
+                    alignItems: 'center'
                 }}
             >
-                <Avatar src={person.icon?.url} />
+                <Avatar src={getImageURL(person.icon?.url, { maxHeight: 256 })} />
                 <Box
                     sx={{
                         display: 'flex',
-                        backgroundColor: 'rgba(255,255,255,0.8)',
                         p: 1,
                         borderRadius: 1,
                         flexDirection: 'column',
-                        flex: 1
+                        flex: 1,
+                        flexShrink: 1,
+                        overflow: 'hidden'
                     }}
                 >
-                    <Typography variant="h3">{person.name || person.preferredUsername}</Typography>
+                    <Typography variant="h3" lineHeight="1">
+                        {person.name || person.preferredUsername}
+                    </Typography>
                     <Link underline="hover" href={props.url} target="_blank" rel="noopener noreferrer">
                         @{person.preferredUsername}@{host}
                     </Link>
@@ -192,7 +207,8 @@ export const APUserCard = memo<{ url: string; remove?: (_: { URL: string; shortI
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            flexShrink: 0
                         }}
                     >
                         <IconButton

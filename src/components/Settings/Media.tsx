@@ -30,7 +30,7 @@ import { useClient } from '../../context/ClientContext'
 import ContentPasteIcon from '@mui/icons-material/ContentPaste'
 import CodeIcon from '@mui/icons-material/Code'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import { useGlobalActions } from '../../context/GlobalActions'
+import { useMediaViewer } from '../../context/MediaViewer'
 
 interface File {
     id: string
@@ -52,8 +52,7 @@ export const MediaSettings = (): JSX.Element => {
     const [storageProvider, setStorageProvider] = usePreference('storageProvider')
     const [imgurClientID, setImgurClientID] = usePreference('imgurClientID')
     const clientIdRef = useRef<HTMLInputElement>(null)
-
-    const { openImageViewer } = useGlobalActions()
+    const mediaViewer = useMediaViewer()
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -66,7 +65,7 @@ export const MediaSettings = (): JSX.Element => {
     }
 
     const domainProfileAvailable = useMemo(() => {
-        return 'mediaserver' in client.domainServices
+        return 'mediaserver' in client.domainServices || 'world.concrnt.mediaserver' in client.domainServices
     }, [client.domainServices])
 
     const [deleteMenu, setDeleteMenu] = useState<null | HTMLElement>(null)
@@ -161,7 +160,7 @@ export const MediaSettings = (): JSX.Element => {
                                 key={file.id}
                                 sx={{ cursor: 'pointer' }}
                                 onClick={() => {
-                                    openImageViewer(file.url)
+                                    mediaViewer.openSingle(file.url)
                                 }}
                             >
                                 <Box
@@ -299,8 +298,7 @@ export const MediaSettings = (): JSX.Element => {
                         <Codeblock language={'json'}>
                             {`[{
     "AllowedOrigins": [
-        "https://localhost:5173",
-        "https://concurrent.world"
+        "*"
     ],
         "AllowedMethods": [
         "GET",

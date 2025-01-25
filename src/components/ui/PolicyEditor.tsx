@@ -1,7 +1,7 @@
 import { Box, Divider, Typography } from '@mui/material'
 import { memo, useEffect, useState } from 'react'
 import { fetchWithTimeout } from '../../util'
-import { CCEditor } from './cceditor'
+import { CCEditor, type CCEditorError } from './cceditor'
 
 export interface PolicyEditorProps {
     policyURL?: string
@@ -9,6 +9,7 @@ export interface PolicyEditorProps {
     disabled?: boolean
     value?: string
     setValue: (value?: string) => void
+    setErrors?: (_: CCEditorError[] | undefined) => void
 }
 
 interface Policy {
@@ -28,7 +29,15 @@ export const PolicyEditor = memo<PolicyEditorProps>((props: PolicyEditorProps): 
         fetchWithTimeout(props.policyURL, { method: 'GET' })
             .then((e) => e.json())
             .then((e) => {
-                setPolicy(e)
+                if (e.versions) {
+                    if (e.versions['2024-07-01']) {
+                        setPolicy(e.versions['2024-07-01'])
+                    }
+                }
+
+                if (e.version) {
+                    setPolicy(e)
+                }
             })
     }, [props.policyURL])
 
@@ -41,9 +50,7 @@ export const PolicyEditor = memo<PolicyEditorProps>((props: PolicyEditorProps): 
         if (props.value) {
             value = JSON.parse(props.value)
         }
-    } catch (e) {
-        console.log(e)
-    }
+    } catch (_) {}
 
     return (
         <Box>
@@ -58,6 +65,7 @@ export const PolicyEditor = memo<PolicyEditorProps>((props: PolicyEditorProps): 
                             if (!value) props.setValue(undefined)
                             else props.setValue(JSON.stringify(value))
                         }}
+                        setErrors={props.setErrors}
                     />
                 </>
             )}

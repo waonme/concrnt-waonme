@@ -24,6 +24,11 @@ export interface Preference {
     }
     customThemes: Record<string, DeepPartial<ConcurrentTheme>>
     hideDisabledSubKey: boolean
+    enableConcord: boolean
+    autoSwitchMediaPostType: boolean
+    tutorialProgress: number
+    tutorialCompleted: boolean
+    baseFontSize: number
 }
 
 export const defaultPreference: Preference = {
@@ -49,7 +54,12 @@ export const defaultPreference: Preference = {
         volume: 50
     },
     customThemes: {},
-    hideDisabledSubKey: false
+    hideDisabledSubKey: false,
+    enableConcord: false,
+    autoSwitchMediaPostType: true,
+    tutorialProgress: 0,
+    tutorialCompleted: false,
+    baseFontSize: 16
 }
 
 interface PreferenceState {
@@ -89,7 +99,6 @@ export const PreferenceProvider = (props: PreferenceProviderProps): JSX.Element 
             })
             .catch((e: any) => {
                 setInitialized(true)
-                console.log(e)
             })
     }, [])
 

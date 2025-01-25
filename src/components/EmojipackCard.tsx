@@ -1,6 +1,7 @@
-import { Box, IconButton, Paper, Typography } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { type EmojiPackage, type RawEmojiPackage } from '../model'
+import { CCIconButton } from './ui/CCIconButton'
 
 export interface EmojipackCardProps {
     src: string
@@ -37,6 +38,9 @@ export const EmojipackCard = (props: EmojipackCardProps): JSX.Element => {
                 gap: 1,
                 justifyContent: 'space-between'
             }}
+            onClick={(e) => {
+                e.stopPropagation()
+            }}
         >
             <Box display="flex">
                 <Box component="img" src={preview?.iconURL} alt={preview?.name} height="3rem" />
@@ -44,7 +48,7 @@ export const EmojipackCard = (props: EmojipackCardProps): JSX.Element => {
             <Typography variant="h4" gutterBottom>
                 {preview?.name}
             </Typography>
-            <IconButton
+            <CCIconButton
                 onClick={() => {
                     if (props.onClick && preview) {
                         props.onClick(preview)
@@ -52,7 +56,7 @@ export const EmojipackCard = (props: EmojipackCardProps): JSX.Element => {
                 }}
             >
                 {props.icon}
-            </IconButton>
+            </CCIconButton>
         </Paper>
     )
 }

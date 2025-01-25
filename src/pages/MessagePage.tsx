@@ -1,5 +1,6 @@
 import {
     Box,
+    Button,
     Divider,
     List,
     ListItemIcon,
@@ -8,11 +9,9 @@ import {
     Paper,
     Tab,
     Tabs,
-    Typography,
-    useMediaQuery,
-    useTheme
+    Typography
 } from '@mui/material'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useClient } from '../context/ClientContext'
 import { useEffect, useState } from 'react'
 import {
@@ -28,24 +27,36 @@ import {
     type RerouteAssociationSchema
 } from '@concurrent-world/client'
 import { MessageView } from '../components/Message/MessageView'
-import { Draft } from '../components/Draft'
 import { RerouteMessageFrame } from '../components/Message/RerouteMessageFrame'
 import { FavoriteAssociation } from '../components/Association/FavoriteAssociation'
 import { ReactionAssociation } from '../components/Association/ReactionAssociation'
 
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { useGlobalState } from '../context/GlobalState'
+import { CCPostEditor } from '../components/Editor/CCPostEditor'
+import { PlainMessageView } from '../components/Message/PlainMessageView'
+import { MediaMessageView } from '../components/Message/MediaMessageView'
+import { Helmet } from 'react-helmet-async'
+import { MessageSkeleton } from '../components/MessageSkeleton'
 
 export function MessagePage(): JSX.Element {
     const { authorID, messageID } = useParams()
     const { client } = useClient()
     const lastUpdated = 0
 
-    const { allKnownTimelines } = useGlobalState()
+    const { allKnownTimelines, isMobileSize } = useGlobalState()
 
     const [message, setMessage] = useState<Message<
         MarkdownMessageSchema | ReplyMessageSchema | RerouteMessageSchema
     > | null>()
+    const [_, setStaticUpdateCount] = useState<number>(0)
+
+    if (message) {
+        message.onUpdate = () => {
+            setStaticUpdateCount((prev) => prev + 1)
+        }
+    }
+
     const [isFetching, setIsFetching] = useState<boolean>(true)
 
     const [replies, setReplies] = useState<
@@ -65,8 +76,6 @@ export function MessagePage(): JSX.Element {
     const [replyTo, setReplyTo] = useState<Message<ReplyMessageSchema> | null>(null)
 
     const tab = (location.hash.slice(1) as 'replies' | 'reroutes' | 'favorites' | 'reactions') || 'replies'
-    const theme = useTheme()
-    const isMobileSize = useMediaQuery(theme.breakpoints.down('sm'))
 
     const [forceUpdate, setForceUpdate] = useState(0) // FIXME: use more elegant way to force update
 
@@ -76,7 +85,6 @@ export function MessagePage(): JSX.Element {
         setReplyTo(null)
 
         let isMounted = true
-        console.log('loadMessage', messageID, authorID)
         if (!messageID || !authorID) return
         client
             .getMessage<any>(messageID, authorID)
@@ -120,223 +128,322 @@ export function MessagePage(): JSX.Element {
         }
     }, [messageID, authorID, forceUpdate])
 
-    if (isFetching) {
-        return (
-            <>
-                <Typography>loading...</Typography>
-            </>
-        )
-    }
-
-    if (!message) {
-        return (
-            <>
-                <Typography>Message not found</Typography>
-            </>
-        )
-    }
-
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '5px',
-                padding: '20px',
-                backgroundColor: 'background.paper',
-                minHeight: '100%',
-                overflow: 'scroll'
-            }}
-        >
-            <Typography variant="h2" gutterBottom>
-                Message
-            </Typography>
-            <Divider />
-
-            {replyTo && (
-                <Paper
-                    sx={{
-                        padding: '20px'
-                    }}
-                >
-                    <MessageView message={replyTo} lastUpdated={lastUpdated} userCCID={client.ccid} />
-                </Paper>
+        <>
+            {message && (
+                <Helmet>
+                    <title>{`${message.authorUser?.profile?.username || 'anonymous'}: "${
+                        message.document.body.body
+                    }" - Concrnt`}</title>
+                    <meta name="description" content={message.document.body.body} />
+                </Helmet>
             )}
-
-            {(message.schema === Schemas.markdownMessage || message.schema === Schemas.replyMessage) && (
-                <Paper
-                    sx={{
-                        padding: '20px'
-                    }}
-                >
-                    <MessageView
-                        forceExpanded
-                        message={message as Message<MarkdownMessageSchema | ReplyMessageSchema>}
-                        lastUpdated={lastUpdated}
-                        userCCID={client.ccid}
-                    />
-                </Paper>
-            )}
-
-            <Tabs
-                value={tab}
-                onChange={(_, next) => {
-                    location.hash = next
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    padding: 1,
+                    backgroundColor: 'background.paper',
+                    minHeight: '100%',
+                    overflow: 'scroll',
+                    userSelect: 'text'
                 }}
-                textColor="secondary"
-                indicatorColor="secondary"
-                variant={isMobileSize ? 'fullWidth' : 'standard'}
             >
-                <Tab
-                    value="replies"
-                    label="Replies"
-                    sx={{ fontSize: '0.9rem', padding: '0', textTransform: 'none', minWidth: { xs: '0', sm: '80px' } }}
-                />
-                <Tab
-                    value="reroutes"
-                    label="Reroutes"
-                    sx={{ fontSize: '0.9rem', padding: '0', textTransform: 'none', minWidth: { xs: '0', sm: '80px' } }}
-                />
-                <Tab
-                    value="favorites"
-                    label="Favorites"
-                    sx={{ fontSize: '0.9rem', padding: '0', textTransform: 'none', minWidth: { xs: '0', sm: '80px' } }}
-                />
-                <Tab
-                    value="reactions"
-                    label="Reactions"
-                    sx={{ fontSize: '0.9rem', padding: '0', textTransform: 'none', minWidth: { xs: '0', sm: '80px' } }}
-                />
-            </Tabs>
-            <Divider />
-            {tab === 'replies' && (
-                <>
-                    <Paper variant="outlined">
-                        <Draft
-                            streamPickerInitial={message.postedStreams ?? []}
-                            streamPickerOptions={allKnownTimelines}
-                            placeholder="Write a reply..."
-                            onSubmit={async (text: string, streams: string[], options) => {
-                                await message.reply(streams, text, options?.emojis)
-                                return null
-                            }}
-                            sx={{
-                                p: 1
-                            }}
-                        />
-                    </Paper>
-                    {replies.length > 0 && (
-                        <>
-                            <Typography variant="h2" gutterBottom>
-                                Replies:
-                            </Typography>
-                            {replies.map(
-                                (reply) =>
-                                    reply.association &&
-                                    reply.message && (
-                                        <Paper
-                                            key={reply.message.id}
-                                            sx={{
-                                                padding: '20px'
-                                            }}
-                                        >
-                                            <MessageView
-                                                message={reply.message}
-                                                lastUpdated={lastUpdated}
-                                                userCCID={client.ccid}
-                                                additionalMenuItems={
-                                                    reply.association.author === client.ccid ||
-                                                    reply.association.owner === client.ccid ? (
-                                                        <MenuItem
-                                                            onClick={() => {
-                                                                reply.association?.delete().then(() => {
-                                                                    setForceUpdate((prev) => prev + 1)
-                                                                })
-                                                            }}
-                                                        >
-                                                            <ListItemIcon>
-                                                                <DeleteForeverIcon sx={{ color: 'text.primary' }} />
-                                                            </ListItemIcon>
-                                                            <ListItemText>関連付けを削除</ListItemText>
-                                                        </MenuItem>
-                                                    ) : undefined
-                                                }
-                                            />
-                                        </Paper>
-                                    )
-                            )}
-                        </>
-                    )}
-                </>
-            )}
-            {tab === 'reroutes' && (
-                <>
-                    <Typography variant="h2" gutterBottom>
-                        Reroutes:
+                <Box>
+                    <Typography gutterBottom variant="h2">
+                        Message
                     </Typography>
-                    {reroutes.length > 0 && (
-                        <>
-                            {reroutes.map(
-                                (reroute) =>
-                                    reroute.association &&
-                                    reroute.message && (
-                                        <Paper
-                                            key={reroute.message.id}
-                                            sx={{
-                                                padding: '20px'
-                                            }}
-                                        >
-                                            <RerouteMessageFrame
-                                                message={reroute.message}
-                                                additionalMenuItems={
-                                                    reroute.association.author === client.ccid ||
-                                                    reroute.association.owner === client.ccid ? (
-                                                        <MenuItem
-                                                            onClick={() => {
-                                                                reroute.association?.delete().then(() => {
-                                                                    setForceUpdate((prev) => prev + 1)
-                                                                })
-                                                            }}
-                                                        >
-                                                            <ListItemIcon>
-                                                                <DeleteForeverIcon sx={{ color: 'text.primary' }} />
-                                                            </ListItemIcon>
-                                                            <ListItemText>関連付けを削除</ListItemText>
-                                                        </MenuItem>
-                                                    ) : undefined
-                                                }
-                                            />
-                                        </Paper>
-                                    )
-                            )}
-                        </>
-                    )}
-                </>
-            )}
-            {tab === 'favorites' && (
-                <>
-                    <Typography variant="h2" gutterBottom>
-                        Favorites:
-                    </Typography>
-                    <List>
-                        {favorites.map((favorite) => (
-                            <FavoriteAssociation key={favorite.id} association={favorite} perspective={client.ccid} />
-                        ))}
-                    </List>
-                </>
-            )}
-            {tab === 'reactions' && (
-                <>
-                    <Typography variant="h2" gutterBottom>
-                        Reactions:
-                    </Typography>
-                    <List>
-                        {reactions.map((reaction) => (
-                            <ReactionAssociation key={reaction.id} association={reaction} perspective={client.ccid} />
-                        ))}
-                    </List>
-                </>
-            )}
-        </Box>
+                    <Divider />
+                </Box>
+
+                {isFetching && (
+                    <>
+                        <Box>
+                            <MessageSkeleton />
+                        </Box>
+                        <Divider />
+                    </>
+                )}
+
+                {!message && !isFetching && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1,
+                            padding: 1,
+                            alignItems: 'center'
+                        }}
+                    >
+                        <Typography fontSize="4rem" fontWeight="bold">
+                            404
+                        </Typography>
+                        <Typography fontSize="2rem" fontWeight="bold">
+                            Message not found
+                        </Typography>
+                        <Button variant="text" color="primary" component={Link} to="/">
+                            Back to Home
+                        </Button>
+                    </Box>
+                )}
+
+                {message && (
+                    <>
+                        {replyTo && (
+                            <>
+                                <Box>
+                                    <MessageView message={replyTo} lastUpdated={lastUpdated} userCCID={client.ccid} />
+                                </Box>
+                                <Divider />
+                            </>
+                        )}
+
+                        {(message.schema === Schemas.markdownMessage || message.schema === Schemas.replyMessage) && (
+                            <>
+                                <Box>
+                                    <MessageView
+                                        forceExpanded
+                                        message={message as Message<MarkdownMessageSchema | ReplyMessageSchema>}
+                                        lastUpdated={lastUpdated}
+                                        userCCID={client.ccid}
+                                    />
+                                </Box>
+                                <Divider />
+                            </>
+                        )}
+
+                        {message.schema === Schemas.plaintextMessage && (
+                            <>
+                                <Box>
+                                    <PlainMessageView
+                                        forceExpanded
+                                        message={message as Message<MarkdownMessageSchema | ReplyMessageSchema>}
+                                        lastUpdated={lastUpdated}
+                                        userCCID={client.ccid}
+                                    />
+                                </Box>
+                                <Divider />
+                            </>
+                        )}
+
+                        {message.schema === Schemas.mediaMessage && (
+                            <>
+                                <Box>
+                                    <MediaMessageView
+                                        forceExpanded
+                                        message={message as Message<MarkdownMessageSchema | ReplyMessageSchema>}
+                                        lastUpdated={lastUpdated}
+                                        userCCID={client.ccid}
+                                    />
+                                </Box>
+                                <Divider />
+                            </>
+                        )}
+                    </>
+                )}
+
+                <Tabs
+                    value={tab}
+                    onChange={(_, next) => {
+                        location.hash = next
+                    }}
+                    textColor="secondary"
+                    indicatorColor="secondary"
+                    variant={isMobileSize ? 'fullWidth' : 'standard'}
+                >
+                    <Tab
+                        value="replies"
+                        label="Replies"
+                        sx={{
+                            fontSize: '0.9rem',
+                            padding: '0',
+                            textTransform: 'none',
+                            minWidth: { xs: '0', sm: '80px' }
+                        }}
+                    />
+                    <Tab
+                        value="reroutes"
+                        label="Reroutes"
+                        sx={{
+                            fontSize: '0.9rem',
+                            padding: '0',
+                            textTransform: 'none',
+                            minWidth: { xs: '0', sm: '80px' }
+                        }}
+                    />
+                    <Tab
+                        value="favorites"
+                        label="Favorites"
+                        sx={{
+                            fontSize: '0.9rem',
+                            padding: '0',
+                            textTransform: 'none',
+                            minWidth: { xs: '0', sm: '80px' }
+                        }}
+                    />
+                    <Tab
+                        value="reactions"
+                        label="Reactions"
+                        sx={{
+                            fontSize: '0.9rem',
+                            padding: '0',
+                            textTransform: 'none',
+                            minWidth: { xs: '0', sm: '80px' }
+                        }}
+                    />
+                </Tabs>
+                <Divider />
+
+                {message && (
+                    <>
+                        {tab === 'replies' && (
+                            <>
+                                <Paper variant="outlined">
+                                    <CCPostEditor
+                                        minRows={3}
+                                        maxRows={7}
+                                        streamPickerInitial={
+                                            message.postedStreams?.filter(
+                                                (t) => t.schema === Schemas.communityTimeline
+                                            ) ?? []
+                                        }
+                                        streamPickerOptions={allKnownTimelines}
+                                        placeholder="Write a reply..."
+                                        actionTo={message}
+                                        mode="reply"
+                                        sx={{
+                                            p: 1
+                                        }}
+                                    />
+                                </Paper>
+                                {replies.length > 0 && (
+                                    <>
+                                        <Typography variant="h2" gutterBottom>
+                                            Replies:
+                                        </Typography>
+                                        {replies.map(
+                                            (reply) =>
+                                                reply.association &&
+                                                reply.message && (
+                                                    <Paper
+                                                        key={reply.message.id}
+                                                        sx={{
+                                                            padding: '20px'
+                                                        }}
+                                                    >
+                                                        <MessageView
+                                                            message={reply.message}
+                                                            lastUpdated={lastUpdated}
+                                                            userCCID={client.ccid}
+                                                            additionalMenuItems={
+                                                                reply.association.author === client.ccid ||
+                                                                reply.association.owner === client.ccid ? (
+                                                                    <MenuItem
+                                                                        onClick={() => {
+                                                                            reply.association?.delete().then(() => {
+                                                                                setForceUpdate((prev) => prev + 1)
+                                                                            })
+                                                                        }}
+                                                                    >
+                                                                        <ListItemIcon>
+                                                                            <DeleteForeverIcon
+                                                                                sx={{ color: 'text.primary' }}
+                                                                            />
+                                                                        </ListItemIcon>
+                                                                        <ListItemText>関連付けを削除</ListItemText>
+                                                                    </MenuItem>
+                                                                ) : undefined
+                                                            }
+                                                        />
+                                                    </Paper>
+                                                )
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                        {tab === 'reroutes' && (
+                            <>
+                                <Typography variant="h2" gutterBottom>
+                                    Reroutes:
+                                </Typography>
+                                {reroutes.length > 0 && (
+                                    <>
+                                        {reroutes.map(
+                                            (reroute) =>
+                                                reroute.association &&
+                                                reroute.message && (
+                                                    <Paper
+                                                        key={reroute.message.id}
+                                                        sx={{
+                                                            padding: '20px'
+                                                        }}
+                                                    >
+                                                        <RerouteMessageFrame
+                                                            message={reroute.message}
+                                                            additionalMenuItems={
+                                                                reroute.association.author === client.ccid ||
+                                                                reroute.association.owner === client.ccid ? (
+                                                                    <MenuItem
+                                                                        onClick={() => {
+                                                                            reroute.association?.delete().then(() => {
+                                                                                setForceUpdate((prev) => prev + 1)
+                                                                            })
+                                                                        }}
+                                                                    >
+                                                                        <ListItemIcon>
+                                                                            <DeleteForeverIcon
+                                                                                sx={{ color: 'text.primary' }}
+                                                                            />
+                                                                        </ListItemIcon>
+                                                                        <ListItemText>関連付けを削除</ListItemText>
+                                                                    </MenuItem>
+                                                                ) : undefined
+                                                            }
+                                                        />
+                                                    </Paper>
+                                                )
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                        {tab === 'favorites' && (
+                            <>
+                                <Typography variant="h2" gutterBottom>
+                                    Favorites:
+                                </Typography>
+                                <List>
+                                    {favorites.map((favorite) => (
+                                        <FavoriteAssociation
+                                            key={favorite.id}
+                                            association={favorite}
+                                            perspective={client.ccid}
+                                        />
+                                    ))}
+                                </List>
+                            </>
+                        )}
+                        {tab === 'reactions' && (
+                            <>
+                                <Typography variant="h2" gutterBottom>
+                                    Reactions:
+                                </Typography>
+                                <List>
+                                    {reactions.map((reaction) => (
+                                        <ReactionAssociation
+                                            key={reaction.id}
+                                            association={reaction}
+                                            perspective={client.ccid}
+                                        />
+                                    ))}
+                                </List>
+                            </>
+                        )}
+                    </>
+                )}
+            </Box>
+        </>
     )
 }

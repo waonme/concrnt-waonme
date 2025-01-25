@@ -6,7 +6,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     blue: {
         meta: {
             name: 'blue',
-            author: 'CCb72AAc9dcF088F7088b6718BE5a494fBB3861439', // totegamma
+            author: 'con1t0tey8uxhkqkd4wcp4hd4jedt7f0vfhk29xdd2', // totegamma
             comment: 'コンカレで一番最初に作られたテーマです！'
         },
         palette: {
@@ -25,7 +25,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     blue2: {
         meta: {
             name: 'blue2',
-            author: 'CCBFe6f64AEE52A200B7C47D3D83680A226967d83C', // waonme
+            author: 'con1dlftq82pc75ftccwe8vm8sak5v8jcp565n3p5n', // waonme
             comment: 'コンカレで二番目に作られたわけではないテーマです！'
         },
         palette: {
@@ -43,7 +43,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
             text: {
                 primary: '#fff',
                 secondary: 'rgba(255, 255, 255, 0.8)',
-                disabled: 'rgba(255, 255, 255, 0.6)'
+                disabled: 'rgba(255, 255, 255, 0.4)'
             },
             divider: 'rgba(255, 255, 255, 0.2)'
         },
@@ -61,7 +61,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     darkgray: {
         meta: {
             name: 'darkgray',
-            author: 'CCBFe6f64AEE52A200B7C47D3D83680A226967d83C', // waonme
+            author: 'con1dlftq82pc75ftccwe8vm8sak5v8jcp565n3p5n', // waonme
             comment: '黒背景よりはダークグレーの方が落ち着くんだ'
         },
         palette: {
@@ -80,7 +80,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
             text: {
                 primary: '#fff',
                 secondary: 'rgba(255, 255, 255, 0.7)',
-                disabled: 'rgba(255, 255, 255, 0.5)'
+                disabled: 'rgba(255, 255, 255, 0.3)'
             },
             divider: 'rgba(255, 255, 255, 0.2)'
         },
@@ -101,7 +101,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     cafe: {
         meta: {
             name: 'cafe',
-            author: 'CCBFe6f64AEE52A200B7C47D3D83680A226967d83C', // waonme
+            author: 'con1dlftq82pc75ftccwe8vm8sak5v8jcp565n3p5n', // waonme
             comment: 'すくなくともスタバではなさそうだ'
         },
         palette: {
@@ -124,7 +124,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     rainyday: {
         meta: {
             name: 'rainyday',
-            author: 'CCBFe6f64AEE52A200B7C47D3D83680A226967d83C', // waonme
+            author: 'con1dlftq82pc75ftccwe8vm8sak5v8jcp565n3p5n', // waonme
             comment: 'そういう日もある'
         },
         palette: {
@@ -142,7 +142,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
             text: {
                 primary: '#232d31',
                 secondary: 'rgba(52, 61, 66, 0.7)',
-                disabled: 'rgba(0, 0, 0, 0.5)'
+                disabled: 'rgba(0, 0, 0, 0.3)'
             },
             divider: 'rgba(0, 0, 0, 0.2)'
         },
@@ -153,7 +153,7 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
     sacher: {
         meta: {
             name: 'sacher',
-            author: 'CCBFe6f64AEE52A200B7C47D3D83680A226967d83C', // waonme
+            author: 'con1dlftq82pc75ftccwe8vm8sak5v8jcp565n3p5n', // waonme
             comment:
                 '![ザッハさん](https://worldfile.cc/CCBFe6f64AEE52A200B7C47D3D83680A226967d83C/988bf80b-96ca-4bb9-83ff-cd962932b616)'
         },
@@ -173,12 +173,56 @@ export const Themes: Record<string, DeepPartial<ConcurrentTheme>> = {
             text: {
                 primary: '#2e0d03',
                 secondary: '#4c6675',
-                disabled: 'rgba(0, 0, 0, 0.5)'
+                disabled: 'rgba(0, 0, 0, 0.4)'
             },
             divider: 'rgba(0, 0, 0, 0.2)'
         },
         shape: {
             borderRadius: 3
+        }
+    },
+    astro: {
+        meta: {
+            name: 'astro',
+            author: 'con1t0tey8uxhkqkd4wcp4hd4jedt7f0vfhk29xdd2'
+        },
+        palette: {
+            primary: {
+                main: '#92dda2',
+                contrastText: '#fff'
+            },
+            secondary: {
+                main: 'rgba(255, 255, 255, 0.8)'
+            },
+            background: {
+                default: '#1c1e2d',
+                paper: '#1c1e2d',
+                contrastText: '#dbfafc'
+            },
+            text: {
+                primary: '#aadff1',
+                secondary: 'rgba(255, 255, 255, 0.8)',
+                disabled: 'rgba(170, 223, 241, 0.5)'
+            },
+            divider: 'rgba(170, 223, 241, 0.12)'
+        },
+        components: {
+            MuiButton: {
+                defaultProps: {
+                    variant: 'outlined',
+                    disableElevation: true
+                }
+            },
+            MuiPaper: {
+                defaultProps: {
+                    variant: 'outlined'
+                }
+            },
+            MuiAppBar: {
+                defaultProps: {
+                    color: 'transparent'
+                }
+            }
         }
     }
 }
@@ -202,32 +246,35 @@ export const ConcurrentDefaultTheme = {
         }
     },
     typography: {
-        fontSize: 14,
+        fontSize: 16,
         body1: {
             fontSize: '1rem'
         },
         h1: {
-            fontSize: 32,
-            fontWeight: 700
+            fontSize: '1.8em',
+            fontWeight: 700,
+            lineHeight: 1.5
         },
         h2: {
-            fontSize: 24,
-            fontWeight: 700
+            fontSize: '1.6em',
+            fontWeight: 700,
+            lineHeight: 1.5
         },
         h3: {
-            fontSize: 19.2,
-            fontWeight: 700
+            fontSize: '1.4em',
+            fontWeight: 700,
+            lineHeight: 1.5
         },
         h4: {
-            fontSize: 16,
+            fontSize: '1.2em',
             fontWeight: 700
         },
         h5: {
-            fontSize: 12.8,
+            fontSize: '1em',
             fontWeight: 700
         },
         h6: {
-            fontSize: 11.2,
+            fontSize: '0.9em',
             fontWeight: 700
         }
     },
@@ -240,7 +287,7 @@ export const ConcurrentDefaultTheme = {
     breakpoints: {
         values: {
             xs: 0,
-            sm: 450,
+            sm: 550,
             md: 960,
             lg: 1280,
             xl: 1920
@@ -268,14 +315,19 @@ export const ConcurrentDefaultTheme = {
                     borderRadius: '10px'
                 },
                 html: {
-                    overscrollBehaviorY: 'none'
+                    overscrollBehaviorY: 'none',
+                    userSelect: 'none',
+                    fontSize: '16px'
                 },
                 body: {
                     overflowX: 'hidden',
                     overflowY: 'visible'
                 },
                 '.snackbar-container-mobile': {
-                    bottom: 'calc(55px + env(safe-area-inset-bottom))'
+                    bottom: 'calc(55px + env(safe-area-inset-bottom)) !important'
+                },
+                'p+p, figure+p': {
+                    marginTop: '1.3em'
                 }
             }
         }
@@ -305,7 +357,7 @@ export function deepMerge(target: Record<string, any>, source: Record<string, an
     return output as ConcurrentTheme
 }
 
-export const createConcurrentThemeFromObject = (base: any): ConcurrentTheme => {
+export const createConcurrentThemeFromObject = (base: any, options?: any): ConcurrentTheme => {
     if (base.palette.text !== undefined) {
         if (base.palette.text.hint === undefined) base.palette.text.hint = alpha(base.palette.text.primary, 0.5)
         if (base.palette.text.disabled === undefined) base.palette.text.disabled = alpha(base.palette.text.primary, 0.5)
@@ -323,14 +375,20 @@ export const createConcurrentThemeFromObject = (base: any): ConcurrentTheme => {
             }
         }
 
-    const theme: ConcurrentTheme = deepMerge(ConcurrentDefaultTheme, base)
+    const defaultTheme = ConcurrentDefaultTheme
+    if (options?.fontSize) {
+        defaultTheme.components.MuiCssBaseline.styleOverrides.html.fontSize = `${options.fontSize}px`
+    }
+
+    const theme: ConcurrentTheme = deepMerge(defaultTheme, base)
     return createTheme(theme) as ConcurrentTheme
 }
 
 export const loadConcurrentTheme = (
     name: string,
-    customs: Record<string, DeepPartial<ConcurrentTheme>> = {}
+    customs: Record<string, DeepPartial<ConcurrentTheme>> = {},
+    options?: { fontSize?: number }
 ): ConcurrentTheme => {
     const base = customs[name] ?? Themes[name] ?? Themes.blue
-    return createConcurrentThemeFromObject(base)
+    return createConcurrentThemeFromObject(base, options)
 }

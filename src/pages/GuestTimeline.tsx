@@ -1,118 +1,87 @@
-import { useEffect, useRef, useState } from 'react'
-import { Box, Button, Divider, Paper } from '@mui/material'
-import { useLocation, useParams, Link as NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Box, Button, Paper, Typography } from '@mui/material'
+import { useParams, Link as NavLink } from 'react-router-dom'
 import { Timeline } from '../components/Timeline/main'
-import { Client, type User } from '@concurrent-world/client'
+import { Client, type CoreTimeline } from '@concurrent-world/client'
 import { FullScreenLoading } from '../components/ui/FullScreenLoading'
-import ApiProvider from '../context/ClientContext'
-import TickerProvider from '../context/Ticker'
-
-import { type VListHandle } from 'virtua'
+import { ClientProvider } from '../context/ClientContext'
 import { TimelineHeader } from '../components/TimelineHeader'
 
-import ListIcon from '@mui/icons-material/List'
-import AlternateEmailIcon from '@mui/icons-material/AlternateEmail'
-import { Profile } from '../components/Profile'
-import { MessageContainer } from '../components/Message/MessageContainer'
+import TagIcon from '@mui/icons-material/Tag'
+import LockIcon from '@mui/icons-material/Lock'
 import { GuestBase } from '../components/GuestBase'
+import { StreamInfo } from '../components/StreamInfo'
+import { MediaViewerProvider } from '../context/MediaViewer'
+import { Helmet } from 'react-helmet-async'
 
-export interface GuestPageProps {
-    page: 'timeline' | 'entity' | 'message'
-}
-
-export function GuestTimelinePage(props: GuestPageProps): JSX.Element {
-    const reactlocation = useLocation()
-    const [title, setTitle] = useState<string>('')
-    const [user, setUser] = useState<User | null | undefined>(null)
+export default function GuestTimelinePage(): JSX.Element {
+    const [timeline, setTimeline] = useState<CoreTimeline<any> | null | undefined>(null)
     const [targetStream, setTargetStream] = useState<string[]>([])
+    const [isPrivateTimeline, setIsPrivateTimeline] = useState<boolean>(false)
 
-    const { id, authorID, messageID } = useParams()
-
-    const timelineRef = useRef<VListHandle>(null)
+    const { id } = useParams()
 
     const [client, initializeClient] = useState<Client>()
+
     useEffect(() => {
-        switch (props.page) {
-            case 'timeline':
-                {
-                    if (!id) return
-                    setTargetStream([id])
-                    const resolver = id.split('@')[1]
-                    const client = new Client(resolver)
-                    initializeClient(client)
+        if (!id) return
+        setTargetStream([id])
+        const resolver = id.split('@')[1]
+        const client = new Client(resolver)
+        initializeClient(client)
 
-                    client.api.getTimeline(id).then((e) => {
-                        console.log(e)
-                        setTitle(e?.document.body.name ?? '')
-                    })
-                    setUser(undefined)
+        client.api.getTimeline(id).then((e) => {
+            if (!e) return
+            setTimeline(e)
+
+            if (e.policy === 'https://policy.concrnt.world/t/inline-read-write.json' && e?.policyParams) {
+                try {
+                    const params = JSON.parse(e.policyParams)
+                    setIsPrivateTimeline(!params.isReadPublic)
+                } catch (e) {
+                    setIsPrivateTimeline(true)
                 }
-                break
-            case 'entity':
-                {
-                    if (!id) return
-                    const client = new Client('ariake.concrnt.net')
-                    initializeClient(client)
+            }
+        })
+    }, [id])
 
-                    client.getUser(id).then((e) => {
-                        setUser(e)
-                        setTitle(e?.profile?.username ?? '')
-                        console.log(e?.homeTimeline)
-                        setTargetStream([e?.homeTimeline ?? ''])
-                    })
-                }
-                break
-            case 'message':
-                {
-                    if (!authorID || !messageID) return
-                    const client = new Client('ariake.concrnt.net')
-                    initializeClient(client)
-
-                    client.getUser(authorID).then((e) => {
-                        setUser(e)
-                        setTitle(e?.profile?.username ?? '')
-                        setTargetStream([e?.homeTimeline ?? ''])
-                    })
-                }
-                break
-        }
-    }, [props.page, id, reactlocation.hash])
-
-    const scrollParentRef = useRef<HTMLDivElement>(null)
-
-    if (!client) return <FullScreenLoading message="Loading..." />
+    if (!client || !timeline) return <FullScreenLoading message="Loading..." />
 
     return (
-        <GuestBase
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                gap: 1,
-                flex: 1
-            }}
-            additionalButton={
-                <Button component={NavLink} to="/register">
-                    はじめる
-                </Button>
-            }
-        >
-            <TickerProvider>
-                <ApiProvider client={client}>
-                    <>
-                        {props.page === 'message' && messageID && authorID && (
-                            <Paper
-                                sx={{
-                                    margin: { xs: 0.5, sm: 1 },
-                                    display: 'flex',
-                                    flexFlow: 'column',
-                                    p: 2
-                                }}
-                            >
-                                <MessageContainer messageID={messageID} messageOwner={authorID} />
-                            </Paper>
-                        )}
-
+        <MediaViewerProvider>
+            <>
+                <Helmet>
+                    <title>{`#${timeline.document.body.name || 'No Title'} - Concrt`}</title>
+                    <meta
+                        name="description"
+                        content={
+                            timeline.document.body.description ||
+                            `Concrnt timeline ${timeline.document.body.name || 'No Title'}`
+                        }
+                    />
+                    <link rel="canonical" href={`https://concrnt.com/timeline/${id}`} />
+                </Helmet>
+                <GuestBase
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        gap: 1,
+                        flex: 1
+                    }}
+                    additionalButton={
+                        <Button
+                            component={NavLink}
+                            to="/register"
+                            onClick={() => {
+                                localStorage.setItem('preferredTimeline', timeline.id)
+                            }}
+                        >
+                            はじめる
+                        </Button>
+                    }
+                >
+                    <ClientProvider client={client}>
                         <Paper
                             sx={{
                                 flex: 1,
@@ -135,34 +104,48 @@ export function GuestTimelinePage(props: GuestPageProps): JSX.Element {
                                     flex: 1
                                 }}
                             >
-                                <TimelineHeader title={title} titleIcon={id ? <AlternateEmailIcon /> : <ListIcon />} />
+                                <TimelineHeader
+                                    title={timeline.document.body.name || 'No Title'}
+                                    titleIcon={isPrivateTimeline ? <LockIcon /> : <TagIcon />}
+                                />
 
-                                <Timeline
-                                    ref={timelineRef}
-                                    streams={targetStream}
-                                    header={
+                                {isPrivateTimeline ? (
+                                    <Box>
+                                        <StreamInfo id={timeline.id} />
                                         <Box
                                             sx={{
-                                                overflowX: 'hidden',
-                                                overflowY: 'auto',
-                                                overscrollBehaviorY: 'contain'
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                height: '100%',
+                                                color: 'text.disabled',
+                                                p: 2
                                             }}
-                                            ref={scrollParentRef}
                                         >
-                                            {user && (
-                                                <>
-                                                    <Profile user={user} id={id} guest={true} />
-                                                    <Divider />
-                                                </>
-                                            )}
+                                            <LockIcon
+                                                sx={{
+                                                    fontSize: '10rem'
+                                                }}
+                                            />
+                                            <Typography variant="h5">このコミュニティはプライベートです。</Typography>
+                                            <Typography variant="caption">
+                                                ログインすると、閲覧申請を送信できます。
+                                            </Typography>
                                         </Box>
-                                    }
-                                />
+                                    </Box>
+                                ) : (
+                                    <Timeline
+                                        noRealtime
+                                        streams={targetStream}
+                                        header={<StreamInfo id={timeline.id} />}
+                                    />
+                                )}
                             </Box>
                         </Paper>
-                    </>
-                </ApiProvider>
-            </TickerProvider>
-        </GuestBase>
+                    </ClientProvider>
+                </GuestBase>
+            </>
+        </MediaViewerProvider>
     )
 }

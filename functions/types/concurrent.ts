@@ -44,7 +44,7 @@ export interface CoreTimeline {
     id: string
     indexable: boolean
     author: string
-    domainOwned: boolean
+    owner: string
     schema: string
     policy?: string
     policyParams?: string
@@ -67,7 +67,16 @@ export interface WorldMessage {
     body: string
     emojis: {}
     mentions: []
-    profileOverride: {}
+    profileOverride?: {
+        profileID?: string
+    }
+    medias?: {
+        mediaURL: string;
+        mediaType: string;
+        thumbnailURL?: string;
+        blurhash?: string;
+        flag?: string;
+    }[]
 }
 
 export interface WorldCommunityTimeline {

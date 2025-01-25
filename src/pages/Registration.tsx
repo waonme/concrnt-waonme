@@ -2,15 +2,13 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { useEffect, useMemo, useState } from 'react'
-import ApiProvider from '../context/ClientContext'
+import { ClientProvider } from '../context/ClientContext'
 import { Dialog, DialogActions, DialogContent, DialogTitle, Fade, Paper, TextField } from '@mui/material'
 import { usePersistent } from '../hooks/usePersistent'
 import { jumpToDomainRegistration } from '../util'
 import {
     Client,
-    type CoreDomain,
     type ProfileSchema,
-    LoadKey,
     GenerateIdentity,
     type Identity,
     LoadIdentity,
@@ -24,16 +22,16 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
 import { defaultPreference } from '../context/PreferenceContext'
 import { GuestBase } from '../components/GuestBase'
+import { Helmet } from 'react-helmet-async'
 
-export function Registration(): JSX.Element {
+export default function Registration(): JSX.Element {
     const location = useLocation()
 
     const { t } = useTranslation('', { keyPrefix: 'registration' })
-    const [domain, setDomain] = usePersistent<string>('Domain', 'hub.concurrent.world')
     const [client, initializeClient] = useState<Client>()
-    const [host, setHost] = useState<CoreDomain | null | undefined>()
     const [identity, setIdentity] = usePersistent<Identity | null>('Identity', GenerateIdentity())
     const [profile, setProfile] = useState<CoreProfile<ProfileSchema> | null>(null)
+    const [domain, setDomain] = usePersistent<string>('Domain', 'ariake.concrnt.net')
 
     const activeStep = parseInt(location.hash.replace('#', '')) || 0
     const setActiveStep = (step: number): void => {
@@ -61,32 +59,21 @@ export function Registration(): JSX.Element {
         })
     }, [identity, domain])
 
-    useEffect(() => {
-        if (activeStep !== 0) return
-        const newIdentity = GenerateIdentity()
-        setIdentity(newIdentity)
-    }, [activeStep])
-
-    useEffect(() => {
-        if (!host || !identity) return
-        setDomain(host.fqdn)
-        const keyPair = LoadKey(identity.privateKey)
-        if (!keyPair) return
-        const api = new Client(host.fqdn, keyPair, identity.CCID)
-        initializeClient(api)
-    }, [host])
-
     const setupAccount = (): void => {
-        if (!client || !host || !identity) return
-        localStorage.setItem('Domain', JSON.stringify(host.fqdn))
+        if (!client || !identity) return
+        localStorage.setItem('Domain', JSON.stringify(domain))
         localStorage.setItem('PrivateKey', JSON.stringify(identity.privateKey))
 
-        console.log('hostAddr', host.ccid)
-
         const storage = JSON.stringify(defaultPreference)
-        client.api.writeKV('world.concurrent.preference', storage)
-
-        window.location.href = '/'
+        client.api
+            .writeKV('world.concurrent.preference', storage)
+            .then(() => {})
+            .catch((e) => {
+                alert(`Failed to write preference: ${e.message}`)
+            })
+            .finally(() => {
+                window.location.href = '/'
+            })
     }
 
     if (!identity) return <>loading...</>
@@ -101,7 +88,6 @@ export function Registration(): JSX.Element {
                         const fqdn = 'ariake.concrnt.net'
                         client?.api.getDomain(fqdn).then((e) => {
                             if (!e) return
-                            setHost(e)
                             setDomain(e.fqdn)
 
                             let next = window.location.href
@@ -130,8 +116,8 @@ export function Registration(): JSX.Element {
                         setActiveStep(2)
                     }}
                     client={client}
-                    host={host}
-                    setHost={setHost}
+                    domain={domain}
+                    setDomain={setDomain}
                 />
             )
         },
@@ -155,7 +141,7 @@ export function Registration(): JSX.Element {
                     next={() => {
                         setupAccount()
                     }}
-                    host={host}
+                    domain={domain}
                     profile={profile?.document.body ?? {}}
                 />
             )
@@ -174,12 +160,19 @@ export function Registration(): JSX.Element {
                 gap: 2
             }}
             additionalButton={
-                <Button component={Link} to="/import">
-                    {t('importAccount')}
-                </Button>
+                <>
+                    {activeStep === 0 && (
+                        <Button component={Link} to="/import">
+                            {t('importAccount')}
+                        </Button>
+                    )}
+                </>
             }
         >
-            <ApiProvider client={client}>
+            <Helmet>
+                <meta name="robots" content="noindex" />
+            </Helmet>
+            <ClientProvider client={client}>
                 <>
                     <Paper
                         sx={{
@@ -239,27 +232,29 @@ export function Registration(): JSX.Element {
                                 </Box>
                             </Fade>
                         ))}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                width: '100%',
-                                position: 'absolute',
-                                justifyContent: 'space-between',
-                                bottom: 0,
-                                p: 1
-                            }}
-                        >
-                            <Box />
-                            <Button
-                                variant="outlined"
-                                onClick={() => {
-                                    setDialogOpen(true)
+                        {activeStep === 0 && (
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    width: '100%',
+                                    position: 'absolute',
+                                    justifyContent: 'space-between',
+                                    top: 0,
+                                    p: 1
                                 }}
                             >
-                                キーを手動で指定する
-                            </Button>
-                        </Box>
+                                <Box />
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        setDialogOpen(true)
+                                    }}
+                                >
+                                    キーを手動で指定する
+                                </Button>
+                            </Box>
+                        )}
                     </Paper>
                     <Dialog
                         open={dialogOpened}
@@ -301,7 +296,7 @@ export function Registration(): JSX.Element {
                         </DialogActions>
                     </Dialog>
                 </>
-            </ApiProvider>
+            </ClientProvider>
         </GuestBase>
     )
 }

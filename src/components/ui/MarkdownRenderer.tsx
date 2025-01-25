@@ -1,5 +1,5 @@
-import { type ImgHTMLAttributes, type DetailedHTMLProps, memo } from 'react'
-import { Box, Button, Divider, IconButton, Link, Tooltip, Typography } from '@mui/material'
+import { type ImgHTMLAttributes, type DetailedHTMLProps, memo, useEffect } from 'react'
+import { Box, Button, Divider, IconButton, Tooltip, Typography } from '@mui/material'
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
@@ -25,7 +25,11 @@ import DownloadForOfflineIcon from '@mui/icons-material/DownloadForOffline'
 import { EmojipackCard } from '../EmojipackCard'
 import ManageSearchIcon from '@mui/icons-material/ManageSearch'
 import { useGlobalActions } from '../../context/GlobalActions'
-import { StreamChip } from './StreamChip'
+import { TimelineChip } from './TimelineChip'
+import { useMediaViewer } from '../../context/MediaViewer'
+import { useGlobalState } from '../../context/GlobalState'
+import { useAutoSummary } from '../../context/AutoSummaryContext'
+import { CCLink } from './CCLink'
 
 export interface MarkdownRendererProps {
     messagebody: string
@@ -64,9 +68,16 @@ const sanitizeOption = {
 
 export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRendererProps): JSX.Element => {
     const actions = useGlobalActions()
+    const { getImageURL } = useGlobalState()
+    const mediaViewer = useMediaViewer()
     const { enqueueSnackbar } = useSnackbar()
     const [themeName, setThemeName] = usePreference('themeName')
     const [customThemes, setCustomThemes] = usePreference('customThemes')
+    const summary = useAutoSummary()
+
+    useEffect(() => {
+        summary.update()
+    }, [props.messagebody])
 
     return (
         <Box
@@ -159,7 +170,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                         return <CCUserChip ccid={ccid} />
                     },
                     streamlink: ({ streamId }) => {
-                        return <StreamChip streamID={streamId} />
+                        return <TimelineChip timelineID={streamId} />
                     },
                     social: ({ href, icon, service, children }) => {
                         return (
@@ -249,6 +260,8 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                         </blockquote>
                     ),
                     a: ({ children, href }) => {
+                        if (!href) return <></>
+
                         const matchTwitter = href?.match(/https:\/\/twitter\.com\/(\w+)\/?$/)
                         if (matchTwitter) {
                             return (
@@ -313,11 +326,22 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 </LinkChip>
                             )
                         }
-                        const matchYoutubeVideo = href?.match(/https:\/\/www\.youtube\.com\/watch\?v=(\w+)$/)
+                        const matchTelegram = href?.match(/https:\/\/t\.me\/(\w+)\/?$/)
+                        if (matchTelegram) {
+                            return (
+                                <LinkChip service="telegram" href={href}>
+                                    {matchTelegram[1]}
+                                </LinkChip>
+                            )
+                        }
+                        let matchYoutubeVideo = href?.match(/https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/)
+                        if (!matchYoutubeVideo) matchYoutubeVideo = href?.match(/https:\/\/youtu\.be\/([a-zA-Z0-9_-]+)/)
                         if (matchYoutubeVideo) {
                             return (
                                 <Box
+                                    component="span"
                                     sx={{
+                                        display: 'block',
                                         aspectRatio: '16 / 9',
                                         overflow: 'hidden',
                                         width: '100%',
@@ -339,10 +363,11 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 </Box>
                             )
                         }
+
                         return (
-                            <Link href={href} target="_blank" color="secondary" underline="hover">
+                            <CCLink to={href} color="secondary" underline="hover">
                                 {children}
-                            </Link>
+                            </CCLink>
                         )
                     },
                     code: ({ node, children, inline }) => {
@@ -424,14 +449,17 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                         return (
                             <Box
                                 {...props}
+                                src={getImageURL(props.src)}
                                 component="img"
                                 maxWidth="100%"
                                 borderRadius={1}
                                 sx={{
                                     maxHeight: '20vh'
                                 }}
-                                onClick={() => {
-                                    actions.openImageViewer(props.src ?? '')
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    e.preventDefault()
+                                    mediaViewer.openSingle(props.src)
                                 }}
                             />
                         )
@@ -445,7 +473,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 title={
                                     <Box display="flex" flexDirection="column" alignItems="center">
                                         <img
-                                            src={emoji?.animURL ?? emoji?.imageURL ?? ''}
+                                            src={getImageURL(emoji?.animURL ?? emoji?.imageURL, { maxHeight: 128 })}
                                             style={{
                                                 height: '5em'
                                             }}
@@ -458,7 +486,7 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                 }
                             >
                                 <img
-                                    src={emoji?.animURL ?? emoji?.imageURL ?? ''}
+                                    src={getImageURL(emoji?.animURL ?? emoji?.imageURL, { maxHeight: 128 })}
                                     style={{
                                         height: '1.25em',
                                         verticalAlign: '-0.45em',
@@ -512,6 +540,20 @@ export const MarkdownRenderer = memo<MarkdownRendererProps>((props: MarkdownRend
                                     }}
                                 />
                             </>
+                        )
+                    },
+                    details: ({ children }) => {
+                        return (
+                            <details
+                                onToggle={() => {
+                                    summary.update()
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                }}
+                            >
+                                {children}
+                            </details>
                         )
                     }
                 }}

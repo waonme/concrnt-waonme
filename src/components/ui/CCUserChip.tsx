@@ -1,11 +1,12 @@
-import { Tooltip, Paper, Chip, Avatar } from '@mui/material'
+import { Tooltip, Paper } from '@mui/material'
 import { UserProfileCard } from '../UserProfileCard'
 import { type User } from '@concurrent-world/client'
-import { Link as NavLink } from 'react-router-dom'
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail'
 import { useClient } from '../../context/ClientContext'
 import { useEffect, useState } from 'react'
 import { CCAvatar } from './CCAvatar'
+import { type ProfileOverride } from '@concurrent-world/client/dist/types/model/core'
+import { CCChip } from './CCChip'
 
 export interface CCUserChipProps {
     user?: User
@@ -13,6 +14,7 @@ export interface CCUserChipProps {
     iconOverride?: JSX.Element
     onDelete?: () => void
     avatar?: boolean
+    profileOverride?: ProfileOverride
 }
 
 export const CCUserChip = (props: CCUserChipProps): JSX.Element => {
@@ -20,12 +22,17 @@ export const CCUserChip = (props: CCUserChipProps): JSX.Element => {
     const [user, setUser] = useState<User | null | undefined>(props.user)
 
     useEffect(() => {
-        if (user !== undefined) return
+        if (props.user !== undefined) return
         if (!props.ccid) return
+        let unmounted = false
         client.getUser(props.ccid).then((user) => {
+            if (unmounted) return
             setUser(user)
         })
-    }, [])
+        return () => {
+            unmounted = true
+        }
+    }, [props.ccid])
 
     const icon = props.avatar
         ? (
@@ -63,18 +70,17 @@ export const CCUserChip = (props: CCUserChipProps): JSX.Element => {
             title={<UserProfileCard user={user ?? undefined} />}
         >
             {props.onDelete ? (
-                <Chip
+                <CCChip
                     size={'small'}
-                    label={user?.profile?.username ?? 'anonymous'}
+                    label={props.profileOverride?.username ?? user?.profile?.username ?? 'anonymous'}
                     icon={icon}
                     onDelete={props.onDelete}
                 />
             ) : (
-                <Chip
-                    component={NavLink}
+                <CCChip
                     to={'/' + (user?.ccid ?? '')}
                     size={'small'}
-                    label={user?.profile?.username ?? 'anonymous'}
+                    label={props.profileOverride?.username ?? user?.profile?.username ?? 'anonymous'}
                     icon={icon}
                 />
             )}

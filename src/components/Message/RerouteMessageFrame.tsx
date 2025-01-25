@@ -1,19 +1,22 @@
-import { Box, IconButton, Link, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
+import { Box, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
 
-import { type Message, type RerouteMessageSchema } from '@concurrent-world/client'
+import { type CoreProfile, type Message, type RerouteMessageSchema } from '@concurrent-world/client'
 import RepeatIcon from '@mui/icons-material/Repeat'
 import { CCAvatar } from '../ui/CCAvatar'
-import { Link as routerLink, Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
 import { TimeDiff } from '../ui/TimeDiff'
 import { MessageContainer } from './MessageContainer'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ManageSearchIcon from '@mui/icons-material/ManageSearch'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { useClient } from '../../context/ClientContext'
 import { useInspector } from '../../context/Inspector'
 import { MarkdownRendererLite } from '../ui/MarkdownRendererLite'
 import { MarkdownRenderer } from '../ui/MarkdownRenderer'
+import { FaTheaterMasks } from 'react-icons/fa'
+import { useConfirm } from '../../context/Confirm'
+import { CCLink } from '../ui/CCLink'
 
 export interface RerouteMessageFrameProp {
     message: Message<RerouteMessageSchema>
@@ -26,16 +29,31 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
     const { client } = useClient()
     const inspector = useInspector()
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+    const [character, setProfile] = useState<CoreProfile<any> | null>(null)
+    const confirm = useConfirm()
 
     const profileOverride = props.message.document.body.profileOverride
 
-    const avatarURL = profileOverride?.avatar ?? props.message.authorUser?.profile?.avatar
-    const username = profileOverride?.username ?? props.message.authorUser?.profile?.username ?? 'Anonymous'
+    const avatarURL =
+        character?.document.body.avatar ?? profileOverride?.avatar ?? props.message.authorUser?.profile?.avatar
+    const username =
+        character?.document.body.username ??
+        profileOverride?.username ??
+        props.message.authorUser?.profile?.username ??
+        'Anonymous'
     const link = profileOverride?.link ?? '/' + props.message.author
+
+    useEffect(() => {
+        if (profileOverride?.profileID) {
+            client.api.getProfileByID(profileOverride.profileID, props.message.author).then((character) => {
+                setProfile(character ?? null)
+            })
+        }
+    }, [profileOverride?.profileID])
 
     return (
         <>
-            <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
+            <Box display="flex" alignItems="center" gap={1}>
                 <Box
                     display="flex"
                     width={{ xs: '38px', sm: '48px' }}
@@ -48,7 +66,7 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                             width: { xs: '12px', sm: '18px' },
                             height: { xs: '12px', sm: '18px' }
                         }}
-                        component={routerLink}
+                        component={RouterLink}
                         to={link}
                     >
                         <CCAvatar
@@ -61,7 +79,7 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                         />
                     </IconButton>
                 </Box>
-                <Typography
+                <Box
                     sx={{
                         fontSize: {
                             xs: '0.9rem',
@@ -69,22 +87,19 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                         },
                         color: 'text.disabled',
                         fontWeight: 700,
-                        flex: 1
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 0.5
                     }}
                 >
-                    {username}
-                    {profileOverride?.avatar && (
-                        <CCAvatar
-                            avatarURL={props.message.authorUser?.profile?.avatar}
-                            identiconSource={props.message.author}
-                            sx={{
-                                width: { xs: '12px', sm: '18px' },
-                                height: { xs: '12px', sm: '18px' }
-                            }}
-                        />
-                    )}{' '}
-                    rerouted {props.message.document.body.body && 'with comment:'}
-                </Typography>
+                    <CCLink to={link} underline="hover" color="inherit">
+                        {username}
+                    </CCLink>
+                    {profileOverride?.avatar && <FaTheaterMasks />} rerouted{' '}
+                    {props.message.document.body.body && 'with comment:'}
+                </Box>
                 <Box display="flex" gap={0.5}>
                     <IconButton
                         sx={{
@@ -98,15 +113,9 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                     >
                         <MoreHorizIcon sx={{ fontSize: '80%' }} />
                     </IconButton>
-                    <Link
-                        component={RouterLink}
-                        underline="hover"
-                        color="inherit"
-                        fontSize="0.75rem"
-                        to={`/${props.message.author}/${props.message.id}`}
-                    >
+                    <Typography color="inherit" fontSize="0.75rem">
                         <TimeDiff date={new Date(props.message.cdate)} />
-                    </Link>
+                    </Typography>
                 </Box>
             </Box>
             <Menu
@@ -131,7 +140,13 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
                 {props.message.author === client?.user?.ccid && (
                     <MenuItem
                         onClick={() => {
-                            props.message.delete()
+                            confirm.open(
+                                'リルートを削除しますか？',
+                                () => {
+                                    props.message.delete()
+                                },
+                                { confirmText: '削除' }
+                            )
                         }}
                     >
                         <ListItemIcon>
@@ -144,41 +159,41 @@ export const RerouteMessageFrame = (props: RerouteMessageFrameProp): JSX.Element
             {props.message.document.body.body && (
                 <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
                     <Box display="flex" flexDirection="row-reverse" width={{ xs: '38px', sm: '48px' }} flexShrink={0} />
-                    <Typography
-                        overflow="hidden"
-                        whiteSpace="nowrap"
-                        textOverflow="ellipsis"
-                        minWidth={0}
-                        sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+                    <Tooltip
+                        arrow
+                        placement="top"
+                        title={
+                            <MarkdownRenderer
+                                messagebody={props.message.document.body.body}
+                                emojiDict={props.message.document.body.emojis ?? {}}
+                            />
+                        }
                     >
-                        <Tooltip
-                            arrow
-                            placement="top"
-                            title={
-                                <MarkdownRenderer
-                                    messagebody={props.message.document.body.body}
-                                    emojiDict={props.message.document.body.emojis ?? {}}
-                                />
-                            }
+                        <Box
+                            overflow="hidden"
+                            whiteSpace="nowrap"
+                            textOverflow="ellipsis"
+                            minWidth={0}
+                            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                         >
-                            <Box>
-                                <MarkdownRendererLite
-                                    messagebody={props.message.document.body.body}
-                                    emojiDict={props.message.document.body.emojis ?? {}}
-                                    forceOneline={true}
-                                />
-                            </Box>
-                        </Tooltip>
-                    </Typography>
+                            <MarkdownRendererLite
+                                messagebody={props.message.document.body.body}
+                                emojiDict={props.message.document.body.emojis ?? {}}
+                                forceOneline={true}
+                            />
+                        </Box>
+                    </Tooltip>
                 </Box>
             )}
-            <MessageContainer
-                simple={props.simple}
-                messageID={props.message.document.body.rerouteMessageId}
-                messageOwner={props.message.document.body.rerouteMessageAuthor}
-                resolveHint={props.message.authorUser?.domain}
-                rerouted={props.message}
-            />
+            <Box itemProp="citation" itemScope itemType="https://schema.org/SocialMediaPosting">
+                <MessageContainer
+                    simple={props.simple}
+                    messageID={props.message.document.body.rerouteMessageId}
+                    messageOwner={props.message.document.body.rerouteMessageAuthor}
+                    resolveHint={props.message.authorUser?.domain}
+                    rerouted={props.message}
+                />
+            </Box>
             <Box
                 sx={{
                     display: 'flex',

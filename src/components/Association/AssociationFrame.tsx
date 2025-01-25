@@ -1,20 +1,22 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import {
     type Association,
     type ReactionAssociationSchema,
     type LikeAssociationSchema,
     type ReplyAssociationSchema,
     type RerouteAssociationSchema,
-    Schemas
+    Schemas,
+    type ReadAccessRequestAssociationSchema
 } from '@concurrent-world/client'
 import { useClient } from '../../context/ClientContext'
-import { Box, ListItem, type SxProps, Typography } from '@mui/material'
+import { Box, ListItem, type SxProps, Typography, alpha, useTheme } from '@mui/material'
 import { MessageSkeleton } from '../MessageSkeleton'
 import { MessageContainer } from '../Message/MessageContainer'
 import { usePreference } from '../../context/PreferenceContext'
 import { FavoriteAssociation } from './FavoriteAssociation'
 import { ReactionAssociation } from './ReactionAssociation'
 import { MentionAssociation } from './MentionAssociation'
+import { ReadAccessAssociation } from './ReadAccessAssociation'
 
 export interface AssociationFrameProp {
     associationID: string
@@ -23,10 +25,12 @@ export interface AssociationFrameProp {
     after: JSX.Element | undefined
     perspective?: string
     sx?: SxProps
+    dimOnHover?: boolean
 }
 
 export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFrameProp): JSX.Element | null => {
     const { client } = useClient()
+    const theme = useTheme()
     const [isDevMode] = usePreference('devMode')
     const [association, setAssociation] = useState<Association<
         LikeAssociationSchema | ReactionAssociationSchema | ReplyAssociationSchema | RerouteAssociationSchema
@@ -49,6 +53,17 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
             })
     }, [props.associationID, props.associationOwner, props.lastUpdated])
 
+    const style = useMemo(() => {
+        if (!props.dimOnHover) return props.sx
+        return {
+            ...props.sx,
+            '&:hover': {
+                backgroundColor: alpha(theme.palette.divider, 0.05),
+                transition: 'background-color 0.2s'
+            }
+        }
+    }, [props.sx])
+
     if (fetching) return <MessageSkeleton />
     if (!association) {
         if (isDevMode) {
@@ -67,7 +82,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
         case Schemas.likeAssociation:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <FavoriteAssociation
                             association={association as Association<LikeAssociationSchema>}
                             perspective={props.perspective ?? client.ccid ?? ''}
@@ -79,7 +94,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
         case Schemas.reactionAssociation:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <ReactionAssociation
                             association={association as Association<ReactionAssociationSchema>}
                             perspective={props.perspective ?? client.ccid ?? ''}
@@ -91,7 +106,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
         case Schemas.replyAssociation:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <MessageContainer
                             messageID={(association as Association<ReplyAssociationSchema>).document.body.messageId}
                             messageOwner={
@@ -105,7 +120,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
         case Schemas.rerouteAssociation:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <MessageContainer
                             messageID={(association as Association<RerouteAssociationSchema>).document.body.messageId}
                             messageOwner={
@@ -119,7 +134,7 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
         case Schemas.mentionAssociation:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <MentionAssociation
                             association={association as Association<ReactionAssociationSchema>}
                             perspective={props.perspective ?? client.ccid ?? ''}
@@ -128,10 +143,21 @@ export const AssociationFrame = memo<AssociationFrameProp>((props: AssociationFr
                     {props.after}
                 </>
             )
+        case Schemas.readAccessRequestAssociation:
+            return (
+                <>
+                    <Box sx={style}>
+                        <ReadAccessAssociation
+                            association={association as Association<ReadAccessRequestAssociationSchema>}
+                        />
+                    </Box>
+                    {props.after}
+                </>
+            )
         default:
             return (
                 <>
-                    <Box sx={props.sx}>
+                    <Box sx={style}>
                         <ListItem sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Typography variant="caption" color="text.disabled">
                                 Unknown association schema

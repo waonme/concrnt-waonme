@@ -8,7 +8,7 @@ export interface AckButtonProps {
     user: User
 }
 
-export const AckButton = (props: AckButtonProps): JSX.Element => {
+export const AckButton = (props: AckButtonProps): JSX.Element | null => {
     const { client, forceUpdate } = useClient()
 
     const myAck = useMemo(() => {
@@ -19,9 +19,16 @@ export const AckButton = (props: AckButtonProps): JSX.Element => {
 
     const { t } = useTranslation('', { keyPrefix: 'common' })
 
+    if (props.user.ccid === client.ccid) {
+        return null
+    }
+
     return (
         <>
             <Button
+                sx={{
+                    flexShrink: 0
+                }}
                 variant={myAck ? 'outlined' : 'contained'}
                 onMouseEnter={() => {
                     setIsHovered(true)
@@ -29,7 +36,8 @@ export const AckButton = (props: AckButtonProps): JSX.Element => {
                 onMouseLeave={() => {
                     setIsHovered(false)
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                    e.stopPropagation()
                     if (myAck) {
                         props.user.UnAck().then(() => {
                             forceUpdate()

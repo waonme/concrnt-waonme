@@ -1,4 +1,4 @@
-import { Alert, Box, Paper, Typography } from '@mui/material'
+import { Alert, Box, IconButton, List, ListItem, Paper, Typography } from '@mui/material'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useClient } from './ClientContext'
@@ -8,6 +8,9 @@ import { MessageContainer } from '../components/Message/MessageContainer'
 import { CCDrawer } from '../components/ui/CCDrawer'
 import { type Key } from '@concurrent-world/client/dist/types/model/core'
 import { KeyCard } from '../components/ui/KeyCard'
+import { ListItemTimeline } from '../components/ui/ListItemTimeline'
+import PlaylistRemoveIcon from '@mui/icons-material/PlaylistRemove'
+import { useSnackbar } from 'notistack'
 
 export interface InspectorState {
     inspectingItem: { messageId: string; author: string } | null
@@ -22,6 +25,7 @@ interface InspectorProps {
 
 export const InspectorProvider = (props: InspectorProps): JSX.Element => {
     const { client } = useClient()
+    const { enqueueSnackbar } = useSnackbar()
     const [inspectingItem, inspectItem] = useState<{ messageId: string; author: string } | null>(null)
     const [message, setMessage] = useState<CoreMessage<any> | undefined>()
     const [associations, setAssociations] = useState<Array<CoreAssociation<any>>>([])
@@ -36,7 +40,6 @@ export const InspectorProvider = (props: InspectorProps): JSX.Element => {
             if (!isMounted) return
             setMessage(msg)
             if (msg.document.keyID && msg.document.keyID !== '') {
-                console.log('fetching keychain for', msg.document.keyID, inspectingItem.author)
                 client.api.getKeyResolution(msg.document.keyID, inspectingItem.author).then((keys) => {
                     if (!isMounted) return
                     setKeyResolution(keys)
@@ -66,7 +69,7 @@ export const InspectorProvider = (props: InspectorProps): JSX.Element => {
     }, [message])
 
     const previewMessage = useMemo(() => {
-        const msg: any = message
+        const msg: any = structuredClone(message)
         if (msg) {
             msg.associations = 'REDACTED'
             msg.ownAssociations = 'REDACTED'
@@ -179,7 +182,8 @@ export const InspectorProvider = (props: InspectorProps): JSX.Element => {
                         sx={{
                             p: 1,
                             wordBreak: 'break-all',
-                            whiteSpace: 'pre-wrap'
+                            whiteSpace: 'pre-wrap',
+                            userSelect: 'text'
                         }}
                     >
                         <Typography variant="h1">Inspect</Typography>
@@ -235,13 +239,54 @@ export const InspectorProvider = (props: InspectorProps): JSX.Element => {
                                             reason: {KeyResolutionSummary.reason}
                                         </Alert>
                                     )}
-
-                                    {keyResolution.map((key) => (
-                                        <KeyCard short key={key.id} item={key} />
-                                    ))}
+                                    <Typography variant="h2" sx={{ mt: 1 }}>
+                                        UsedKeys:
+                                    </Typography>
+                                    <Box>
+                                        {keyResolution.map((key) => (
+                                            <Box key={key.id} maxWidth="300px" margin="0 auto">
+                                                <KeyCard item={key} />
+                                            </Box>
+                                        ))}
+                                    </Box>
                                 </Box>
                             </>
                         )}
+
+                        <Typography variant="h2" sx={{ mt: 1 }}>
+                            Timelines:
+                        </Typography>
+
+                        <List>
+                            {message.timelines.map((timeline) => (
+                                <ListItem
+                                    key={timeline}
+                                    disablePadding
+                                    secondaryAction={
+                                        <IconButton
+                                            onClick={(_) => {
+                                                client.api
+                                                    .retractItem(timeline, message.id)
+                                                    .then(() => {
+                                                        enqueueSnackbar('Retracted item from timeline', {
+                                                            variant: 'success'
+                                                        })
+                                                    })
+                                                    .catch((e) => {
+                                                        enqueueSnackbar(`Failed to retract item from timeline: ${e}`, {
+                                                            variant: 'error'
+                                                        })
+                                                    })
+                                            }}
+                                        >
+                                            <PlaylistRemoveIcon color="error" />
+                                        </IconButton>
+                                    }
+                                >
+                                    <ListItemTimeline timelineID={timeline} />
+                                </ListItem>
+                            ))}
+                        </List>
 
                         <Typography variant="h2" sx={{ mt: 1 }}>
                             Message:

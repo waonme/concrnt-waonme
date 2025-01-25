@@ -2,7 +2,66 @@ import { useTranslation } from 'react-i18next'
 
 import { visit } from 'unist-util-visit'
 import { inspect } from 'unist-util-inspect'
-import { Sign, type CCDocument } from '@concurrent-world/client'
+import { Sign, type CCDocument, type Timeline } from '@concurrent-world/client'
+import { encode } from 'blurhash'
+
+export const convertToGoogleTranslateCode = (lang: string): string => {
+    switch (lang) {
+        case 'zh-Hans':
+            return 'zh-CN'
+        case 'zh-Hant':
+            return 'zh-TW'
+        default:
+            return lang
+    }
+}
+
+const loadImage = async (src: string): Promise<HTMLImageElement> =>
+    await new Promise((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+            resolve(img)
+        }
+        img.onerror = (...args) => {
+            reject(args)
+        }
+        img.src = src
+    })
+
+const getClampedSize = (width: number, height: number, max: number): { width: number; height: number } => {
+    if (width >= height && width > max) {
+        return { width: max, height: Math.round((height / width) * max) }
+    }
+
+    if (height > width && height > max) {
+        return { width: Math.round((width / height) * max), height: max }
+    }
+
+    return { width, height }
+}
+
+const getImageData = (image: HTMLImageElement, resolutionX: number, resolutionY: number): ImageData | undefined => {
+    const canvas = document.createElement('canvas')
+    canvas.width = resolutionX
+    canvas.height = resolutionY
+    const context = canvas.getContext('2d')
+    context?.drawImage(image, 0, 0, resolutionX, resolutionY)
+    return context?.getImageData(0, 0, resolutionX, resolutionY)
+}
+
+export const genBlurHash = async (url: string): Promise<string | undefined> => {
+    const img = await loadImage(url)
+    const clampedSize = getClampedSize(img.width, img.height, 64)
+    const data = getImageData(img, clampedSize.width, clampedSize.height)
+    if (data) {
+        return encode(data.data, clampedSize.width, clampedSize.height, 4, 4)
+    }
+}
+
+export const isPrivateTimeline = (tl: Timeline<any>): boolean => {
+    return tl.policy === 'https://policy.concrnt.world/t/inline-read-write.json' && !tl.policyParams?.isReadPublic
+}
 
 export const jumpToDomainRegistration = (ccid: string, privateKey: string, fqdn: string, callback: string): void => {
     const affiliation: CCDocument.Affiliation = {
@@ -170,7 +229,7 @@ export const strikeThroughRemarkPlugin = (): any => {
 export const userMentionRemarkPlugin = (): any => {
     return (tree: any) => {
         visit(tree, 'text', (node: any, index?: number, parent?: any) => {
-            const parts = node.value.split(/(@con1\w+)/)
+            const parts = node.value.split(/(^|\s+)(@con1\w{38})/)
             if (parts.length !== 1) {
                 parent.children.splice(
                     index,
@@ -212,7 +271,7 @@ export const colorCodeRemarkPlugin = (): any => {
 export const streamLinkRemarkPlugin = (): any => {
     return (tree: any) => {
         visit(tree, 'text', (node: any, index?: number, parent?: any) => {
-            const parts = node.value.split(/(#\w+@[^\s]+)/)
+            const parts = node.value.split(/(#[\w.-]+@[^\s]+)/)
             if (parts.length !== 1) {
                 parent.children.splice(
                     index,

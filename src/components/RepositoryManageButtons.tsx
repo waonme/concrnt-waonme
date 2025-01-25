@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useClient } from '../context/ClientContext'
-import { Button, TextField } from '@mui/material'
+import { Alert, Box, Button, TextField } from '@mui/material'
 import { type CCDocument, Schemas, Sign } from '@concurrent-world/client'
+import { useSnackbar } from 'notistack'
 
 interface v0data {
     content: any[]
@@ -27,45 +28,67 @@ export function RepositoryImportButton(props: { domain?: string; onImport?: (err
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
     const [sourceDomain, setSourceDomain] = useState<string>('')
+    const [progress, setProgress] = useState<string>('')
 
     const target = props.domain ?? client.host
 
-    const importRepo = (data: string): void => {
+    const importRepo = async (data: string): Promise<void> => {
         if (importStatus !== 'idle') return
 
         setImportStatus('loading')
-        client.api
-            .fetchWithCredential(
-                target,
-                '/api/v1/repository?from=' + sourceDomain,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
+
+        const lines = data.split('\n')
+        const chunks = []
+        let chunk = ''
+        lines.forEach((line, index) => {
+            chunk += line + '\n'
+            if ((index + 1) % 100 === 0) {
+                chunks.push(chunk)
+                chunk = ''
+            }
+        })
+
+        if (chunk.length > 0) {
+            chunks.push(chunk)
+        }
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i]
+            await client.api
+                .fetchWithCredential(
+                    target,
+                    '/api/v1/repository?from=' + sourceDomain,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        },
+                        body: chunk
                     },
-                    body: data
-                },
-                1000 * 60 * 10 // 10 minutes
-            )
-            .then((res) => {
-                if (res.ok) {
-                    console.log('imported')
-                    res.json().then((data) => {
-                        console.log(data)
-                        setImportStatus('success')
-                        props.onImport?.('')
-                    })
-                } else {
-                    console.error('failed to import')
+                    1000 * 60 * 10 // 10 minutes
+                )
+                .then((res) => {
+                    if (res.ok) {
+                        setProgress(`imported ${i}/${chunks.length}`)
+                        res.json().then((data) => {
+                            console.log('imported', i, data)
+                        })
+                    } else {
+                        console.error('failed to import')
+                        setImportStatus('error')
+                        props.onImport?.(`failed to import: ${res.statusText}`)
+                    }
+                })
+                .catch((e) => {
+                    console.error(e)
                     setImportStatus('error')
-                    props.onImport?.(`failed to import: ${res.statusText}`)
-                }
-            })
-            .catch((e) => {
-                console.error(e)
-                setImportStatus('error')
-                props.onImport?.(`failed to import: ${e}`)
-            })
+                    props.onImport?.(`failed to import: ${e}`)
+                })
+        }
+
+        console.log('imported')
+        setImportStatus('success')
+        props.onImport?.('')
     }
 
     return (
@@ -104,7 +127,7 @@ export function RepositoryImportButton(props: { domain?: string; onImport?: (err
                     fileInputRef.current?.click()
                 }}
             >
-                {status[importStatus]}
+                {status[importStatus] + (importStatus === 'loading' ? `(${progress})` : '')}
             </Button>
         </>
     )
@@ -220,27 +243,123 @@ export function V0RepositoryImportButton(): JSX.Element {
 
 export function RepositoryExportButton(): JSX.Element {
     const { client } = useClient()
+    const { enqueueSnackbar } = useSnackbar()
+    const [syncStatus, setSyncStatus] = useState<any>(null)
+
+    useEffect(() => {
+        if (!client.user) return
+
+        client.api
+            .fetchWithCredential(client.host, '/api/v1/repositories/sync', {})
+            .then((res) => res.json())
+            .then((data) => {
+                console.log(data.content)
+                setSyncStatus(data.content)
+            })
+    }, [])
+
+    const isDateValid = syncStatus && new Date(syncStatus?.latestOnFile).getTime() > 0
+
     return (
-        <Button
-            onClick={() => {
-                client.api
-                    .fetchWithCredential(client.host, '/api/v1/repository', {}, 60000)
-                    .then((res) => res.blob())
-                    .then((blob) => {
-                        const url = window.URL.createObjectURL(blob)
-                        const a = document.createElement('a')
-                        a.href = url
-                        a.download =
-                            (client.user?.profile?.username ?? 'anonymous') +
-                            '-backup-' +
-                            new Date().toLocaleDateString() +
-                            '.txt'
-                        a.click()
-                        window.URL.revokeObjectURL(url)
-                    })
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2
             }}
         >
-            レポジトリデータのエクスポート
-        </Button>
+            {syncStatus?.status === 'syncing' && (
+                <Alert
+                    severity="info"
+                    action={
+                        <Button
+                            variant="contained"
+                            onClick={() =>
+                                client.api
+                                    .fetchWithCredential(client.host, '/api/v1/repositories/sync', {})
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                        setSyncStatus(data.content)
+                                    })
+                            }
+                        >
+                            リロード
+                        </Button>
+                    }
+                >
+                    バックアップデータは現在同期中です。しばらくお待ちください。({syncStatus?.progress})
+                </Alert>
+            )}
+            {syncStatus?.status === 'insync' && (
+                <Alert severity="success">最新のバックアップデータがダウンロード可能です。</Alert>
+            )}
+            {syncStatus?.status === 'outofsync' && (
+                <Alert
+                    severity="info"
+                    action={
+                        <Button
+                            variant="contained"
+                            onClick={() =>
+                                client.api
+                                    .fetchWithCredential(client.host, '/api/v1/repositories/sync', {
+                                        method: 'POST'
+                                    })
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                        console.log(data)
+                                        setSyncStatus(data.content)
+                                        enqueueSnackbar('更新をリクエストしました。しばらくお待ちください。', {
+                                            variant: 'info'
+                                        })
+                                    })
+                            }
+                        >
+                            更新をリクエスト
+                        </Button>
+                    }
+                >
+                    {isDateValid ? (
+                        <>
+                            現在ダウンロードできるバックアップデータは
+                            {new Date(syncStatus?.latestOnFile).toLocaleDateString()}-
+                            {new Date(syncStatus?.latestOnFile).toLocaleTimeString()}までのデータです。
+                        </>
+                    ) : (
+                        <>バックアップデータが未作成です。更新をリクエストしてください。</>
+                    )}
+                </Alert>
+            )}
+
+            <Button
+                disabled={syncStatus?.status === 'syncing' || !isDateValid}
+                onClick={() => {
+                    client.api
+                        .fetchWithCredential(client.host, '/api/v1/repository', {})
+                        .then((res) => res.blob())
+                        .then((blob) => {
+                            const url = window.URL.createObjectURL(blob)
+                            const a = document.createElement('a')
+                            a.href = url
+                            a.download =
+                                (client.user?.profile?.username ?? 'anonymous') +
+                                '-backup-' +
+                                new Date().toLocaleDateString() +
+                                '.txt'
+                            a.click()
+                            window.URL.revokeObjectURL(url)
+                        })
+                }}
+            >
+                {!isDateValid
+                    ? 'バックアップデータのエクスポート'
+                    : syncStatus?.status === 'syncing'
+                    ? '準備中...'
+                    : syncStatus?.status === 'insync'
+                    ? 'バックアップデータのエクスポート'
+                    : `${new Date(syncStatus?.latestOnFile).toLocaleDateString()}-${new Date(
+                          syncStatus?.latestOnFile
+                      ).toLocaleTimeString()}までのレポジトリデータをエクスポート`}
+            </Button>
+        </Box>
     )
 }
